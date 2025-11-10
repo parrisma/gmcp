@@ -1,0 +1,153 @@
+{
+  "name": "N8N-MCP-Integration-Test1",
+  "nodes": [
+    {
+      "parameters": {
+        "endpointUrl": "http://gplot_dev:8001/mcp/",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.mcpClientTool",
+      "typeVersion": 1.2,
+      "position": [
+        48,
+        0
+      ],
+      "id": "0c7a8660-acc7-4ef8-b4d7-2e8f0506d9c3",
+      "name": "MCP GPLOT Client"
+    },
+    {
+      "parameters": {
+        "model": "openai/gpt-4",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenRouter",
+      "typeVersion": 1,
+      "position": [
+        -144,
+        0
+      ],
+      "id": "27d71ba3-0de7-4b84-932b-0c33b9426584",
+      "name": "OpenRouter LLM 1",
+      "credentials": {
+        "openRouterApi": {
+          "id": "EbKTyTjh6DL4ZNdg",
+          "name": "OpenRouter 1"
+        }
+      }
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        -528,
+        -224
+      ],
+      "id": "1915ab2d-cd41-4be3-a1af-d20a17bc5bbe",
+      "name": "When clicking ‘Execute workflow’"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "Interrogate the attached mcp gplot server and generate a random strict json message with just the parameters to render a graph with the gplot mcp server in a later stage.\n\nYour response must be pure and strict json only, and conform to parameters supported by gplot mcp\n\nNote X&Y data sets must be of the same dimension and should be between 30 and 100 points. Avoid straight line data sets",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3,
+      "position": [
+        -304,
+        -224
+      ],
+      "id": "eb0184f5-7c88-4e5a-8457-ea8d6727f00b",
+      "name": "AI Gen Graph"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=Use this json {{ $json.output }} call the mcp server gplot, you must request \"proxy\" so only a GUID reference is returned.",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3,
+      "position": [
+        48,
+        -224
+      ],
+      "id": "6c40dd4f-147b-46a8-98ec-f41d40cd9bb6",
+      "name": "AI Render Graph"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "MCP GPLOT Client": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Render Graph",
+            "type": "ai_tool",
+            "index": 0
+          },
+          {
+            "node": "AI Gen Graph",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenRouter LLM 1": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Render Graph",
+            "type": "ai_languageModel",
+            "index": 0
+          },
+          {
+            "node": "AI Gen Graph",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "When clicking ‘Execute workflow’": {
+      "main": [
+        [
+          {
+            "node": "AI Gen Graph",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Gen Graph": {
+      "main": [
+        [
+          {
+            "node": "AI Render Graph",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Render Graph": {
+      "main": [
+        []
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "a5cc496c-3aa1-4da8-8548-627df29f4b64",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "0eba2dfa91fa7e24dbebf3ebd783deb9e7eab1406afa04de51cedb2af945f6da"
+  },
+  "id": "oUy2f5puU0DIAVWX",
+  "tags": []
+}

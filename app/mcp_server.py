@@ -4,22 +4,24 @@
 This server exposes graph rendering capabilities through the Model Context Protocol.
 It provides tools to render line and bar charts using matplotlib.
 
-This server uses SSE (Server-Sent Events) transport, making it compatible with
-n8n's MCP Client Tool and other modern MCP clients.
+This server uses Streamable HTTP transport, which is the modern preferred standard
+for MCP servers, superseding SSE. It's compatible with n8n's MCP Client Tool and
+other modern MCP clients.
 """
 
 import asyncio
+import contextlib
 import json
 import sys
 from pathlib import Path
-from typing import Any
+from typing import Any, AsyncIterator
 from mcp.server.models import InitializationOptions
 from mcp.server import NotificationOptions, Server
-from mcp.server.sse import SseServerTransport
+from mcp.server.streamable_http_manager import StreamableHTTPSessionManager
 from starlette.applications import Starlette
-from starlette.requests import Request
-from starlette.responses import Response
-from starlette.routing import Mount, Route
+from starlette.middleware.cors import CORSMiddleware
+from starlette.routing import Mount
+from starlette.types import Receive, Scope, Send
 from mcp.types import (
     Tool,
     TextContent,
@@ -31,17 +33,20 @@ from mcp.types import (
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
 from app.render import GraphRenderer
-from app.models import GraphData
+from app.graph_params import GraphParams
 from app.validation import GraphDataValidator
+from app.storage import get_storage
 from app.logger import ConsoleLogger
 import logging as python_logging
 from datetime import datetime
+import base64
 
 
 # Initialize the MCP server
 app = Server("gplot-renderer")
 renderer = GraphRenderer()
 validator = GraphDataValidator()
+storage = get_storage()
 logger = ConsoleLogger(name="mcp_server", level=python_logging.INFO)
 
 
@@ -57,8 +62,9 @@ async def handle_list_tools() -> list[Tool]:
         Tool(
             name="render_graph",
             description=(
-                "Render a graph (line or bar chart) and return it as a base64-encoded PNG image. "
-                "Provide data points, labels, and styling options to create the visualization."
+                "Render a graph (line or bar chart) and return it as a base64-encoded PNG image or GUID. "
+                "Provide data points, labels, and styling options to create the visualization. "
+                "If proxy=true, the image is saved to disk and a GUID is returned instead of base64 data."
             ),
             inputSchema={
                 "type": "object",
@@ -90,8 +96,36 @@ async def handle_list_tools() -> list[Tool]:
                         "description": "The type of the graph: 'line', 'scatter', or 'bar' (default: 'line')",
                         "default": "line",
                     },
+                    "format": {
+                        "type": "string",
+                        "enum": ["png", "jpg", "svg", "pdf"],
+                        "description": "Image format (default: 'png'). Supported: png, jpg, svg, pdf",
+                        "default": "png",
+                    },
+                    "proxy": {
+                        "type": "boolean",
+                        "description": "If true, save image to disk and return GUID instead of base64 (default: false)",
+                        "default": False,
+                    },
                 },
                 "required": ["title", "x", "y"],
+            },
+        ),
+        Tool(
+            name="get_image",
+            description=(
+                "Retrieve a previously rendered image by its GUID. "
+                "Returns the image as base64-encoded data."
+            ),
+            inputSchema={
+                "type": "object",
+                "properties": {
+                    "guid": {
+                        "type": "string",
+                        "description": "The GUID of the image to retrieve (returned by render_graph with proxy=true)",
+                    },
+                },
+                "required": ["guid"],
             },
         ),
     ]
@@ -118,12 +152,76 @@ async def handle_call_tool(
             )
         ]
 
+    if name == "get_image":
+        logger.info("Get image tool called")
+
+        # Validate required arguments
+        if "guid" not in arguments:
+            logger.warning("Missing required argument: guid")
+            return [
+                TextContent(
+                    type="text",
+                    text="Error: Missing required argument 'guid'\n\n"
+                    "Provide the GUID of the image to retrieve.",
+                )
+            ]
+
+        guid = arguments["guid"]
+
+        try:
+            # Retrieve image from storage
+            image_result = storage.get_image(guid)
+
+            if image_result is None:
+                logger.warning("Image not found", guid=guid)
+                return [
+                    TextContent(
+                        type="text",
+                        text=f"Error: Image not found for GUID: {guid}\n\n"
+                        "The image may have been deleted or the GUID is invalid.",
+                    )
+                ]
+
+            image_data, img_format = image_result
+
+            # Encode to base64
+            base64_image = base64.b64encode(image_data).decode("utf-8")
+
+            logger.info(
+                "Image retrieved successfully", guid=guid, format=img_format, size=len(image_data)
+            )
+
+            return [
+                ImageContent(type="image", data=base64_image, mimeType=f"image/{img_format}"),
+                TextContent(
+                    type="text",
+                    text=f"Successfully retrieved image: {guid}.{img_format}",
+                ),
+            ]
+
+        except ValueError as e:
+            logger.error("Invalid GUID", guid=guid, error=str(e))
+            return [
+                TextContent(
+                    type="text",
+                    text=f"Error: Invalid GUID format: {guid}\n\n{str(e)}",
+                )
+            ]
+        except Exception as e:
+            logger.error("Failed to retrieve image", guid=guid, error=str(e))
+            return [
+                TextContent(
+                    type="text",
+                    text=f"Error retrieving image: {str(e)}",
+                )
+            ]
+
     if name != "render_graph":
         logger.warning("Unknown tool requested", tool_name=name)
         return [
             TextContent(
                 type="text",
-                text=f"Error: Unknown tool '{name}'\n\nAvailable tools:\n- ping\n- render_graph",
+                text=f"Error: Unknown tool '{name}'\n\nAvailable tools:\n- ping\n- render_graph\n- get_image",
             )
         ]
 
@@ -170,9 +268,10 @@ async def handle_call_tool(
             chart_type=arguments.get("type", "line"),
         )
 
-        # Create GraphData from arguments - pass all optional fields
+        # Create GraphParams from arguments - pass all optional fields
         try:
-            graph_data = GraphData(
+            is_proxy = arguments.get("proxy", False)
+            graph_data = GraphParams(
                 title=arguments["title"],
                 x=arguments["x"],
                 y=arguments["y"],
@@ -180,7 +279,8 @@ async def handle_call_tool(
                 ylabel=arguments.get("ylabel", "Y-axis"),
                 type=arguments.get("type", "line"),
                 format=arguments.get("format", "png"),
-                return_base64=True,
+                return_base64=not is_proxy,  # If proxy, don't return base64
+                proxy=is_proxy,
                 color=arguments.get("color"),
                 line_width=arguments.get("line_width", 2.0),
                 marker_size=arguments.get("marker_size", 36.0),
@@ -276,7 +376,22 @@ async def handle_call_tool(
                 )
             ]
 
-        # Ensure it's a string for ImageContent
+        # Check if result is a GUID (proxy mode) or base64 data
+        if is_proxy:
+            # Proxy mode: base64_image is actually a GUID string
+            guid = str(base64_image)
+            logger.info("Returning GUID response (proxy mode)", title=graph_data.title, guid=guid)
+            return [
+                TextContent(
+                    type="text",
+                    text=f"Image saved with GUID: {guid}\n\n"
+                    f"Chart: {graph_data.type} - '{graph_data.title}'\n"
+                    f"Format: {graph_data.format}\n"
+                    f"Use get_image tool with guid='{guid}' to retrieve the image.",
+                ),
+            ]
+
+        # Regular mode: Ensure it's a string for ImageContent
         try:
             if isinstance(base64_image, bytes):
                 base64_image = base64_image.decode("utf-8")
@@ -300,7 +415,7 @@ async def handle_call_tool(
         try:
             logger.info("Returning successful response", title=graph_data.title)
             result: list[TextContent | ImageContent | EmbeddedResource] = [
-                ImageContent(type="image", data=base64_str, mimeType="image/png"),
+                ImageContent(type="image", data=base64_str, mimeType=f"image/{graph_data.format}"),
                 TextContent(
                     type="text",
                     text=f"Successfully rendered {graph_data.type} chart: '{graph_data.title}'",
@@ -335,74 +450,119 @@ async def handle_call_tool(
         ]
 
 
-# Create SSE transport with /messages/ endpoint for POSTing messages
-sse = SseServerTransport("/messages/")
-
-
-async def handle_sse(request: Request) -> Response:
-    """Handle SSE connections for MCP protocol."""
-    async with sse.connect_sse(request.scope, request.receive, request._send) as streams:  # type: ignore[reportPrivateUsage]
-        await app.run(
-            streams[0],
-            streams[1],
-            InitializationOptions(
-                server_name="gplot-renderer",
-                server_version="1.0.0",
-                capabilities=app.get_capabilities(
-                    notification_options=NotificationOptions(),
-                    experimental_capabilities={},
-                ),
-            ),
-        )
-    return Response()
-
-
-# Create Starlette app for SSE transport
-starlette_app = Starlette(
-    debug=True,
-    routes=[
-        Route("/sse", endpoint=handle_sse, methods=["GET"]),
-        Mount("/messages/", app=sse.handle_post_message),
-    ],
+# Create StreamableHTTP session manager
+session_manager = StreamableHTTPSessionManager(
+    app=app,
+    event_store=None,  # No event store for stateless operation
+    json_response=False,  # Use SSE streams by default
+    stateless=False,  # Maintain session state
 )
 
 
-async def main():
-    """
-    Run the MCP server with SSE transport and comprehensive error handling.
+async def handle_streamable_http(scope: Scope, receive: Receive, send: Send) -> None:
+    """Handle Streamable HTTP requests for MCP protocol."""
+    await session_manager.handle_request(scope, receive, send)
 
-    The server runs on port 8001 by default and serves MCP protocol over SSE.
+
+@contextlib.asynccontextmanager
+async def lifespan(app: Starlette) -> AsyncIterator[None]:
+    """Context manager for managing session manager lifecycle."""
+    logger.info("Initializing StreamableHTTP session manager")
+    async with session_manager.run():
+        logger.info("StreamableHTTP session manager started", status="ready")
+        try:
+            yield
+        finally:
+            logger.info("StreamableHTTP session manager shutting down", status="stopping")
+
+
+# Create Starlette app for Streamable HTTP transport
+# Use trailing slash in mount path to avoid redirects
+starlette_app = Starlette(
+    debug=True,
+    routes=[
+        Mount("/mcp/", app=handle_streamable_http),
+    ],
+    lifespan=lifespan,
+)
+
+# Add CORS middleware to expose Mcp-Session-Id header
+starlette_app = CORSMiddleware(
+    starlette_app,
+    allow_origins=["*"],  # Allow all origins - adjust for production
+    allow_methods=["GET", "POST", "DELETE"],  # MCP streamable HTTP methods
+    expose_headers=["Mcp-Session-Id"],
+)
+
+
+async def main(host: str = "0.0.0.0", port: int = 8001):
+    """
+    Run the MCP server with Streamable HTTP transport and comprehensive error handling.
+
+    Args:
+        host: Host address to bind to (default: 0.0.0.0)
+        port: Port number to listen on (default: 8001)
     """
     import uvicorn
 
-    logger.info("Starting MCP SSE server", version="1.0.0", port=8001)
+    logger.info(
+        "Starting MCP Streamable HTTP server",
+        version="1.0.0",
+        host=host,
+        port=port,
+        transport="Streamable HTTP",
+    )
     try:
         config = uvicorn.Config(
             starlette_app,
-            host="0.0.0.0",
-            port=8001,
+            host=host,
+            port=port,
             log_level="info",
         )
         server = uvicorn.Server(config)
-        logger.info("Server initialized, listening on http://0.0.0.0:8001/sse")
+        logger.info(f"Server initialized, listening on http://{host}:{port}/mcp/", endpoint="/mcp/")
         await server.serve()
+        logger.info("Server shutdown complete")
     except KeyboardInterrupt:
         # Handle graceful shutdown
         logger.info("Server stopped by user")
-        print("\nServer stopped by user", file=sys.stderr)
     except Exception as e:
         logger.critical("Fatal server error", error=str(e), error_type=type(e).__name__)
-        print(f"Fatal server error: {str(e)}", file=sys.stderr)
-        print(f"Error type: {type(e).__name__}", file=sys.stderr)
         sys.exit(1)
 
 
 if __name__ == "__main__":
+    import argparse
+
+    # Parse command line arguments
+    parser = argparse.ArgumentParser(
+        description="gplot MCP Server - Graph rendering via Model Context Protocol"
+    )
+    parser.add_argument(
+        "--host",
+        type=str,
+        default="0.0.0.0",
+        help="Host address to bind to (default: 0.0.0.0)",
+    )
+    parser.add_argument(
+        "--port",
+        type=int,
+        default=8001,
+        help="Port number to listen on (default: 8001)",
+    )
+    args = parser.parse_args()
+
+    # Create logger for startup messages
+    from app.logger import ConsoleLogger
+    import logging
+
+    startup_logger = ConsoleLogger(name="startup", level=logging.INFO)
+
     try:
-        asyncio.run(main())
+        asyncio.run(main(host=args.host, port=args.port))
     except KeyboardInterrupt:
-        print("\nShutdown complete", file=sys.stderr)
+        startup_logger.info("Shutdown complete")
         sys.exit(0)
     except Exception as e:
-        print(f"Failed to start server: {str(e)}", file=sys.stderr)
+        startup_logger.error("Failed to start server", error=str(e))
         sys.exit(1)

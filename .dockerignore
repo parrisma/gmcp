@@ -65,8 +65,3 @@ docs/_build/
 docker/
 Dockerfile*
 .dockerignore
-
-# Development files
-README.md
-MCP_README.md
-*.md

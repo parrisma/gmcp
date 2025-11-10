@@ -3,13 +3,13 @@ from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
     from matplotlib.axes import Axes
-    from app.models import GraphData
+    from app.graph_params import GraphParams
 
 
 class GraphHandler(ABC):
     """Base class for graph type handlers"""
 
     @abstractmethod
-    def plot(self, ax: "Axes", data: "GraphData") -> None:
+    def plot(self, ax: "Axes", data: "GraphParams") -> None:
         """Plot the graph on the given axes"""
         pass

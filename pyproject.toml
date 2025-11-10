@@ -2,7 +2,7 @@
 name = "gplot"
 version = "1.0.0"
 description = "Graph rendering service with MCP server support"
-readme = "MCP_README.md"
+readme = "README.md"
 license = {text = "MIT"}
 requires-python = ">=3.11"
 dependencies = [

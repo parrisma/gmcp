@@ -1,7 +1,7 @@
-#!/usr/bin/env python3
+#!/usr:bin/env python3
 """
 Simple test script to verify MCP server functionality.
-This script tests the render_graph tool through the MCP protocol using SSE transport.
+This script tests the render_graph tool through the MCP protocol using Streamable HTTP transport.
 """
 
 import asyncio
@@ -15,24 +15,24 @@ import httpx
 sys.path.insert(0, str(Path(__file__).parent.parent.parent))
 
 from mcp import ClientSession
-from mcp.client.sse import sse_client
+from mcp.client.streamable_http import streamablehttp_client
 from app.logger import ConsoleLogger
 
 
 async def test_mcp_server():
-    """Test the MCP server by calling the render_graph tool via SSE"""
+    """Test the MCP server by calling the render_graph tool via Streamable HTTP"""
 
     # Initialize logger
     logger = ConsoleLogger(name="mcp_test", level=logging.INFO)
 
-    # SSE server endpoint
-    sse_url = "http://localhost:8001/sse"
+    # Streamable HTTP server endpoint
+    http_url = "http://localhost:8001/mcp/"
 
-    logger.info("Starting MCP server test with SSE transport", url=sse_url)
+    logger.info("Starting MCP server test with Streamable HTTP transport", url=http_url)
     print("-" * 50)
 
-    # Connect to SSE server
-    async with sse_client(sse_url) as (read, write):
+    # Connect to Streamable HTTP server
+    async with streamablehttp_client(http_url) as (read, write, _):
         async with ClientSession(read, write) as session:
             # Initialize the session
             await session.initialize()

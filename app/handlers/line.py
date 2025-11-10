@@ -2,7 +2,7 @@ from typing import TYPE_CHECKING, Any
 
 if TYPE_CHECKING:
     from matplotlib.axes import Axes
-    from app.models import GraphData
+    from app.graph_params import GraphParams
 
 from app.handlers.base import GraphHandler
 
@@ -10,7 +10,7 @@ from app.handlers.base import GraphHandler
 class LineGraphHandler(GraphHandler):
     """Handler for line graphs"""
 
-    def plot(self, ax: "Axes", data: "GraphData") -> None:
+    def plot(self, ax: "Axes", data: "GraphParams") -> None:
         """
         Plot line graph with error handling
 

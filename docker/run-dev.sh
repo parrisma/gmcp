@@ -35,7 +35,7 @@ if docker ps -q -f name=gplot_dev | grep -q .; then
     echo "To connect from shell: docker exec -it gplot_dev /bin/bash"
     echo "To connect from VS Code: use container name 'gplot_dev'"
     echo "HTTP REST API available at http://localhost:8000"
-    echo "MCP SSE Server available at http://localhost:8001/sse"
+    echo "MCP Streamable HTTP Server available at http://localhost:8001/mcp/"
 else
     echo "ERROR: Container gplot_dev failed to start"
     exit 1

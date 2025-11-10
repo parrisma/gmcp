@@ -123,16 +123,21 @@ gplot/
 │   ├── Dockerfile.dev
 │   ├── Dockerfile.prod
 │   └── README.md
+├── docs/                    # Documentation
+│   ├── MCP_README.md        # MCP-specific documentation
+│   ├── PROXY_MODE.md        # Proxy mode guide
+│   └── README_N8N_MCP.md    # N8N integration guide
 ├── .devcontainer/           # VS Code dev container config
 ├── .vscode/                 # VS Code settings
 ├── pyproject.toml           # Project dependencies
-├── MCP_README.md            # MCP-specific documentation
 └── README.md                # This file
 ```
 
 ## Documentation
 
-- **[MCP Server Documentation](./MCP_README.md)** - Model Context Protocol integration details
+- **[MCP Server Documentation](./docs/MCP_README.md)** - Model Context Protocol integration details
+- **[Proxy Mode Guide](./docs/PROXY_MODE.md)** - GUID-based image storage and retrieval
+- **[N8N MCP Integration](./docs/README_N8N_MCP.md)** - N8N workflow automation setup
 - **[Logger Module](./app/logger/README.md)** - Custom logging system documentation
 - **[Docker Setup](./docker/README.md)** - Container configuration and deployment
 - **[MCP Tests](./test/mcp/README.md)** - MCP server testing guide
@@ -244,7 +249,7 @@ Example:
 from app.handlers.base import GraphHandler
 
 class HistogramHandler(GraphHandler):
-    def plot(self, ax: "Axes", data: "GraphData") -> None:
+    def plot(self, ax: "Axes", data: "GraphParams") -> None:
         ax.hist(data.y, bins=10)
 ```
 

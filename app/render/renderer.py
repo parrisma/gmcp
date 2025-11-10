@@ -1,3 +1,8 @@
+"""Graph renderer implementation
+
+Main renderer class that coordinates the rendering pipeline.
+"""
+
 import matplotlib.pyplot as plt
 import io
 import base64
@@ -35,7 +40,7 @@ class GraphRenderer:
             data: GraphParams containing all parameters for rendering
 
         Returns:
-            Base64-encoded string or raw bytes depending on data.return_base64
+            Base64-encoded string, raw bytes, or GUID string (proxy mode)
 
         Raises:
             ValueError: If graph type is not supported or theme is invalid

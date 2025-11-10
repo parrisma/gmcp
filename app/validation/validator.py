@@ -1,5 +1,5 @@
 from typing import Any, List, Optional
-from app.models import GraphData
+from app.graph_params import GraphParams
 from app.validation.models import ValidationError, ValidationResult
 from app.themes import list_themes
 
@@ -12,17 +12,18 @@ class GraphDataValidator:
         self.valid_formats = ["png", "jpg", "svg", "pdf"]
         self.valid_themes = list_themes()
 
-    def validate(self, data: GraphData) -> ValidationResult:
+    def validate(self, data: GraphParams) -> ValidationResult:
         """
-        Validate graph data and return detailed results with comprehensive error handling
+        Validate graph data and return structured validation results.
 
         Args:
-            data: GraphData instance to validate
+            data: The graph data to validate
 
         Returns:
-            ValidationResult with errors and suggestions
+            ValidationResult with errors and warnings
         """
         errors: List[ValidationError] = []
+        warnings: List[ValidationError] = []
 
         try:
             # Validate x and y arrays
@@ -131,7 +132,7 @@ class GraphDataValidator:
                 ],
             )
 
-    def _validate_arrays(self, data: GraphData) -> List[ValidationError]:
+    def _validate_arrays(self, data: GraphParams) -> List[ValidationError]:
         """Validate x and y arrays"""
         errors = []
 
@@ -195,7 +196,7 @@ class GraphDataValidator:
 
         return errors
 
-    def _validate_type(self, data: GraphData) -> List[ValidationError]:
+    def _validate_type(self, data: GraphParams) -> List[ValidationError]:
         """Validate chart type"""
         errors = []
 
@@ -217,7 +218,7 @@ class GraphDataValidator:
 
         return errors
 
-    def _validate_format(self, data: GraphData) -> List[ValidationError]:
+    def _validate_format(self, data: GraphParams) -> List[ValidationError]:
         """Validate output format"""
         errors = []
 
@@ -240,7 +241,7 @@ class GraphDataValidator:
 
         return errors
 
-    def _validate_theme(self, data: GraphData) -> List[ValidationError]:
+    def _validate_theme(self, data: GraphParams) -> List[ValidationError]:
         """Validate theme"""
         errors = []
 
@@ -262,7 +263,7 @@ class GraphDataValidator:
 
         return errors
 
-    def _validate_numeric_ranges(self, data: GraphData) -> List[ValidationError]:
+    def _validate_numeric_ranges(self, data: GraphParams) -> List[ValidationError]:
         """Validate numeric parameter ranges"""
         errors = []
 
@@ -319,7 +320,7 @@ class GraphDataValidator:
 
         return errors
 
-    def _validate_color(self, data: GraphData) -> List[ValidationError]:
+    def _validate_color(self, data: GraphParams) -> List[ValidationError]:
         """Validate color format"""
         errors = []
 

@@ -30,19 +30,19 @@ This means:
 
 ## Connecting N8N to gplot MCP Server
 
-The gplot MCP server now supports **SSE (Server-Sent Events) transport** on port 8001, making it compatible with N8N's MCP Client Tool!
+The gplot MCP server uses **Streamable HTTP transport** on port 8001, which is the modern preferred standard for MCP servers (superseding SSE). This makes it fully compatible with N8N's MCP Client Tool!
 
 ### Option 1: Use N8N's MCP Client Tool (Recommended for MCP Protocol)
-N8N can now connect directly to gplot's SSE MCP endpoint:
+N8N can connect directly to gplot's Streamable HTTP MCP endpoint:
 
 **Configuration:**
 1. Add "MCP Client Tool" node to your n8n workflow
 2. Configure the endpoint:
-   - URL: `http://gplot_dev:8001/sse` (dev) or `http://gplot_prod:8001/sse` (prod)
+   - URL: `http://gplot_dev:8001/mcp` (dev) or `http://gplot_prod:8001/mcp` (prod)
    - Authentication: None (if running on gmcp_net network)
 3. Use the `render_graph` or `ping` tools via MCP protocol
 
-**Example MCP Tool Call:**
+**Example MCP Tool Call (Normal Mode):**
 ```json
 {
   "tool": "render_graph",
@@ -55,6 +55,34 @@ N8N can now connect directly to gplot's SSE MCP endpoint:
   }
 }
 ```
+
+Returns base64-encoded image data directly.
+
+**Example MCP Tool Call (Proxy Mode):**
+```json
+{
+  "tool": "render_graph",
+  "arguments": {
+    "x": [1, 2, 3, 4, 5],
+    "y": [2, 4, 6, 8, 10],
+    "title": "Sales Data",
+    "type": "line",
+    "format": "png",
+    "proxy": true
+  }
+}
+```
+
+Returns a GUID string. The image is saved to `/tmp/gplot_images/{guid}.png` on the server. You can retrieve it later using the `get_image` tool or access it via web endpoints:
+- MCP: `get_image` tool with the GUID
+- Web: `GET http://gplot_dev:8000/render/{guid}`
+- Browser: `GET http://gplot_dev:8000/render/{guid}/html`
+
+**Proxy Mode Benefits:**
+- Reduces network bandwidth (only GUID transferred initially)
+- Persistent storage of rendered graphs
+- Enables deferred retrieval and multiple access patterns
+- Ideal for large images or when images need to be reused
 
 ### Option 2: Use N8N's HTTP Request Node (Alternative)
 Instead of using MCP protocol, call gplot's REST API directly:
@@ -101,19 +129,19 @@ However, this is for external clients connecting to n8n or other services, not f
 ### Docker Network: gmcp_net
 Both gplot and n8n containers run on the same Docker network:
 - **gplot_dev/prod REST API:** Accessible at `http://gplot_dev:8000` or `http://gplot_prod:8000`
-- **gplot_dev/prod MCP SSE:** Accessible at `http://gplot_dev:8001` or `http://gplot_prod:8001`
+- **gplot_dev/prod MCP Streamable HTTP:** Accessible at `http://gplot_dev:8001/mcp` or `http://gplot_prod:8001/mcp`
 - **n8n:** Accessible at `http://n8n:5678`
 
 ### Communication Pattern
 ```
-┌─────────────┐     MCP SSE (Port 8001)     ┌────────────┐
-│   N8N       │ ────────────────────────►   │   gplot    │
-│ Workflows   │     HTTP REST (Port 8000)   │  Service   │
-│             │ ────────────────────────►   │            │
-└─────────────┘                             └────────────┘
-     │                                           │
-     │                                           │
-     └────────── gmcp_net Network ───────────────┘
+┌─────────────┐  MCP Streamable HTTP (8001)  ┌────────────┐
+│   N8N       │ ────────────────────────►    │   gplot    │
+│ Workflows   │     HTTP REST (Port 8000)    │  Service   │
+│             │ ────────────────────────►    │            │
+└─────────────┘                              └────────────┘
+     │                                            │
+     │                                            │
+     └────────── gmcp_net Network ────────────────┘
 ```
 
 ### Recommended Usage in N8N
@@ -151,14 +179,15 @@ If you want n8n to act as an MCP Server (for external clients):
 
 ## Summary
 
-- **N8N → gplot (MCP):** Use MCP Client Tool node to connect to `http://gplot_dev:8001/sse` ✅
+- **N8N → gplot (MCP):** Use MCP Client Tool node to connect to `http://gplot_dev:8001/mcp` ✅
 - **N8N → gplot (REST):** Use HTTP Request node to call `http://gplot_dev:8000/render` ✅
-- **N8N as MCP Server:** Supported via SSE (for exposing n8n workflows to external MCP clients) ✅
-- **N8N as MCP Client:** Fully supported - gplot now uses SSE transport! ✅
-- **gplot MCP Server:** Now accessible via SSE on port 8001, compatible with N8N's MCP Client Tool ✅
+- **N8N as MCP Server:** Supported via Streamable HTTP (for exposing n8n workflows to external MCP clients) ✅
+- **N8N as MCP Client:** Fully supported - gplot uses Streamable HTTP transport! ✅
+- **gplot MCP Server:** Accessible via Streamable HTTP on port 8001, compatible with N8N's MCP Client Tool ✅
+- **Transport:** Streamable HTTP (modern MCP standard, superseding SSE) ✅
 
 You can choose between:
-1. **MCP Protocol (Port 8001):** Full MCP tool integration with standardized protocol
+1. **MCP Protocol (Port 8001):** Full MCP tool integration with standardized Streamable HTTP protocol
 2. **HTTP REST API (Port 8000):** Simple HTTP endpoint for direct rendering requests
 
 Both approaches work seamlessly within the gmcp_net Docker network.

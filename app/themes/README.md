@@ -129,11 +129,11 @@ theme = get_theme("custom")
 ### Step 3: Use Your Theme
 
 ```python
-from app.models import GraphData
+from app.graph_params import GraphParams
 from app.render import GraphRenderer
 
 renderer = GraphRenderer()
-data = GraphData(
+data = GraphParams(
     title="Custom Theme Chart",
     x=[1, 2, 3],
     y=[1, 4, 9],

@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Test ping tool for MCP server using SSE transport"""
+"""Test ping tool for MCP server using Streamable HTTP transport"""
 
 import sys
 from pathlib import Path
@@ -8,7 +8,7 @@ sys.path.insert(0, str(Path(__file__).parent.parent.parent))
 
 import asyncio
 from mcp import ClientSession
-from mcp.client.sse import sse_client
+from mcp.client.streamable_http import streamablehttp_client
 from app.logger import ConsoleLogger
 import logging
 
@@ -16,11 +16,11 @@ import logging
 async def test_ping():
     """Test that ping tool returns timestamp"""
     logger = ConsoleLogger(name="ping_test", level=logging.INFO)
-    logger.info("Starting MCP ping test with SSE transport")
+    logger.info("Starting MCP ping test with Streamable HTTP transport")
 
-    sse_url = "http://localhost:8001/sse"
+    http_url = "http://localhost:8001/mcp/"
 
-    async with sse_client(sse_url) as (read, write):
+    async with streamablehttp_client(http_url) as (read, write, _):
         async with ClientSession(read, write) as session:
             await session.initialize()
             logger.info("MCP server initialized successfully")
@@ -31,7 +31,7 @@ async def test_ping():
             logger.info("Found tools", count=len(tool_names), tools=tool_names)
 
             assert "ping" in tool_names, "ping tool not found"
-            logger.info("✓ Ping tool is available")
+            logger.info("Ping tool is available")
 
             # Call ping tool
             result = await session.call_tool("ping", arguments={})
@@ -46,7 +46,7 @@ async def test_ping():
             assert "Timestamp:" in response_text
             assert "Service: gplot" in response_text
 
-            logger.info("✓ Ping tool returned correct response")
+            logger.info("Ping tool returned correct response")
             logger.info("All ping tests completed successfully")
 
 

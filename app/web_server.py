@@ -1,11 +1,13 @@
 from fastapi import FastAPI, HTTPException
-from fastapi.responses import JSONResponse, Response
-from app.models import GraphData
+from fastapi.responses import JSONResponse, Response, HTMLResponse
+from app.graph_params import GraphParams
 from app.render import GraphRenderer
 from app.validation import GraphDataValidator
+from app.storage import get_storage
 from app.logger import ConsoleLogger
 import logging
 from datetime import datetime
+import base64
 
 
 class GraphWebServer:
@@ -13,6 +15,7 @@ class GraphWebServer:
         self.app = FastAPI(title="gplot", description="Graph rendering service")
         self.renderer = GraphRenderer()
         self.validator = GraphDataValidator()
+        self.storage = get_storage()
         self.logger = ConsoleLogger(name="web_server", level=logging.INFO)
         self.logger.info("Web server initialized", version="1.0.0")
         self._setup_routes()
@@ -30,7 +33,7 @@ class GraphWebServer:
             )
 
         @self.app.post("/render")
-        async def render_graph(data: GraphData):
+        async def render_graph(data: GraphParams):
             """
             Render a graph with comprehensive error handling.
 
@@ -185,13 +188,30 @@ class GraphWebServer:
                     "jpg": "image/jpeg",
                     "svg": "image/svg+xml",
                     "pdf": "application/pdf",
+                    "bmp": "image/bmp",
                 }
 
                 # Ensure we have bytes for direct response
                 if isinstance(image_data, str):
-                    import base64
+                    # Check if it's a GUID (proxy mode)
+                    try:
+                        from uuid import UUID
 
-                    image_data = base64.b64decode(image_data)
+                        UUID(image_data)
+                        # It's a GUID, return JSON with GUID
+                        self.logger.debug("Returning GUID response (proxy mode)", guid=image_data)
+                        return JSONResponse(
+                            content={
+                                "guid": image_data,
+                                "format": data.format,
+                                "message": f"Image saved with GUID: {image_data}",
+                                "retrieve_url": f"/render/{image_data}",
+                                "html_url": f"/render/{image_data}/html",
+                            }
+                        )
+                    except ValueError:
+                        # Not a GUID, it's base64
+                        image_data = base64.b64decode(image_data)
 
                 self.logger.debug(
                     "Returning direct image response",
@@ -213,5 +233,213 @@ class GraphWebServer:
                             "The image was rendered but could not be returned",
                             "Try a different output format",
                         ],
+                    },
+                )
+
+        @self.app.get("/render/{guid}")
+        async def get_image_by_guid(guid: str):
+            """
+            Retrieve a rendered image by its GUID.
+            Returns the raw image bytes with appropriate content type.
+            """
+            self.logger.info("Get image request", guid=guid)
+
+            try:
+                result = self.storage.get_image(guid)
+
+                if result is None:
+                    self.logger.warning("Image not found", guid=guid)
+                    raise HTTPException(
+                        status_code=404,
+                        detail={
+                            "error": "Image not found",
+                            "message": f"No image found for GUID: {guid}",
+                            "suggestions": [
+                                "Verify the GUID is correct",
+                                "The image may have been deleted",
+                            ],
+                        },
+                    )
+
+                image_data, img_format = result
+
+                media_types = {
+                    "png": "image/png",
+                    "jpg": "image/jpeg",
+                    "jpeg": "image/jpeg",
+                    "svg": "image/svg+xml",
+                    "pdf": "application/pdf",
+                    "bmp": "image/bmp",
+                }
+
+                self.logger.info(
+                    "Image retrieved", guid=guid, format=img_format, size=len(image_data)
+                )
+
+                return Response(
+                    content=image_data,
+                    media_type=media_types.get(img_format, "image/png"),
+                    headers={"Content-Disposition": f'inline; filename="{guid}.{img_format}"'},
+                )
+
+            except HTTPException:
+                raise
+            except ValueError as e:
+                self.logger.error("Invalid GUID", guid=guid, error=str(e))
+                raise HTTPException(
+                    status_code=400,
+                    detail={
+                        "error": "Invalid GUID",
+                        "message": str(e),
+                    },
+                )
+            except Exception as e:
+                self.logger.error("Failed to retrieve image", guid=guid, error=str(e))
+                raise HTTPException(
+                    status_code=500,
+                    detail={
+                        "error": "Failed to retrieve image",
+                        "message": str(e),
+                    },
+                )
+
+        @self.app.get("/render/{guid}/html")
+        async def get_image_html(guid: str):
+            """
+            Retrieve a rendered image by its GUID and display it in an HTML page.
+            Useful for viewing images directly in a browser.
+            """
+            self.logger.info("Get image HTML request", guid=guid)
+
+            try:
+                result = self.storage.get_image(guid)
+
+                if result is None:
+                    self.logger.warning("Image not found for HTML display", guid=guid)
+                    raise HTTPException(
+                        status_code=404,
+                        detail={
+                            "error": "Image not found",
+                            "message": f"No image found for GUID: {guid}",
+                        },
+                    )
+
+                image_data, img_format = result
+
+                # Encode image as base64 for embedding in HTML
+                base64_data = base64.b64encode(image_data).decode("utf-8")
+
+                # Determine MIME type
+                mime_types = {
+                    "png": "image/png",
+                    "jpg": "image/jpeg",
+                    "jpeg": "image/jpeg",
+                    "bmp": "image/bmp",
+                    "svg": "image/svg+xml",
+                }
+                mime_type = mime_types.get(img_format, "image/png")
+
+                # Create HTML page with embedded image
+                html_content = f"""
+                <!DOCTYPE html>
+                <html>
+                <head>
+                    <title>gplot - Image {guid}</title>
+                    <style>
+                        body {{
+                            margin: 0;
+                            padding: 20px;
+                            background-color: #f5f5f5;
+                            font-family: Arial, sans-serif;
+                            display: flex;
+                            flex-direction: column;
+                            align-items: center;
+                        }}
+                        .container {{
+                            background-color: white;
+                            padding: 20px;
+                            border-radius: 8px;
+                            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+                            max-width: 1200px;
+                        }}
+                        h1 {{
+                            color: #333;
+                            margin-top: 0;
+                        }}
+                        .info {{
+                            color: #666;
+                            margin-bottom: 20px;
+                            font-size: 14px;
+                        }}
+                        .info code {{
+                            background-color: #f0f0f0;
+                            padding: 2px 6px;
+                            border-radius: 3px;
+                            font-family: monospace;
+                        }}
+                        img {{
+                            max-width: 100%;
+                            height: auto;
+                            border: 1px solid #ddd;
+                            border-radius: 4px;
+                        }}
+                        .links {{
+                            margin-top: 20px;
+                            display: flex;
+                            gap: 10px;
+                        }}
+                        .links a {{
+                            padding: 8px 16px;
+                            background-color: #007bff;
+                            color: white;
+                            text-decoration: none;
+                            border-radius: 4px;
+                            font-size: 14px;
+                        }}
+                        .links a:hover {{
+                            background-color: #0056b3;
+                        }}
+                    </style>
+                </head>
+                <body>
+                    <div class="container">
+                        <h1>gplot Rendered Image</h1>
+                        <div class="info">
+                            <strong>GUID:</strong> <code>{guid}</code><br>
+                            <strong>Format:</strong> {img_format.upper()}<br>
+                            <strong>Size:</strong> {len(image_data):,} bytes
+                        </div>
+                        <img src="data:{mime_type};base64,{base64_data}" alt="Rendered graph {guid}">
+                        <div class="links">
+                            <a href="/render/{guid}" download="{guid}.{img_format}">Download Image</a>
+                            <a href="/ping">Server Status</a>
+                        </div>
+                    </div>
+                </body>
+                </html>
+                """
+
+                self.logger.info("HTML page generated", guid=guid, format=img_format)
+
+                return HTMLResponse(content=html_content)
+
+            except HTTPException:
+                raise
+            except ValueError as e:
+                self.logger.error("Invalid GUID for HTML", guid=guid, error=str(e))
+                raise HTTPException(
+                    status_code=400,
+                    detail={
+                        "error": "Invalid GUID",
+                        "message": str(e),
+                    },
+                )
+            except Exception as e:
+                self.logger.error("Failed to generate HTML", guid=guid, error=str(e))
+                raise HTTPException(
+                    status_code=500,
+                    detail={
+                        "error": "Failed to generate HTML page",
+                        "message": str(e),
                     },
                 )
