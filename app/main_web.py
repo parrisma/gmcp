@@ -35,11 +35,18 @@ if __name__ == "__main__":
         default=None,
         help="Path to token store file (default: configured in app.config)",
     )
+    parser.add_argument(
+        "--no-auth",
+        action="store_true",
+        help="Disable authentication (WARNING: insecure, for development only)",
+    )
     args = parser.parse_args()
 
     # Initialize server with JWT configuration
     jwt_secret = args.jwt_secret or os.environ.get("GPLOT_JWT_SECRET")
-    server = GraphWebServer(jwt_secret=jwt_secret, token_store_path=args.token_store)
+    server = GraphWebServer(
+        jwt_secret=jwt_secret, token_store_path=args.token_store, require_auth=not args.no_auth
+    )
 
     try:
         logger.info(
@@ -47,7 +54,7 @@ if __name__ == "__main__":
             host=args.host,
             port=args.port,
             transport="HTTP REST API",
-            jwt_enabled=True,
+            jwt_enabled=not args.no_auth,
         )
         uvicorn.run(server.app, host=args.host, port=args.port)
         logger.info("Web server shutdown complete")

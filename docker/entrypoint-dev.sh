@@ -17,10 +17,10 @@ mkdir -p /home/gplot/devroot/gplot/data/storage /home/gplot/devroot/gplot/data/a
 
 # Install/sync Python dependencies if requirements.txt exists
 if [ -f "/home/gplot/devroot/gplot/requirements.txt" ]; then
-    echo "Syncing Python dependencies..."
+    echo "Installing Python dependencies..."
     cd /home/gplot/devroot/gplot
-    VIRTUAL_ENV=/home/gplot/devroot/gplot/.venv uv pip sync requirements.txt 2>/dev/null || \
-        VIRTUAL_ENV=/home/gplot/devroot/gplot/.venv uv pip install -r requirements.txt || \
+    # Use 'uv pip install' instead of 'sync' to ensure transitive dependencies are installed
+    VIRTUAL_ENV=/home/gplot/devroot/gplot/.venv uv pip install -r requirements.txt || \
         echo "Warning: Could not install dependencies"
 fi
 

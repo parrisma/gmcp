@@ -12,6 +12,7 @@ from app.auth.service import AuthService, TokenInfo
 _auth_service: Optional[AuthService] = None
 
 security = HTTPBearer()
+optional_security = HTTPBearer(auto_error=False)
 
 
 def init_auth_service(
@@ -68,3 +69,33 @@ def verify_token(credentials: HTTPAuthorizationCredentials = Security(security))
         raise HTTPException(status_code=401, detail=str(e))
     except RuntimeError as e:
         raise HTTPException(status_code=500, detail=str(e))
+
+
+def optional_verify_token(
+    credentials: Optional[HTTPAuthorizationCredentials] = Security(optional_security),
+) -> Optional[TokenInfo]:
+    """
+    Optionally verify JWT token from request (doesn't require authentication)
+
+    Args:
+        credentials: HTTP authorization credentials (optional)
+
+    Returns:
+        TokenInfo if token provided and valid, None if no token provided
+
+    Raises:
+        HTTPException: If token is provided but invalid
+    """
+    if credentials is None:
+        # No token provided, return None (anonymous access)
+        return None
+
+    try:
+        auth_service = get_auth_service()
+        token_info = auth_service.verify_token(credentials.credentials)
+        return token_info
+    except ValueError as e:
+        raise HTTPException(status_code=401, detail=str(e))
+    except RuntimeError:
+        # Auth service not initialized - allow anonymous access
+        return None

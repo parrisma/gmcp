@@ -38,15 +38,24 @@ if __name__ == "__main__":
         default=None,
         help="Path to token store file (default: configured in app.config)",
     )
+    parser.add_argument(
+        "--no-auth",
+        action="store_true",
+        help="Disable authentication (WARNING: insecure, for development only)",
+    )
     args = parser.parse_args()
 
     # Create logger for startup messages
     startup_logger = ConsoleLogger(name="startup", level=logging.INFO)
 
-    # Initialize auth service
-    jwt_secret = args.jwt_secret or os.environ.get("GPLOT_JWT_SECRET")
-    auth_service = AuthService(secret_key=jwt_secret, token_store_path=args.token_store)
-    startup_logger.info("Authentication service initialized", jwt_enabled=True)
+    # Initialize auth service only if auth is required
+    auth_service = None
+    if not args.no_auth:
+        jwt_secret = args.jwt_secret or os.environ.get("GPLOT_JWT_SECRET")
+        auth_service = AuthService(secret_key=jwt_secret, token_store_path=args.token_store)
+        startup_logger.info("Authentication service initialized", jwt_enabled=True)
+    else:
+        startup_logger.info("Authentication disabled", jwt_enabled=False)
 
     # Import and configure mcp_server with auth service
     import app.mcp_server as mcp_server_module
