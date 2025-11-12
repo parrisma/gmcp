@@ -75,3 +75,7 @@ class DarkTheme(Theme):
             "font_family": self.font_family,
             "font_size": self.font_size,
         }
+
+    def get_description(self) -> str:
+        """Get a human-readable description of the theme"""
+        return "Dark theme with muted colors designed to reduce eye strain, perfect for extended viewing sessions and low-light environments"

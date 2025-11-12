@@ -86,7 +86,7 @@ class TestAuthTokenCreation:
         ), f"Expiry mismatch: expected ~{TEST_EXPIRY_SECONDS}s, got {expiry_delta}s"
 
         logger.info("Token validation passed", group=token_info.group, expires_in=expiry_delta)
-        logger.info("✓ Test 1 passed: Token created successfully")
+        logger.info("Test 1 passed: Token created successfully")
 
 
 class TestMCPAuthentication:
@@ -168,7 +168,7 @@ class TestMCPAuthentication:
                     "Missing required argument" in response_text or "token" in response_text.lower()
                 ), "Should require token"
 
-                logger.info("✓ MCP correctly rejects request without token")
+                logger.info("MCP correctly rejects request without token")
 
     @pytest.mark.asyncio
     async def test_mcp_render_with_invalid_token(self, invalid_token):
@@ -199,7 +199,7 @@ class TestMCPAuthentication:
                     "Authentication Error" in response_text or "Invalid token" in response_text
                 ), f"Should reject invalid token, got: {response_text}"
 
-                logger.info("✓ MCP correctly rejects invalid token")
+                logger.info("MCP correctly rejects invalid token")
 
     @pytest.mark.asyncio
     async def test_mcp_get_image_with_valid_token(self, test_token):
@@ -250,7 +250,7 @@ class TestMCPAuthentication:
                 has_image = any(hasattr(content, "data") for content in result.content)
                 assert has_image, "No image data in response"
 
-                logger.info("✓ Image retrieved successfully via MCP with valid token")
+                logger.info("Image retrieved successfully via MCP with valid token")
 
     @pytest.mark.asyncio
     async def test_mcp_get_image_with_different_group_token(self, auth_service, test_token):
@@ -305,8 +305,8 @@ class TestMCPAuthentication:
                     "Access denied" in response_text or "different group" in response_text
                 ), f"Should deny cross-group access, got: {response_text}"
 
-                logger.info("✓ MCP correctly denies cross-group image access")
-                logger.info("✓ Test 2 passed: MCP authentication working correctly")
+                logger.info("MCP correctly denies cross-group image access")
+                logger.info("Test 2 passed: MCP authentication working correctly")
 
 
 class TestWebAuthentication:
@@ -372,7 +372,7 @@ class TestWebAuthentication:
                 response.status_code == 403 or response.status_code == 401
             ), f"Expected 401/403, got {response.status_code}"
 
-            logger.info("✓ Web correctly rejects request without token")
+            logger.info("Web correctly rejects request without token")
 
     @pytest.mark.asyncio
     async def test_web_render_with_invalid_token(self):
@@ -395,7 +395,7 @@ class TestWebAuthentication:
 
             assert response.status_code == 401, f"Expected 401, got {response.status_code}"
 
-            logger.info("✓ Web correctly rejects invalid token")
+            logger.info("Web correctly rejects invalid token")
 
     @pytest.mark.asyncio
     async def test_web_get_image_with_valid_token(self, test_token):
@@ -442,7 +442,7 @@ class TestWebAuthentication:
             ), "Should return image content type"
             assert len(response.content) > 0, "Empty image data"
 
-            logger.info("✓ Image retrieved successfully via web with valid token")
+            logger.info("Image retrieved successfully via web with valid token")
 
     @pytest.mark.asyncio
     async def test_web_get_image_without_token(self, test_token):
@@ -480,7 +480,7 @@ class TestWebAuthentication:
                 response.status_code == 403 or response.status_code == 401
             ), f"Expected 401/403, got {response.status_code}"
 
-            logger.info("✓ Web correctly denies image access without token")
+            logger.info("Web correctly denies image access without token")
 
     @pytest.mark.asyncio
     async def test_web_get_image_with_different_group_token(self, auth_service, test_token):
@@ -526,8 +526,8 @@ class TestWebAuthentication:
                 404,
             ], f"Expected 400/403/404 for cross-group access, got {response.status_code}"
 
-            logger.info("✓ Web correctly denies cross-group image access")
-            logger.info("✓ Test 3 passed: Web authentication working correctly")
+            logger.info("Web correctly denies cross-group image access")
+            logger.info("Test 3 passed: Web authentication working correctly")
 
 
 if __name__ == "__main__":

@@ -75,3 +75,7 @@ class LightTheme(Theme):
             "font_family": self.font_family,
             "font_size": self.font_size,
         }
+
+    def get_description(self) -> str:
+        """Get a human-readable description of the theme"""
+        return "Clean and bright theme with high contrast colors, ideal for presentations and reports in well-lit environments"

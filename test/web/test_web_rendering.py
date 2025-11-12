@@ -66,7 +66,7 @@ async def test_render_line_chart_base64(app):
         assert response.status_code == 200, f"Expected 200, got {response.status_code}"
         data = response.json()
         assert "image" in data, "Response should contain 'image' key"
-        logger.info("✓ Line chart with base64 passed")
+        logger.info("Line chart with base64 passed")
 
 
 @pytest.mark.asyncio
@@ -92,7 +92,7 @@ async def test_render_bar_chart_direct_image(app):
         assert response.status_code == 200, f"Expected 200, got {response.status_code}"
         assert response.headers["content-type"] == "image/png"
         assert len(response.content) > 0, "Image content should not be empty"
-        logger.info("✓ Bar chart with direct image passed")
+        logger.info("Bar chart with direct image passed")
 
 
 @pytest.mark.asyncio
@@ -119,7 +119,7 @@ async def test_render_scatter_plot(app):
         assert response.status_code == 200
         data = response.json()
         assert "image" in data
-        logger.info("✓ Scatter plot passed")
+        logger.info("Scatter plot passed")
 
 
 @pytest.mark.asyncio
@@ -145,7 +145,7 @@ async def test_render_dark_theme(app):
         assert response.status_code == 200
         data = response.json()
         assert "image" in data
-        logger.info("✓ Dark theme passed")
+        logger.info("Dark theme passed")
 
 
 @pytest.mark.asyncio
@@ -171,7 +171,7 @@ async def test_render_light_theme(app):
         assert response.status_code == 200
         data = response.json()
         assert "image" in data
-        logger.info("✓ Light theme passed")
+        logger.info("Light theme passed")
 
 
 @pytest.mark.asyncio
@@ -196,7 +196,7 @@ async def test_render_svg_format(app):
 
         assert response.status_code == 200
         assert response.headers["content-type"] == "image/svg+xml"
-        logger.info("✓ SVG format passed")
+        logger.info("SVG format passed")
 
 
 @pytest.mark.asyncio
@@ -221,7 +221,7 @@ async def test_render_pdf_format(app):
 
         assert response.status_code == 200
         assert response.headers["content-type"] == "application/pdf"
-        logger.info("✓ PDF format passed")
+        logger.info("PDF format passed")
 
 
 @pytest.mark.asyncio
@@ -247,7 +247,7 @@ async def test_render_custom_styling(app):
         )
 
         assert response.status_code == 200
-        logger.info("✓ Custom styling passed")
+        logger.info("Custom styling passed")
 
 
 @pytest.mark.asyncio
@@ -272,7 +272,7 @@ async def test_validation_mismatched_arrays(app):
         error_data = response.json()
         assert "errors" in error_data["detail"]
         assert len(error_data["detail"]["errors"]) > 0
-        logger.info("✓ Validation correctly caught mismatched arrays")
+        logger.info("Validation correctly caught mismatched arrays")
 
 
 @pytest.mark.asyncio
@@ -291,7 +291,7 @@ async def test_validation_invalid_chart_type(app):
         assert response.status_code == 400
         error_data = response.json()
         assert "suggestions" in str(error_data)
-        logger.info("✓ Validation correctly caught invalid chart type")
+        logger.info("Validation correctly caught invalid chart type")
 
 
 @pytest.mark.asyncio
@@ -309,7 +309,7 @@ async def test_validation_empty_arrays(app):
 
         assert response.status_code == 400
         error_data = response.json()
-        logger.info("✓ Validation correctly caught empty arrays")
+        logger.info("Validation correctly caught empty arrays")
 
 
 @pytest.mark.asyncio
@@ -332,7 +332,7 @@ async def test_validation_invalid_alpha(app):
 
         assert response.status_code == 400
         error_data = response.json()
-        logger.info("✓ Validation correctly caught invalid alpha value")
+        logger.info("Validation correctly caught invalid alpha value")
 
 
 @pytest.mark.asyncio
@@ -355,4 +355,4 @@ async def test_validation_invalid_color(app):
 
         assert response.status_code == 400
         error_data = response.json()
-        logger.info("✓ Validation correctly caught invalid color format")
+        logger.info("Validation correctly caught invalid color format")

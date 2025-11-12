@@ -66,7 +66,6 @@ async def test_render_with_proxy_mode_returns_guid(test_jwt_token):
 
             assert guid is not None, "No GUID found in response"
             logger.info(f"Graph rendered with GUID: {guid}")
-            print(f"Generated GUID: {guid}")
 
             # Test 2: Retrieve image using get_image tool
             logger.info("Test 2: Retrieving image by GUID")

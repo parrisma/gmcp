@@ -7,6 +7,8 @@ Supports group-based segregation for access control.
 import os
 import uuid
 import json
+import time
+from datetime import datetime, timedelta
 from pathlib import Path
 from typing import Optional, Tuple, List
 from app.storage.base import ImageStorageBase
@@ -103,11 +105,12 @@ class FileStorage(ImageStorageBase):
             with open(filepath, "wb") as f:
                 f.write(image_data)
 
-            # Store metadata
+            # Store metadata with timestamp
             self.metadata[guid] = {
                 "format": format.lower(),
                 "group": group,
                 "size": len(image_data),
+                "created_at": datetime.utcnow().isoformat(),
             }
             self._save_metadata()
 
@@ -302,3 +305,131 @@ class FileStorage(ImageStorageBase):
                 return True
 
         return False
+
+    def purge(self, age_days: int = 0, group: Optional[str] = None) -> int:
+        """
+        Delete images older than specified age
+
+        Args:
+            age_days: Delete images older than this many days. 0 means delete all.
+            group: Optional group name to filter by
+
+        Returns:
+            Number of images deleted
+
+        Raises:
+            RuntimeError: If purge fails
+        """
+        self.logger.info("Starting purge", age_days=age_days, group=group)
+
+        deleted_count = 0
+        cutoff_time = None
+
+        if age_days > 0:
+            cutoff_time = datetime.utcnow() - timedelta(days=age_days)
+            self.logger.debug("Purge cutoff time", cutoff=cutoff_time.isoformat())
+
+        try:
+            # Iterate over all files in storage directory
+            for filepath in self.storage_dir.iterdir():
+                if not filepath.is_file() or filepath.name == "metadata.json":
+                    continue
+
+                # Extract GUID from filename
+                guid = filepath.stem
+                try:
+                    uuid.UUID(guid)
+                except ValueError:
+                    # Skip non-GUID files
+                    continue
+
+                # Check group filter
+                if group is not None and guid in self.metadata:
+                    stored_group = self.metadata[guid].get("group")
+                    if stored_group != group:
+                        continue
+
+                # Determine file age
+                should_delete = False
+
+                if age_days == 0:
+                    # Delete all (matching group if specified)
+                    should_delete = True
+                elif cutoff_time is not None:
+                    # Check age from metadata or file modification time
+                    if guid in self.metadata and "created_at" in self.metadata[guid]:
+                        try:
+                            created_at = datetime.fromisoformat(self.metadata[guid]["created_at"])
+                            should_delete = created_at < cutoff_time
+                        except (ValueError, TypeError):
+                            # Fall back to file modification time if metadata is invalid
+                            file_mtime = datetime.fromtimestamp(filepath.stat().st_mtime)
+                            should_delete = file_mtime < cutoff_time
+                    else:
+                        # No metadata timestamp, use file modification time
+                        file_mtime = datetime.fromtimestamp(filepath.stat().st_mtime)
+                        should_delete = file_mtime < cutoff_time
+
+                if should_delete:
+                    try:
+                        filepath.unlink()
+                        # Remove from metadata
+                        if guid in self.metadata:
+                            del self.metadata[guid]
+                        deleted_count += 1
+                        self.logger.debug("Purged image", guid=guid, file=str(filepath))
+                    except Exception as e:
+                        self.logger.error(
+                            "Failed to delete file during purge", guid=guid, error=str(e)
+                        )
+
+            # Clean up orphaned metadata entries (entries without corresponding files)
+            orphaned_guids = []
+            for guid in list(self.metadata.keys()):
+                # Check if file exists
+                file_exists = False
+                for ext in ["png", "jpg", "jpeg", "svg", "pdf"]:
+                    if (self.storage_dir / f"{guid}.{ext}").exists():
+                        file_exists = True
+                        break
+
+                if not file_exists:
+                    # Check group filter
+                    if group is not None:
+                        stored_group = self.metadata[guid].get("group")
+                        if stored_group != group:
+                            continue
+
+                    # Check age filter for orphaned entries
+                    should_delete = False
+                    if age_days == 0:
+                        should_delete = True
+                    elif cutoff_time is not None and "created_at" in self.metadata[guid]:
+                        try:
+                            created_at = datetime.fromisoformat(self.metadata[guid]["created_at"])
+                            should_delete = created_at < cutoff_time
+                        except (ValueError, TypeError):
+                            # If we can't parse the date, consider it for deletion
+                            should_delete = True
+
+                    if should_delete:
+                        orphaned_guids.append(guid)
+
+            # Remove orphaned metadata entries
+            for guid in orphaned_guids:
+                del self.metadata[guid]
+                deleted_count += 1
+                self.logger.debug("Removed orphaned metadata", guid=guid)
+
+            # Save updated metadata if anything was deleted
+            if deleted_count > 0:
+                self._save_metadata()
+
+            self.logger.info(
+                "Purge completed", deleted_count=deleted_count, age_days=age_days, group=group
+            )
+            return deleted_count
+
+        except Exception as e:
+            self.logger.error("Purge operation failed", error=str(e))
+            raise RuntimeError(f"Failed to purge images: {str(e)}")

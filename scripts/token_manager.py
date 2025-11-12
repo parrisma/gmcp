@@ -22,9 +22,16 @@ def create_token(args):
     """Create a new JWT token"""
     logger = ConsoleLogger(name="token_manager", level=logging.INFO)
 
+    # Validate JWT secret is provided
+    jwt_secret = args.secret or os.environ.get("GPLOT_JWT_SECRET")
+    if not jwt_secret:
+        logger.error("FATAL: No JWT secret provided")
+        logger.error("Set GPLOT_JWT_SECRET environment variable or use --secret flag")
+        return 1
+
     # Initialize auth service
     auth_service = AuthService(
-        secret_key=args.secret or os.environ.get("GPLOT_JWT_SECRET"),
+        secret_key=jwt_secret,
         token_store_path=args.token_store,
     )
 
@@ -46,17 +53,19 @@ def create_token(args):
         if not expiry_str:
             expiry_str.append(f"{args.expires} second{'s' if args.expires != 1 else ''}")
 
-        print(f"\n✓ JWT Token Created Successfully\n")
-        print(f"Group:      {args.group}")
-        print(f"Expires:    {', '.join(expiry_str)} ({args.expires} seconds)")
-        print(f"\nToken:")
-        print(f"{token}\n")
-        print(f"Save this token securely. Use it in the 'Authorization: Bearer <token>' header.")
-        print(f"Or pass it as the 'token' parameter in MCP tool calls.\n")
+        logger.info("JWT Token Created Successfully")
+        logger.info(f"Group:      {args.group}")
+        logger.info(f"Expires:    {', '.join(expiry_str)} ({args.expires} seconds)")
+        logger.info("Token:")
+        logger.info(token)
+        logger.info(
+            "Save this token securely. Use it in the 'Authorization: Bearer <token>' header."
+        )
+        logger.info("Or pass it as the 'token' parameter in MCP tool calls.")
 
         return 0
     except Exception as e:
-        print(f"\n✗ Error creating token: {str(e)}\n", file=sys.stderr)
+        logger.error(f"Error creating token: {str(e)}")
         return 1
 
 
@@ -64,9 +73,16 @@ def list_tokens(args):
     """List all tokens"""
     logger = ConsoleLogger(name="token_manager", level=logging.INFO)
 
+    # Validate JWT secret is provided
+    jwt_secret = args.secret or os.environ.get("GPLOT_JWT_SECRET")
+    if not jwt_secret:
+        logger.error("FATAL: No JWT secret provided")
+        logger.error("Set GPLOT_JWT_SECRET environment variable or use --secret flag")
+        return 1
+
     # Initialize auth service
     auth_service = AuthService(
-        secret_key=args.secret or os.environ.get("GPLOT_JWT_SECRET"),
+        secret_key=jwt_secret,
         token_store_path=args.token_store,
     )
 
@@ -74,12 +90,12 @@ def list_tokens(args):
         tokens = auth_service.list_tokens()
 
         if not tokens:
-            print("\nNo tokens found.\n")
+            logger.info("No tokens found.")
             return 0
 
-        print(f"\n{len(tokens)} Token(s) Found:\n")
-        print(f"{'Group':<20} {'Issued':<25} {'Expires':<25} {'Token (first 20 chars)'}")
-        print("-" * 100)
+        logger.info(f"{len(tokens)} Token(s) Found:")
+        logger.info(f"{'Group':<20} {'Issued':<25} {'Expires':<25} {'Token (first 20 chars)'}")
+        logger.info("-" * 100)
 
         for token, info in tokens.items():
             group = info.get("group", "N/A")
@@ -104,12 +120,11 @@ def list_tokens(args):
                 expires_str = expires[:16] if len(expires) > 16 else expires
 
             token_preview = token[:20] + "..."
-            print(f"{group:<20} {issued_str:<25} {expires_str:<25} {token_preview}")
+            logger.info(f"{group:<20} {issued_str:<25} {expires_str:<25} {token_preview}")
 
-        print()
         return 0
     except Exception as e:
-        print(f"\n✗ Error listing tokens: {str(e)}\n", file=sys.stderr)
+        logger.error(f"Error listing tokens: {str(e)}")
         return 1
 
 
@@ -117,18 +132,25 @@ def revoke_token(args):
     """Revoke a token"""
     logger = ConsoleLogger(name="token_manager", level=logging.INFO)
 
+    # Validate JWT secret is provided
+    jwt_secret = args.secret or os.environ.get("GPLOT_JWT_SECRET")
+    if not jwt_secret:
+        logger.error("FATAL: No JWT secret provided")
+        logger.error("Set GPLOT_JWT_SECRET environment variable or use --secret flag")
+        return 1
+
     # Initialize auth service
     auth_service = AuthService(
-        secret_key=args.secret or os.environ.get("GPLOT_JWT_SECRET"),
+        secret_key=jwt_secret,
         token_store_path=args.token_store,
     )
 
     try:
         auth_service.revoke_token(args.token)
-        print(f"\n✓ Token revoked successfully\n")
+        logger.info("Token revoked successfully")
         return 0
     except Exception as e:
-        print(f"\n✗ Error revoking token: {str(e)}\n", file=sys.stderr)
+        logger.error(f"Error revoking token: {str(e)}")
         return 1
 
 
@@ -136,30 +158,36 @@ def verify_token(args):
     """Verify a token"""
     logger = ConsoleLogger(name="token_manager", level=logging.INFO)
 
+    # Validate JWT secret is provided
+    jwt_secret = args.secret or os.environ.get("GPLOT_JWT_SECRET")
+    if not jwt_secret:
+        logger.error("FATAL: No JWT secret provided")
+        logger.error("Set GPLOT_JWT_SECRET environment variable or use --secret flag")
+        return 1
+
     # Initialize auth service
     auth_service = AuthService(
-        secret_key=args.secret or os.environ.get("GPLOT_JWT_SECRET"),
+        secret_key=jwt_secret,
         token_store_path=args.token_store,
     )
 
     try:
         token_info = auth_service.verify_token(args.token)
 
-        print(f"\n✓ Token is valid\n")
-        print(f"Group:      {token_info.group}")
-        print(f"Issued:     {token_info.issued_at.strftime('%Y-%m-%d %H:%M:%S UTC')}")
-        print(f"Expires:    {token_info.expires_at.strftime('%Y-%m-%d %H:%M:%S UTC')}")
+        logger.info("Token is valid")
+        logger.info(f"Group:      {token_info.group}")
+        logger.info(f"Issued:     {token_info.issued_at.strftime('%Y-%m-%d %H:%M:%S UTC')}")
+        logger.info(f"Expires:    {token_info.expires_at.strftime('%Y-%m-%d %H:%M:%S UTC')}")
 
         # Check if close to expiry
         now = datetime.utcnow()
         days_until_expiry = (token_info.expires_at - now).days
         if days_until_expiry < 7:
-            print(f"\n⚠ Warning: Token expires in {days_until_expiry} days")
+            logger.warning(f"Warning: Token expires in {days_until_expiry} days")
 
-        print()
         return 0
     except Exception as e:
-        print(f"\n✗ Token validation failed: {str(e)}\n", file=sys.stderr)
+        logger.error(f"Token validation failed: {str(e)}")
         return 1
 
 
@@ -240,7 +268,8 @@ Environment Variables:
     elif args.command == "verify":
         return verify_token(args)
     else:
-        print(f"Unknown command: {args.command}", file=sys.stderr)
+        logger = ConsoleLogger(name="token_manager", level=logging.ERROR)
+        logger.error(f"Unknown command: {args.command}")
         return 1
 
 

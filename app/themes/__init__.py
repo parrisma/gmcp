@@ -60,6 +60,16 @@ def list_themes() -> list[str]:
     return list(_THEMES.keys())
 
 
+def list_themes_with_descriptions() -> Dict[str, str]:
+    """
+    Get a dictionary of theme names to their descriptions
+
+    Returns:
+        Dictionary mapping theme names to their descriptions
+    """
+    return {name: theme.get_description() for name, theme in _THEMES.items()}
+
+
 __all__ = [
     "Theme",
     "LightTheme",
@@ -69,4 +79,5 @@ __all__ = [
     "get_theme",
     "register_theme",
     "list_themes",
+    "list_themes_with_descriptions",
 ]

@@ -13,3 +13,8 @@ class GraphHandler(ABC):
     def plot(self, ax: "Axes", data: "GraphParams") -> None:
         """Plot the graph on the given axes"""
         pass
+
+    @abstractmethod
+    def get_description(self) -> str:
+        """Get a human-readable description of the handler"""
+        pass

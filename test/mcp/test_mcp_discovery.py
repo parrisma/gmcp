@@ -25,7 +25,7 @@ async def discover_mcp_server():
         async with ClientSession(read, write) as session:
             # Initialize the session
             await session.initialize()
-            print("✓ Connected successfully\n")
+            print("Connected successfully\n")
 
             # Get server info
             print("-" * 60)

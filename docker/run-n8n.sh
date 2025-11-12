@@ -90,6 +90,9 @@ docker run -d \
   -e TZ="$TIMEZONE" \
   -e N8N_ENFORCE_SETTINGS_FILE_PERMISSIONS=true \
   -e N8N_RUNNERS_ENABLED=true \
+  -e N8N_LOG_LEVEL=debug \
+  -e N8N_LOG_OUTPUT=console \
+  -e NODE_FUNCTION_ALLOW_EXTERNAL= \
   -v gplot_volume:/home/node/.n8n \
   -v "${N8N_SHARE_DIR}":/data/n8n_share \
   docker.n8n.io/n8nio/n8n

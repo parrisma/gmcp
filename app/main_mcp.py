@@ -48,10 +48,18 @@ if __name__ == "__main__":
     # Create logger for startup messages
     startup_logger = ConsoleLogger(name="startup", level=logging.INFO)
 
+    # Validate JWT secret if authentication is enabled
+    jwt_secret = args.jwt_secret or os.environ.get("GPLOT_JWT_SECRET")
+    if not args.no_auth and not jwt_secret:
+        startup_logger.error(
+            "FATAL: Authentication enabled but no JWT secret provided",
+            help="Set GPLOT_JWT_SECRET environment variable or use --jwt-secret flag, or use --no-auth to disable authentication",
+        )
+        sys.exit(1)
+
     # Initialize auth service only if auth is required
     auth_service = None
     if not args.no_auth:
-        jwt_secret = args.jwt_secret or os.environ.get("GPLOT_JWT_SECRET")
         auth_service = AuthService(secret_key=jwt_secret, token_store_path=args.token_store)
         startup_logger.info("Authentication service initialized", jwt_enabled=True)
     else:

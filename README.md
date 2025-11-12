@@ -5,6 +5,7 @@ A powerful graph rendering service with both REST API and Model Context Protocol
 ## Features
 
 - **Multiple Chart Types**: Line charts, scatter plots, and bar charts
+- **Multi-Dataset Support**: Plot up to 5 datasets on a single graph with individual styling
 - **Dual Interface**: 
   - REST API via FastAPI for web integration
   - MCP Server for AI assistant integration
@@ -12,6 +13,7 @@ A powerful graph rendering service with both REST API and Model Context Protocol
 - **Theme Support**: Built-in light and dark themes with extensible architecture
 - **Flexible Output**: PNG, JPG, SVG, and PDF formats
 - **Customizable Styling**: Colors, line widths, transparency, and more
+- **Axis Controls**: Custom axis limits and tick positions
 - **Proxy Mode**: Save images to disk and retrieve by GUID
 - **Session Logging**: Built-in logger with session tracking for debugging
 
@@ -75,13 +77,35 @@ curl -X POST http://localhost:8000/render \
   -d '{
     "title": "Sales Data",
     "x": [1, 2, 3, 4, 5],
-    "y": [10, 25, 18, 30, 42],
+    "y1": [10, 25, 18, 30, 42],
     "xlabel": "Month",
     "ylabel": "Sales",
     "type": "line",
     "theme": "dark",
     "return_base64": false
   }' -o chart.png
+```
+
+**Generate a multi-dataset comparison:**
+```bash
+curl -X POST http://localhost:8000/render \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer YOUR_JWT_TOKEN" \
+  -d '{
+    "title": "Sales Comparison",
+    "x": [1, 2, 3, 4, 5],
+    "y1": [10, 25, 18, 30, 42],
+    "y2": [8, 22, 15, 28, 38],
+    "y3": [12, 28, 20, 32, 45],
+    "label1": "Product A",
+    "label2": "Product B",
+    "label3": "Product C",
+    "color1": "red",
+    "color2": "blue",
+    "color3": "green",
+    "type": "line",
+    "return_base64": false
+  }' -o comparison.png
 ```
 
 **Generate a scatter plot with custom styling:**
@@ -91,9 +115,9 @@ curl -X POST http://localhost:8000/render \
   -d '{
     "title": "Data Points",
     "x": [1, 2, 3, 4, 5],
-    "y": [2, 5, 3, 8, 6],
+    "y1": [2, 5, 3, 8, 6],
     "type": "scatter",
-    "color": "#FF5733",
+    "color1": "#FF5733",
     "marker_size": 100,
     "alpha": 0.7,
     "format": "svg",

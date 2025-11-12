@@ -47,13 +47,26 @@ Renders a graph (line, scatter, or bar chart) and returns it as a base64-encoded
 
 **Parameters:**
 - `title` (string, required): The title of the graph
-- `x` (array of numbers, required): X-axis data points
-- `y` (array of numbers, required): Y-axis data points
+- `y1` (array of numbers, required): First dataset Y-axis data points (or use `y` for backward compatibility)
+- `x` (array of numbers, optional): X-axis data points (defaults to [0, 1, 2, ...])
+- `y2`, `y3`, `y4`, `y5` (arrays of numbers, optional): Additional datasets (up to 5 total)
+- `label1`, `label2`, `label3`, `label4`, `label5` (strings, optional): Legend labels for each dataset
+- `color1`, `color2`, `color3`, `color4`, `color5` (strings, optional): Colors for each dataset
 - `xlabel` (string, optional): Label for the X-axis (default: "X-axis")
 - `ylabel` (string, optional): Label for the Y-axis (default: "Y-axis")
 - `type` (string, optional): Graph type - "line", "scatter", or "bar" (default: "line")
-- `format` (string, optional): Image format - "png", "bmp", "jpg", "svg", or "pdf" (default: "png")
+- `format` (string, optional): Image format - "png", "jpg", "svg", or "pdf" (default: "png")
 - `proxy` (boolean, optional): If true, save image to disk and return GUID instead of base64 (default: false)
+
+**Axis Control Parameters (optional):**
+- `xmin` (number, optional): Minimum value for X-axis
+- `xmax` (number, optional): Maximum value for X-axis
+- `ymin` (number, optional): Minimum value for Y-axis
+- `ymax` (number, optional): Maximum value for Y-axis
+- `x_major_ticks` (array of numbers, optional): Custom positions for major ticks on X-axis
+- `y_major_ticks` (array of numbers, optional): Custom positions for major ticks on Y-axis
+- `x_minor_ticks` (array of numbers, optional): Custom positions for minor ticks on X-axis
+- `y_minor_ticks` (array of numbers, optional): Custom positions for minor ticks on Y-axis
 
 **Returns:**
 - **Normal mode (proxy=false)**: Base64-encoded image and confirmation message
@@ -96,6 +109,60 @@ Retrieves a previously rendered image by its GUID (from proxy mode).
 ```
 
 Returns base64-encoded image data directly.
+
+### With Multiple Datasets
+
+```json
+{
+  "tool": "render_graph",
+  "arguments": {
+    "title": "Temperature Comparison",
+    "x": [1, 2, 3, 4, 5, 6],
+    "y1": [20, 25, 22, 28, 24, 30],
+    "y2": [18, 23, 20, 26, 22, 28],
+    "y3": [22, 27, 24, 30, 26, 32],
+    "label1": "City A",
+    "label2": "City B",
+    "label3": "City C",
+    "color1": "red",
+    "color2": "blue",
+    "color3": "green",
+    "xlabel": "Hour",
+    "ylabel": "Temperature (°C)",
+    "type": "line"
+  }
+}
+```
+
+This example plots three temperature datasets with labels and colors.
+
+### With Axis Controls
+
+```json
+{
+  "tool": "render_graph",
+  "arguments": {
+    "title": "Temperature Data",
+    "x": [1, 2, 3, 4, 5, 6],
+    "y1": [20, 25, 22, 28, 24, 30],
+    "xlabel": "Hour",
+    "ylabel": "Temperature (°C)",
+    "type": "line",
+    "xmin": 0,
+    "xmax": 7,
+    "ymin": 15,
+    "ymax": 35,
+    "x_major_ticks": [0, 2, 4, 6],
+    "y_major_ticks": [15, 20, 25, 30, 35]
+  }
+}
+```
+
+This example:
+- Sets X-axis range from 0 to 7
+- Sets Y-axis range from 15 to 35
+- Defines custom major tick positions on both axes
+- Returns base64-encoded image with the specified axis controls
 
 ### Proxy Mode (GUID Response)
 
@@ -233,3 +300,11 @@ To use this server with N8N:
 3. Call the `render_graph` or `ping` tools via MCP protocol
 
 See [N8N MCP Integration Guide](./README_N8N_MCP.md) for detailed N8N integration instructions.
+
+## Additional Documentation
+
+- **[Multi-Dataset Support](./MULTI_DATASET.md)**: Plot up to 5 datasets on a single graph with examples
+- **[Axis Controls Guide](./AXIS_CONTROLS.md)**: Detailed documentation on axis limits and tick controls with examples
+- **[Proxy Mode Guide](./PROXY_MODE.md)**: In-depth guide on using proxy mode for persistent image storage
+- **[Authentication Guide](./AUTHENTICATION.md)**: JWT authentication setup and configuration
+- **[Themes Guide](./THEMES.md)**: Available themes and customization options

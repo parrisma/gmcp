@@ -80,7 +80,7 @@ async def test_expired_token_mcp(auth_service):
                 "expired" in response_text.lower() or "authentication" in response_text.lower()
             ), f"Expected expiry error, got: {response_text}"
 
-            logger.info("✓ MCP correctly rejected expired token")
+            logger.info("MCP correctly rejected expired token")
 
     # Cleanup
     auth_service.revoke_token(token)
@@ -135,7 +135,7 @@ async def test_expired_token_web(auth_service):
             or "authentication" in response_data.get("detail", "").lower()
         ), f"Expected expiry error, got: {response_data}"
 
-        logger.info("✓ Web correctly rejected expired token")
+        logger.info("Web correctly rejected expired token")
 
     # Cleanup
     auth_service.revoke_token(token)
@@ -177,7 +177,7 @@ async def test_token_just_before_expiry(auth_service):
         assert (
             response.status_code == 200
         ), f"Token should work initially, got {response.status_code}"
-        logger.info("✓ Token works when fresh")
+        logger.info("Token works when fresh")
 
         # Wait for expiry (add extra second for test timing variance)
         await asyncio.sleep(3.5)
@@ -194,7 +194,7 @@ async def test_token_just_before_expiry(auth_service):
         )
 
         assert response.status_code == 401, f"Token should be expired, got {response.status_code}"
-        logger.info("✓ Token rejected after expiry")
+        logger.info("Token rejected after expiry")
 
     # Cleanup
     auth_service.revoke_token(token)

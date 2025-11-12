@@ -34,3 +34,8 @@ class Theme(ABC):
     def get_config(self) -> Dict[str, Any]:
         """Get theme configuration as a dictionary"""
         pass
+
+    @abstractmethod
+    def get_description(self) -> str:
+        """Get a human-readable description of the theme"""
+        pass

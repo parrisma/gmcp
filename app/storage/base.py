@@ -93,3 +93,20 @@ class ImageStorageBase(ABC):
             True if image exists, False otherwise
         """
         pass
+
+    @abstractmethod
+    def purge(self, age_days: int = 0, group: Optional[str] = None) -> int:
+        """
+        Delete images older than specified age
+
+        Args:
+            age_days: Delete images older than this many days. 0 means delete all.
+            group: Optional group name to filter by
+
+        Returns:
+            Number of images deleted
+
+        Raises:
+            RuntimeError: If purge fails
+        """
+        pass

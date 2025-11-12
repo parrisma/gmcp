@@ -67,7 +67,7 @@ def test_concurrent_saves(temp_storage_dir):
     for guid in guids:
         assert guid in storage.metadata, f"GUID {guid} not in metadata"
 
-    logger.info("✓ Concurrent saves completed successfully", saved=len(guids))
+    logger.info("Concurrent saves completed successfully", saved=len(guids))
 
 
 def test_concurrent_save_and_retrieve(temp_storage_dir):
@@ -116,7 +116,7 @@ def test_concurrent_save_and_retrieve(temp_storage_dir):
                 operations.append(result)
 
     assert len(errors) == 0, f"Concurrent operations had errors: {errors}"
-    logger.info("✓ Concurrent save/retrieve completed", operations=len(operations))
+    logger.info("Concurrent save/retrieve completed", operations=len(operations))
 
 
 def test_concurrent_retrieval_same_guid(temp_storage_dir):
@@ -159,7 +159,7 @@ def test_concurrent_retrieval_same_guid(temp_storage_dir):
         assert retrieved_data == test_data, "Retrieved data mismatch"
         assert format_type == "png", "Format mismatch"
 
-    logger.info("✓ Concurrent retrievals successful", retrievals=len(results))
+    logger.info("Concurrent retrievals successful", retrievals=len(results))
 
 
 def test_metadata_race_condition(temp_storage_dir):
@@ -186,7 +186,7 @@ def test_metadata_race_condition(temp_storage_dir):
     for guid in guids:
         assert guid in storage.metadata, f"GUID {guid} missing from metadata"
 
-    logger.info("✓ Metadata maintained integrity under concurrent load")
+    logger.info("Metadata maintained integrity under concurrent load")
 
 
 @pytest.mark.asyncio
@@ -216,7 +216,7 @@ async def test_async_concurrent_operations(temp_storage_dir):
     assert len(guids) == 20, "All async saves should succeed"
     assert len(set(guids)) == 20, "All GUIDs should be unique"
 
-    logger.info("✓ Async concurrent operations successful")
+    logger.info("Async concurrent operations successful")
 
 
 def test_concurrent_delete_and_save(temp_storage_dir):
@@ -247,7 +247,7 @@ def test_concurrent_delete_and_save(temp_storage_dir):
     with ThreadPoolExecutor(max_workers=10) as executor:
         results = list(executor.map(mixed_delete_save, range(20)))
 
-    logger.info("✓ Concurrent delete and save completed", operations=len(results))
+    logger.info("Concurrent delete and save completed", operations=len(results))
 
 
 def test_storage_under_load(temp_storage_dir):
@@ -283,7 +283,7 @@ def test_storage_under_load(temp_storage_dir):
     duration = time.time() - start_time
 
     logger.info(
-        "✓ Storage handled heavy load",
+        "Storage handled heavy load",
         operations=len(results),
         duration_seconds=f"{duration:.2f}",
         ops_per_second=f"{len(results) / duration:.1f}",

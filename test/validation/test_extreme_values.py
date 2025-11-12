@@ -65,10 +65,10 @@ async def test_render_with_infinity_values(app):
             ], f"Unexpected status: {response.status_code}"
         except ValueError as e:
             # Expected: JSON cannot serialize infinity
-            logger.info("✓ Infinity values cannot be serialized to JSON", error=str(e))
+            logger.info("Infinity values cannot be serialized to JSON", error=str(e))
             assert "JSON compliant" in str(e) or "Infinity" in str(e)
         else:
-            logger.info("✓ Infinity values handled by matplotlib")
+            logger.info("Infinity values handled by matplotlib")
 
 
 @pytest.mark.asyncio
@@ -100,7 +100,7 @@ async def test_render_with_nan_values(app):
             ], f"Unexpected status: {response.status_code}"
         except ValueError as e:
             # Expected: JSON cannot serialize NaN
-            logger.info("✓ NaN values cannot be serialized to JSON", error=str(e))
+            logger.info("NaN values cannot be serialized to JSON", error=str(e))
             assert "JSON compliant" in str(e) or "NaN" in str(e)
 
 
@@ -137,9 +137,9 @@ async def test_render_with_very_large_numbers(app):
         assert response.status_code in [200, 400, 500], f"Unexpected status: {response.status_code}"
 
         if response.status_code == 200:
-            logger.info("✓ Very large numbers handled successfully")
+            logger.info("Very large numbers handled successfully")
         else:
-            logger.info("✓ Very large numbers handled with error response")
+            logger.info("Very large numbers handled with error response")
 
 
 @pytest.mark.asyncio
@@ -166,7 +166,7 @@ async def test_render_with_very_small_numbers(app):
 
         # Should render successfully
         assert response.status_code in [200, 400], f"Unexpected status: {response.status_code}"
-        logger.info("✓ Very small numbers handled")
+        logger.info("Very small numbers handled")
 
 
 @pytest.mark.asyncio
@@ -193,13 +193,13 @@ async def test_render_with_mixed_extreme_values(app):
         assert response.status_code in [200, 400, 500], f"Unexpected status: {response.status_code}"
 
         if response.status_code == 200:
-            logger.info("✓ Mixed extreme values rendered successfully")
+            logger.info("Mixed extreme values rendered successfully")
         elif response.status_code == 500:
             # Matplotlib can't handle the range calculation with these extremes
-            logger.info("✓ Mixed extreme values cause matplotlib error (expected)")
+            logger.info("Mixed extreme values cause matplotlib error (expected)")
         else:
             error_data = response.json()
-            logger.info("✓ Mixed extreme values rejected", error=error_data.get("detail"))
+            logger.info("Mixed extreme values rejected", error=error_data.get("detail"))
 
 
 @pytest.mark.asyncio
@@ -222,7 +222,7 @@ async def test_render_with_all_same_values(app):
 
         # Matplotlib should handle this by creating a flat line
         assert response.status_code == 200, f"Expected 200, got {response.status_code}"
-        logger.info("✓ Constant values rendered successfully")
+        logger.info("Constant values rendered successfully")
 
 
 @pytest.mark.asyncio
@@ -245,7 +245,7 @@ async def test_render_with_single_data_point(app):
 
         # Should render (scatter plot can show one point)
         assert response.status_code == 200, f"Expected 200, got {response.status_code}"
-        logger.info("✓ Single data point rendered successfully")
+        logger.info("Single data point rendered successfully")
 
 
 @pytest.mark.asyncio
@@ -275,7 +275,7 @@ async def test_render_with_negative_infinity(app):
             ], f"Unexpected status: {response.status_code}"
         except ValueError as e:
             # Expected: JSON cannot serialize negative infinity
-            logger.info("✓ Negative infinity cannot be serialized to JSON", error=str(e))
+            logger.info("Negative infinity cannot be serialized to JSON", error=str(e))
             assert "JSON compliant" in str(e) or "Infinity" in str(e)
 
 
@@ -300,4 +300,4 @@ async def test_render_with_zero_range(app):
         # Matplotlib should handle this
         logger.info("Response status for zero range", status=response.status_code)
         assert response.status_code in [200, 400], f"Unexpected status: {response.status_code}"
-        logger.info("✓ Zero range handled")
+        logger.info("Zero range handled")

@@ -13,7 +13,7 @@ import pytest
 import tempfile
 import shutil
 from app.config import Config
-from app.storage import reset_storage
+from app.storage import reset_storage, get_storage
 from app.storage.file_storage import FileStorage
 from app.auth import AuthService
 
@@ -28,6 +28,7 @@ def test_data_dir(tmp_path):
     - Configures app.config to use this directory
     - Cleans up after the test completes
     - Resets storage singleton to ensure fresh state
+    - Purges all images from storage after test
     """
     # Set up test mode with temporary directory
     test_dir = tmp_path / "gplot_test_data"
@@ -45,7 +46,13 @@ def test_data_dir(tmp_path):
 
     yield test_dir
 
-    # Cleanup
+    # Cleanup: Purge all images from storage
+    try:
+        storage = get_storage()
+        storage.purge(age_days=0)  # Delete all images
+    except Exception:
+        pass  # Ignore errors during cleanup
+
     Config.clear_test_mode()
     reset_storage()  # Reset storage after test
 

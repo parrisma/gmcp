@@ -66,12 +66,16 @@ class GraphWebServer:
             and returning appropriate HTTP error responses.
             """
             group = token_info.group if token_info else None
+            datasets = data.get_datasets()
+            data_points = len(datasets[0][0]) if datasets else 0
+
             self.logger.info(
                 "Received render request",
                 chart_type=data.type,
                 format=data.format,
                 theme=data.theme,
-                data_points=len(data.x) if data.x else 0,
+                num_datasets=len(datasets),
+                data_points=data_points,
                 group=group,
             )
 
@@ -162,9 +166,12 @@ class GraphWebServer:
                     },
                 )
             except MemoryError:
+                datasets = data.get_datasets()
+                data_points = len(datasets[0][0]) if datasets else 0
                 self.logger.critical(
                     "Out of memory during render",
-                    data_points=len(data.x) if data.x else 0,
+                    data_points=data_points,
+                    num_datasets=len(datasets),
                     chart_type=data.type,
                 )
                 # Handle memory errors for large datasets

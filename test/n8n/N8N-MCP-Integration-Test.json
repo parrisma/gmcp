@@ -4,16 +4,23 @@
     {
       "parameters": {
         "endpointUrl": "http://gplot_dev:8001/mcp/",
+        "authentication": "bearerAuth",
         "options": {}
       },
       "type": "@n8n/n8n-nodes-langchain.mcpClientTool",
       "typeVersion": 1.2,
       "position": [
-        48,
-        0
+        576,
+        128
       ],
-      "id": "0c7a8660-acc7-4ef8-b4d7-2e8f0506d9c3",
-      "name": "MCP GPLOT Client"
+      "id": "8b28a66e-71d6-4d6b-ba15-517597886cef",
+      "name": "MCP GPLOT Client",
+      "credentials": {
+        "httpBearerAuth": {
+          "id": "HPQ2zwMdv97fW86U",
+          "name": "Bearer Auth account"
+        }
+      }
     },
     {
       "parameters": {
@@ -23,15 +30,15 @@
       "type": "@n8n/n8n-nodes-langchain.lmChatOpenRouter",
       "typeVersion": 1,
       "position": [
-        -144,
-        0
+        384,
+        128
       ],
-      "id": "27d71ba3-0de7-4b84-932b-0c33b9426584",
+      "id": "d95dd561-92bf-4b54-8d35-ac1b3bc16762",
       "name": "OpenRouter LLM 1",
       "credentials": {
         "openRouterApi": {
-          "id": "EbKTyTjh6DL4ZNdg",
-          "name": "OpenRouter 1"
+          "id": "z5Yf2d9WMgwsgWlt",
+          "name": "OpenRouter account"
         }
       }
     },
@@ -40,10 +47,10 @@
       "type": "n8n-nodes-base.manualTrigger",
       "typeVersion": 1,
       "position": [
-        -528,
-        -224
+        176,
+        -80
       ],
-      "id": "1915ab2d-cd41-4be3-a1af-d20a17bc5bbe",
+      "id": "3da99fd5-1901-48b7-8274-f715bfdb5de8",
       "name": "When clicking ‘Execute workflow’"
     },
     {
@@ -55,10 +62,10 @@
       "type": "@n8n/n8n-nodes-langchain.agent",
       "typeVersion": 3,
       "position": [
-        -304,
-        -224
+        400,
+        -80
       ],
-      "id": "eb0184f5-7c88-4e5a-8457-ea8d6727f00b",
+      "id": "274006c3-6f50-4976-8db7-ea84ad5adf60",
       "name": "AI Gen Graph"
     },
     {
@@ -70,10 +77,10 @@
       "type": "@n8n/n8n-nodes-langchain.agent",
       "typeVersion": 3,
       "position": [
-        48,
-        -224
+        752,
+        -80
       ],
-      "id": "6c40dd4f-147b-46a8-98ec-f41d40cd9bb6",
+      "id": "2ef00911-255b-4c86-9176-fc4668c07d0e",
       "name": "AI Render Graph"
     }
   ],
@@ -83,12 +90,12 @@
       "ai_tool": [
         [
           {
-            "node": "AI Render Graph",
+            "node": "AI Gen Graph",
             "type": "ai_tool",
             "index": 0
           },
           {
-            "node": "AI Gen Graph",
+            "node": "AI Render Graph",
             "type": "ai_tool",
             "index": 0
           }
@@ -99,12 +106,12 @@
       "ai_languageModel": [
         [
           {
-            "node": "AI Render Graph",
+            "node": "AI Gen Graph",
             "type": "ai_languageModel",
             "index": 0
           },
           {
-            "node": "AI Gen Graph",
+            "node": "AI Render Graph",
             "type": "ai_languageModel",
             "index": 0
           }
@@ -132,22 +139,17 @@
           }
         ]
       ]
-    },
-    "AI Render Graph": {
-      "main": [
-        []
-      ]
     }
   },
   "active": false,
   "settings": {
     "executionOrder": "v1"
   },
-  "versionId": "a5cc496c-3aa1-4da8-8548-627df29f4b64",
+  "versionId": "21556ee1-303f-4fc5-9373-849a8ace2490",
   "meta": {
     "templateCredsSetupCompleted": true,
-    "instanceId": "0eba2dfa91fa7e24dbebf3ebd783deb9e7eab1406afa04de51cedb2af945f6da"
+    "instanceId": "c69692e294a67946f56f839d60e4b88772ce104641c1bd20afcbcd761576412f"
   },
-  "id": "oUy2f5puU0DIAVWX",
+  "id": "CyTlGzA2XbP03GHO",
   "tags": []
 }

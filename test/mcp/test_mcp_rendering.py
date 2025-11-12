@@ -36,7 +36,7 @@ async def test_list_tools():
             assert len(tool_names) > 0, "No tools found"
             assert "render_graph" in tool_names, "render_graph tool not found"
 
-            logger.info(f"✓ Found {len(tool_names)} tools")
+            logger.info(f"Found {len(tool_names)} tools")
 
 
 @pytest.mark.asyncio
@@ -60,7 +60,7 @@ async def test_render_line_chart():
 
             result = await session.call_tool("render_graph", line_args)
             assert len(result.content) > 0, "No content returned"
-            logger.info(f"✓ Line chart rendered successfully")
+            logger.info(f"Line chart rendered successfully")
 
 
 @pytest.mark.asyncio
@@ -84,7 +84,7 @@ async def test_render_bar_chart():
 
             result = await session.call_tool("render_graph", bar_args)
             assert len(result.content) > 0, "No content returned"
-            logger.info(f"✓ Bar chart rendered successfully")
+            logger.info(f"Bar chart rendered successfully")
 
 
 @pytest.mark.asyncio
@@ -108,7 +108,7 @@ async def test_render_scatter_plot():
 
             result = await session.call_tool("render_graph", scatter_args)
             assert len(result.content) > 0, "No content returned"
-            logger.info(f"✓ Scatter plot rendered successfully")
+            logger.info(f"Scatter plot rendered successfully")
 
 
 @pytest.mark.asyncio
@@ -131,7 +131,7 @@ async def test_render_with_dark_theme():
 
             result = await session.call_tool("render_graph", dark_args)
             assert len(result.content) > 0, "No content returned"
-            logger.info(f"✓ Dark theme chart rendered successfully")
+            logger.info(f"Dark theme chart rendered successfully")
 
 
 @pytest.mark.asyncio
@@ -163,7 +163,7 @@ async def test_validation_mismatched_arrays(test_jwt_token):
 
             assert "validation" in error_text.lower(), "Expected validation error"
             assert "length" in error_text.lower(), "Expected length error"
-            logger.info("✓ Validation correctly caught mismatched arrays")
+            logger.info("Validation correctly caught mismatched arrays")
 
 
 @pytest.mark.asyncio
@@ -216,7 +216,7 @@ async def test_validation_empty_arrays(test_jwt_token):
 
             assert "validation" in empty_text.lower(), "Expected validation error"
             assert "empty" in empty_text.lower(), "Expected empty error"
-            logger.info("✓ Validation correctly caught empty arrays")
+            logger.info("Validation correctly caught empty arrays")
 
 
 @pytest.mark.asyncio
@@ -248,4 +248,4 @@ async def test_validation_invalid_alpha(test_jwt_token):
 
             assert "validation" in alpha_text.lower(), "Expected validation error"
             assert "alpha" in alpha_text.lower(), "Expected alpha error"
-            logger.info("✓ Validation correctly caught invalid alpha")
+            logger.info("Validation correctly caught invalid alpha")

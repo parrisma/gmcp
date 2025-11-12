@@ -75,3 +75,7 @@ class BizDarkTheme(Theme):
             "font_family": self.font_family,
             "font_size": self.font_size,
         }
+
+    def get_description(self) -> str:
+        """Get a human-readable description of the theme"""
+        return "Professional business dark theme with low-glare background and high-legibility text, optimized for trading terminals and extended analysis sessions"

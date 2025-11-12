@@ -42,8 +42,16 @@ if __name__ == "__main__":
     )
     args = parser.parse_args()
 
-    # Initialize server with JWT configuration
+    # Validate JWT secret if authentication is enabled
     jwt_secret = args.jwt_secret or os.environ.get("GPLOT_JWT_SECRET")
+    if not args.no_auth and not jwt_secret:
+        logger.error(
+            "FATAL: Authentication enabled but no JWT secret provided",
+            help="Set GPLOT_JWT_SECRET environment variable or use --jwt-secret flag, or use --no-auth to disable authentication",
+        )
+        sys.exit(1)
+
+    # Initialize server with JWT configuration
     server = GraphWebServer(
         jwt_secret=jwt_secret, token_store_path=args.token_store, require_auth=not args.no_auth
     )

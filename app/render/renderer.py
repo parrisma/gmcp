@@ -50,12 +50,16 @@ class GraphRenderer:
         fig = None
         buf = None
 
+        datasets = data.get_datasets()
+        data_points = len(datasets[0][0]) if datasets else 0
+
         self.logger.info(
             "Starting render",
             chart_type=data.type,
             format=data.format,
             theme=data.theme,
-            data_points=len(data.x) if data.x else 0,
+            num_datasets=len(datasets),
+            data_points=data_points,
         )
 
         try:
@@ -120,6 +124,42 @@ class GraphRenderer:
             except Exception as e:
                 self.logger.error("Failed to set labels", error=str(e))
                 raise RuntimeError(f"Failed to set labels: {str(e)}")
+
+            # Apply axis limits if specified
+            try:
+                if data.xmin is not None or data.xmax is not None:
+                    self.logger.debug("Setting x-axis limits", xmin=data.xmin, xmax=data.xmax)
+                    ax.set_xlim(left=data.xmin, right=data.xmax)
+                if data.ymin is not None or data.ymax is not None:
+                    self.logger.debug("Setting y-axis limits", ymin=data.ymin, ymax=data.ymax)
+                    ax.set_ylim(bottom=data.ymin, top=data.ymax)
+            except Exception as e:
+                self.logger.error("Failed to set axis limits", error=str(e))
+                raise RuntimeError(f"Failed to set axis limits: {str(e)}")
+
+            # Apply major ticks if specified
+            try:
+                if data.x_major_ticks is not None:
+                    self.logger.debug("Setting x-axis major ticks", count=len(data.x_major_ticks))
+                    ax.set_xticks(data.x_major_ticks)
+                if data.y_major_ticks is not None:
+                    self.logger.debug("Setting y-axis major ticks", count=len(data.y_major_ticks))
+                    ax.set_yticks(data.y_major_ticks)
+            except Exception as e:
+                self.logger.error("Failed to set major ticks", error=str(e))
+                raise RuntimeError(f"Failed to set major ticks: {str(e)}")
+
+            # Apply minor ticks if specified
+            try:
+                if data.x_minor_ticks is not None:
+                    self.logger.debug("Setting x-axis minor ticks", count=len(data.x_minor_ticks))
+                    ax.set_xticks(data.x_minor_ticks, minor=True)
+                if data.y_minor_ticks is not None:
+                    self.logger.debug("Setting y-axis minor ticks", count=len(data.y_minor_ticks))
+                    ax.set_yticks(data.y_minor_ticks, minor=True)
+            except Exception as e:
+                self.logger.error("Failed to set minor ticks", error=str(e))
+                raise RuntimeError(f"Failed to set minor ticks: {str(e)}")
 
             # Save to buffer
             try:

@@ -75,3 +75,7 @@ class BizLightTheme(Theme):
             "font_family": self.font_family,
             "font_size": self.font_size,
         }
+
+    def get_description(self) -> str:
+        """Get a human-readable description of the theme"""
+        return "Professional business light theme with corporate styling and refined color palette, suitable for executive dashboards and client presentations"

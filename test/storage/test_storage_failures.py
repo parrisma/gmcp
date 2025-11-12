@@ -49,7 +49,7 @@ def test_storage_write_failure_permission_denied(temp_storage_dir):
         assert "Failed to save image" in str(exc_info.value) or "Permission denied" in str(
             exc_info.value
         )
-        logger.info("✓ Storage correctly raised RuntimeError on write failure")
+        logger.info("Storage correctly raised RuntimeError on write failure")
 
     finally:
         # Restore permissions for cleanup
@@ -81,7 +81,7 @@ def test_storage_metadata_write_failure():
                 storage.save_image(test_data, format="png", group="test")
 
             assert "metadata" in str(exc_info.value).lower()
-            logger.info("✓ Storage correctly handled metadata write failure")
+            logger.info("Storage correctly handled metadata write failure")
 
 
 def test_storage_disk_full_simulation(temp_storage_dir):
@@ -101,7 +101,7 @@ def test_storage_disk_full_simulation(temp_storage_dir):
         with pytest.raises((RuntimeError, OSError)) as exc_info:
             storage.save_image(test_data, format="png", group="test")
 
-        logger.info("✓ Storage handled disk full condition", error=str(exc_info.value))
+        logger.info("Storage handled disk full condition", error=str(exc_info.value))
 
 
 def test_storage_retrieve_from_readonly_directory(temp_storage_dir):
@@ -126,7 +126,7 @@ def test_storage_retrieve_from_readonly_directory(temp_storage_dir):
         retrieved_data, format_type = result
         assert retrieved_data == test_data, "Retrieved data doesn't match"
         assert format_type == "png", "Format doesn't match"
-        logger.info("✓ Retrieval works from read-only directory")
+        logger.info("Retrieval works from read-only directory")
 
     finally:
         # Restore permissions
@@ -164,7 +164,7 @@ def test_storage_partial_write_recovery(temp_storage_dir):
         new_image_files = [f for f in new_files if not f.endswith("metadata.json")]
 
         logger.info(
-            "✓ Partial write handled", orphaned_files=len(new_image_files), files=new_image_files
+            "Partial write handled", orphaned_files=len(new_image_files), files=new_image_files
         )
 
         # Note: Current implementation may leave orphaned files
@@ -184,4 +184,4 @@ def test_storage_initialization_failure():
         FileStorage(storage_dir="/root/impossible_path/storage")
 
     assert "Failed to create storage directory" in str(exc_info.value)
-    logger.info("✓ Storage initialization failure handled correctly")
+    logger.info("Storage initialization failure handled correctly")

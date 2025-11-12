@@ -33,7 +33,7 @@ async def test_ping_tool_available():
             logger.info("Found tools", count=len(tool_names), tools=tool_names)
 
             assert "ping" in tool_names, "ping tool not found"
-            logger.info("✓ Ping tool is available")
+            logger.info("Ping tool is available")
 
 
 @pytest.mark.asyncio
@@ -59,4 +59,4 @@ async def test_ping_returns_correct_response():
             assert "Timestamp:" in response_text, "Missing timestamp"
             assert "Service: gplot" in response_text, "Missing service identifier"
 
-            logger.info("✓ Ping tool returned correct response")
+            logger.info("Ping tool returned correct response")

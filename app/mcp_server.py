@@ -38,6 +38,8 @@ from app.validation import GraphDataValidator
 from app.storage import get_storage
 from app.auth import AuthService
 from app.logger import ConsoleLogger
+from app.themes import list_themes_with_descriptions
+from app.handlers import list_handlers_with_descriptions
 import logging as python_logging
 from datetime import datetime
 import base64
@@ -78,12 +80,77 @@ async def handle_list_tools() -> list[Tool]:
                     "x": {
                         "type": "array",
                         "items": {"type": "number"},
-                        "description": "X-axis data points (list of numbers)",
+                        "description": "X-axis data points (optional, defaults to indices [0, 1, 2, ...]). For backward compatibility, you can also use old 'y' parameter which maps to 'y1'.",
                     },
                     "y": {
                         "type": "array",
                         "items": {"type": "number"},
-                        "description": "Y-axis data points (list of numbers)",
+                        "description": "Y-axis data points (backward compatibility - maps to y1, list of numbers)",
+                    },
+                    "y1": {
+                        "type": "array",
+                        "items": {"type": "number"},
+                        "description": "First dataset Y-axis data points (required unless 'y' provided, list of numbers)",
+                    },
+                    "y2": {
+                        "type": "array",
+                        "items": {"type": "number"},
+                        "description": "Second dataset Y-axis data points (optional)",
+                    },
+                    "y3": {
+                        "type": "array",
+                        "items": {"type": "number"},
+                        "description": "Third dataset Y-axis data points (optional)",
+                    },
+                    "y4": {
+                        "type": "array",
+                        "items": {"type": "number"},
+                        "description": "Fourth dataset Y-axis data points (optional)",
+                    },
+                    "y5": {
+                        "type": "array",
+                        "items": {"type": "number"},
+                        "description": "Fifth dataset Y-axis data points (optional)",
+                    },
+                    "label1": {
+                        "type": "string",
+                        "description": "Label for first dataset (optional, for legend)",
+                    },
+                    "label2": {
+                        "type": "string",
+                        "description": "Label for second dataset (optional, for legend)",
+                    },
+                    "label3": {
+                        "type": "string",
+                        "description": "Label for third dataset (optional, for legend)",
+                    },
+                    "label4": {
+                        "type": "string",
+                        "description": "Label for fourth dataset (optional, for legend)",
+                    },
+                    "label5": {
+                        "type": "string",
+                        "description": "Label for fifth dataset (optional, for legend)",
+                    },
+                    "color1": {
+                        "type": "string",
+                        "description": "Color for first dataset (e.g., 'red', '#FF5733', 'rgb(255,87,51)')",
+                    },
+                    "color2": {
+                        "type": "string",
+                        "description": "Color for second dataset",
+                    },
+                    "color3": {
+                        "type": "string",
+                        "description": "Color for third dataset",
+                    },
+                    "color4": {
+                        "type": "string",
+                        "description": "Color for fourth dataset",
+                    },
+                    "color5": {
+                        "type": "string",
+                        "description": "Color for fifth dataset",
                     },
                     "xlabel": {
                         "type": "string",
@@ -112,12 +179,73 @@ async def handle_list_tools() -> list[Tool]:
                         "description": "If true, save image to disk and return GUID instead of base64 (default: false)",
                         "default": False,
                     },
+                    "color": {
+                        "type": "string",
+                        "description": "Line/marker color (e.g., 'red', '#FF5733', 'rgb(255,87,51)')",
+                    },
+                    "line_width": {
+                        "type": "number",
+                        "description": "Line width for line plots (default: 2.0)",
+                        "default": 2.0,
+                    },
+                    "marker_size": {
+                        "type": "number",
+                        "description": "Marker size for scatter plots (default: 36.0)",
+                        "default": 36.0,
+                    },
+                    "alpha": {
+                        "type": "number",
+                        "description": "Transparency level from 0.0 (transparent) to 1.0 (opaque) (default: 1.0)",
+                        "default": 1.0,
+                    },
+                    "theme": {
+                        "type": "string",
+                        "enum": ["light", "dark", "bizlight", "bizdark"],
+                        "description": "Visual theme for the graph (default: 'light') if theme is supplied specifying data set colours is optional and will override any theme colours",
+                        "default": "light",
+                    },
+                    "xmin": {
+                        "type": "number",
+                        "description": "Minimum value for x-axis (optional)",
+                    },
+                    "xmax": {
+                        "type": "number",
+                        "description": "Maximum value for x-axis (optional)",
+                    },
+                    "ymin": {
+                        "type": "number",
+                        "description": "Minimum value for y-axis (optional)",
+                    },
+                    "ymax": {
+                        "type": "number",
+                        "description": "Maximum value for y-axis (optional)",
+                    },
+                    "x_major_ticks": {
+                        "type": "array",
+                        "items": {"type": "number"},
+                        "description": "Custom positions for x-axis major tick marks (optional)",
+                    },
+                    "y_major_ticks": {
+                        "type": "array",
+                        "items": {"type": "number"},
+                        "description": "Custom positions for y-axis major tick marks (optional)",
+                    },
+                    "x_minor_ticks": {
+                        "type": "array",
+                        "items": {"type": "number"},
+                        "description": "Custom positions for x-axis minor tick marks (optional)",
+                    },
+                    "y_minor_ticks": {
+                        "type": "array",
+                        "items": {"type": "number"},
+                        "description": "Custom positions for y-axis minor tick marks (optional)",
+                    },
                     "token": {
                         "type": "string",
                         "description": "JWT authentication token (required for all operations)",
                     },
                 },
-                "required": ["title", "x", "y", "token"],
+                "required": ["title", "token"],
             },
         ),
         Tool(
@@ -140,6 +268,22 @@ async def handle_list_tools() -> list[Tool]:
                 },
                 "required": ["guid", "token"],
             },
+        ),
+        Tool(
+            name="list_themes",
+            description=(
+                "List all available themes with their descriptions. "
+                "Use this to discover which themes are available for the 'theme' parameter in render_graph."
+            ),
+            inputSchema={"type": "object", "properties": {}, "required": []},
+        ),
+        Tool(
+            name="list_handlers",
+            description=(
+                "List all available graph types (handlers) with their descriptions. "
+                "Use this to discover which graph types are available for the 'type' parameter in render_graph."
+            ),
+            inputSchema={"type": "object", "properties": {}, "required": []},
         ),
     ]
 
@@ -257,20 +401,67 @@ async def handle_call_tool(
                 )
             ]
 
+    if name == "list_themes":
+        logger.info("List themes tool called")
+        try:
+            themes = list_themes_with_descriptions()
+
+            # Format the themes as a readable text response
+            response_lines = ["Available Themes:\n"]
+            for theme_name, description in sorted(themes.items()):
+                response_lines.append(f"• {theme_name}: {description}")
+
+            response_text = "\n".join(response_lines)
+            logger.debug("Themes listed", count=len(themes))
+
+            return [TextContent(type="text", text=response_text)]
+        except Exception as e:
+            logger.error("Failed to list themes", error=str(e))
+            return [
+                TextContent(
+                    type="text",
+                    text=f"Error listing themes: {str(e)}",
+                )
+            ]
+
+    if name == "list_handlers":
+        logger.info("List handlers tool called")
+        try:
+            handlers = list_handlers_with_descriptions()
+
+            # Format the handlers as a readable text response
+            response_lines = ["Available Graph Types:\n"]
+            for handler_name, description in sorted(handlers.items()):
+                response_lines.append(f"• {handler_name}: {description}")
+
+            response_text = "\n".join(response_lines)
+            logger.debug("Handlers listed", count=len(handlers))
+
+            return [TextContent(type="text", text=response_text)]
+        except Exception as e:
+            logger.error("Failed to list handlers", error=str(e))
+            return [
+                TextContent(
+                    type="text",
+                    text=f"Error listing handlers: {str(e)}",
+                )
+            ]
+
     if name != "render_graph":
         logger.warning("Unknown tool requested", tool_name=name)
         return [
             TextContent(
                 type="text",
-                text=f"Error: Unknown tool '{name}'\n\nAvailable tools:\n- ping\n- render_graph\n- get_image",
+                text=f"Error: Unknown tool '{name}'\n\nAvailable tools:\n- ping\n- render_graph\n- get_image\n- list_themes\n- list_handlers",
             )
         ]
 
     logger.info("Render tool called")
 
     try:
-        # Validate required arguments
-        required_args = ["title", "x", "y", "token"]
+        # Validate required arguments - only title and token are required now
+        # x is optional (auto-generates indices), y1-y5 are optional (backward compatible with y)
+        required_args = ["title", "token"]
         missing_args = [arg for arg in required_args if arg not in arguments]
         if missing_args:
             logger.warning("Missing required arguments", missing=missing_args)
@@ -278,8 +469,12 @@ async def handle_call_tool(
                 TextContent(
                     type="text",
                     text=f"Missing required arguments: {', '.join(missing_args)}\n\n"
-                    f"Required: title, x (array), y (array), token (JWT)\n"
-                    f"Optional: xlabel, ylabel, type, format, color, line_width, marker_size, alpha, theme",
+                    f"Required: title, token (JWT)\n"
+                    f"Data arrays: x (optional, auto-generated if omitted), y (backward compat) or y1-y5 (up to 5 datasets)\n"
+                    f"Labels: label1-label5 (optional, for legend)\n"
+                    f"Colors: color1-color5 (optional, per-dataset colors)\n"
+                    f"Other: xlabel, ylabel, type, format, line_width, marker_size, alpha, theme, "
+                    f"xmin, xmax, ymin, ymax, x_major_ticks, y_major_ticks, x_minor_ticks, y_minor_ticks",
                 )
             ]
 
@@ -301,22 +496,15 @@ async def handle_call_tool(
                 )
             ]
 
-        # Validate x and y are arrays
-        if not isinstance(arguments.get("x"), list):
-            logger.warning("Invalid x argument type", type=type(arguments.get("x")).__name__)
+        # Validate data arrays if provided
+        # x is optional (will be auto-generated if omitted)
+        # y is backward compat, y1-y5 are the new multi-dataset parameters
+        if "x" in arguments and not isinstance(arguments["x"], list):
+            logger.warning("Invalid x argument type", type=type(arguments["x"]).__name__)
             return [
                 TextContent(
                     type="text",
                     text="Error: 'x' must be an array of numbers\n\nExample: x=[1, 2, 3, 4, 5]",
-                )
-            ]
-
-        if not isinstance(arguments.get("y"), list):
-            logger.warning("Invalid y argument type", type=type(arguments.get("y")).__name__)
-            return [
-                TextContent(
-                    type="text",
-                    text="Error: 'y' must be an array of numbers\n\nExample: y=[10, 20, 15, 30, 25]",
                 )
             ]
 
@@ -332,19 +520,45 @@ async def handle_call_tool(
             is_proxy = arguments.get("proxy", False)
             graph_data = GraphParams(
                 title=arguments["title"],
-                x=arguments["x"],
-                y=arguments["y"],
+                x=arguments.get("x"),  # Optional now
+                y1=arguments.get("y1"),  # Optional if 'y' is provided
+                y2=arguments.get("y2"),
+                y3=arguments.get("y3"),
+                y4=arguments.get("y4"),
+                y5=arguments.get("y5"),
+                label1=arguments.get("label1"),
+                label2=arguments.get("label2"),
+                label3=arguments.get("label3"),
+                label4=arguments.get("label4"),
+                label5=arguments.get("label5"),
+                color1=arguments.get("color1"),
+                color2=arguments.get("color2"),
+                color3=arguments.get("color3"),
+                color4=arguments.get("color4"),
+                color5=arguments.get("color5"),
                 xlabel=arguments.get("xlabel", "X-axis"),
                 ylabel=arguments.get("ylabel", "Y-axis"),
                 type=arguments.get("type", "line"),
                 format=arguments.get("format", "png"),
                 return_base64=not is_proxy,  # If proxy, don't return base64
                 proxy=is_proxy,
-                color=arguments.get("color"),
                 line_width=arguments.get("line_width", 2.0),
                 marker_size=arguments.get("marker_size", 36.0),
                 alpha=arguments.get("alpha", 1.0),
                 theme=arguments.get("theme", "light"),
+                # Axis limits
+                xmin=arguments.get("xmin"),
+                xmax=arguments.get("xmax"),
+                ymin=arguments.get("ymin"),
+                ymax=arguments.get("ymax"),
+                # Major and minor ticks
+                x_major_ticks=arguments.get("x_major_ticks"),
+                y_major_ticks=arguments.get("y_major_ticks"),
+                x_minor_ticks=arguments.get("x_minor_ticks"),
+                y_minor_ticks=arguments.get("y_minor_ticks"),
+                # Backward compatibility
+                y=arguments.get("y"),
+                color=arguments.get("color"),
             )
             logger.debug("GraphData created successfully")
         except Exception as e:
@@ -354,8 +568,11 @@ async def handle_call_tool(
                     type="text",
                     text=f"Error creating graph data: {str(e)}\n\n"
                     f"Suggestions:\n"
-                    f"- Ensure x and y are arrays of numbers\n"
-                    f"- Check that all numeric parameters (alpha, line_width, marker_size) are valid numbers",
+                    f"- Ensure y1 (required) is an array of numbers\n"
+                    f"- If providing x, ensure it's an array of numbers (optional, defaults to indices)\n"
+                    f"- For multiple datasets, provide y2, y3, y4, y5 as arrays of numbers\n"
+                    f"- Check that all numeric parameters (alpha, line_width, marker_size) are valid numbers\n"
+                    f"- For backward compatibility, you can use 'y' which maps to 'y1'",
                 )
             ]
 

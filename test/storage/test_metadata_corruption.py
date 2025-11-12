@@ -44,7 +44,7 @@ def test_corrupted_metadata_json(temp_storage_dir):
     # Should be able to save new images
     test_data = b"test image after corruption"
     guid = storage.save_image(test_data, format="png", group="test")
-    logger.info("✓ Storage recovered from corrupted metadata", guid=guid)
+    logger.info("Storage recovered from corrupted metadata", guid=guid)
 
     # Verify metadata was rewritten correctly
     with open(metadata_path, "r") as f:
@@ -72,7 +72,7 @@ def test_missing_metadata_json(temp_storage_dir):
         metadata = json.load(f)
 
     assert guid in metadata, "GUID should be in metadata"
-    logger.info("✓ Storage created new metadata successfully")
+    logger.info("Storage created new metadata successfully")
 
 
 def test_metadata_with_orphaned_entries(temp_storage_dir):
@@ -92,7 +92,7 @@ def test_metadata_with_orphaned_entries(temp_storage_dir):
     # Try to retrieve (should return None)
     result = storage.get_image(guid, group="test")
     assert result is None, "Should return None for missing image"
-    logger.info("✓ Storage handled orphaned metadata entry")
+    logger.info("Storage handled orphaned metadata entry")
 
 
 def test_images_without_metadata_entries(temp_storage_dir):
@@ -116,7 +116,7 @@ def test_images_without_metadata_entries(temp_storage_dir):
     assert result is not None, "Should find orphaned image file"
     image_data, format_type = result
     assert image_data == b"orphan image data"
-    logger.info("✓ Storage found orphaned image file without metadata")
+    logger.info("Storage found orphaned image file without metadata")
 
 
 def test_metadata_with_wrong_format(temp_storage_dir):
@@ -137,7 +137,7 @@ def test_metadata_with_wrong_format(temp_storage_dir):
     # Retrieve should still work (will try multiple formats)
     result = storage.get_image(guid, group="test")
     assert result is not None, "Should find image despite metadata mismatch"
-    logger.info("✓ Storage handled format mismatch")
+    logger.info("Storage handled format mismatch")
 
 
 def test_concurrent_metadata_updates(temp_storage_dir):
@@ -158,7 +158,7 @@ def test_concurrent_metadata_updates(temp_storage_dir):
     for guid in guids:
         assert guid in storage.metadata, f"GUID {guid} should be in metadata"
 
-    logger.info("✓ Multiple saves maintained metadata integrity")
+    logger.info("Multiple saves maintained metadata integrity")
 
 
 def test_metadata_permissions_error_recovery(temp_storage_dir):
@@ -184,7 +184,7 @@ def test_metadata_permissions_error_recovery(temp_storage_dir):
             storage.save_image(test_data2, format="png", group="test")
 
         assert "metadata" in str(exc_info.value).lower()
-        logger.info("✓ Properly raised error when metadata cannot be updated")
+        logger.info("Properly raised error when metadata cannot be updated")
 
     finally:
         # Restore permissions
@@ -207,7 +207,7 @@ def test_empty_metadata_file(temp_storage_dir):
     # Should work with empty metadata
     test_data = b"test after empty"
     guid = storage.save_image(test_data, format="png", group="test")
-    logger.info("✓ Recovered from empty metadata file", guid=guid)
+    logger.info("Recovered from empty metadata file", guid=guid)
 
 
 def test_metadata_with_unexpected_structure(temp_storage_dir):
@@ -226,4 +226,4 @@ def test_metadata_with_unexpected_structure(temp_storage_dir):
     # Should reset to empty dict and continue
     test_data = b"test after bad structure"
     guid = storage.save_image(test_data, format="png", group="test")
-    logger.info("✓ Recovered from unexpected metadata structure", guid=guid)
+    logger.info("Recovered from unexpected metadata structure", guid=guid)

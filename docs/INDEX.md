@@ -26,6 +26,8 @@ Complete documentation for the gplot graph rendering service.
 ### Rendering System
 - [Render Engine](./RENDER.md) - Graph rendering system details
 - [Graph Parameters](./GRAPH_PARAMS.md) - GraphParams model and validation
+- [Multi-Dataset Support](./MULTI_DATASET.md) - Plot up to 5 datasets on a single graph
+- [Axis Controls](./AXIS_CONTROLS.md) - Axis limits and tick customization
 - [Themes](./THEMES.md) - Theme system and custom theme creation
 
 ### Infrastructure
