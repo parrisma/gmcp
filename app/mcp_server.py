@@ -380,10 +380,13 @@ async def handle_call_tool(
         # Verify JWT token
         try:
             if auth_service is None:
-                raise RuntimeError("Authentication service not initialized")
-            token_info = auth_service.verify_token(token)
-            group = token_info.group
-            logger.debug("Token verified", group=group)
+                # No-auth mode: use public group
+                group = "public"
+                logger.debug("No-auth mode: using public group", group=group)
+            else:
+                token_info = auth_service.verify_token(token)
+                group = token_info.group
+                logger.debug("Token verified", group=group)
         except Exception as e:
             logger.error("Token validation failed", error=str(e))
             return AUTH_INVALID_ERROR(str(e))
@@ -519,10 +522,13 @@ async def handle_call_tool(
         token = arguments["token"]
         try:
             if auth_service is None:
-                raise RuntimeError("Authentication service not initialized")
-            token_info = auth_service.verify_token(token)
-            group = token_info.group
-            logger.debug("Token verified", group=group)
+                # No-auth mode: use public group
+                group = "public"
+                logger.debug("No-auth mode: using public group", group=group)
+            else:
+                token_info = auth_service.verify_token(token)
+                group = token_info.group
+                logger.debug("Token verified", group=group)
         except Exception as e:
             logger.error("Token validation failed", error=str(e))
             return AUTH_INVALID_ERROR(str(e))

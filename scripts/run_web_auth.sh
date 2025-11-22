@@ -52,7 +52,7 @@ if command -v lsof >/dev/null 2>&1; then
 fi
 
 # Build and execute command
-CMD="uv run python app/main_web.py --port ${PORT} --jwt-secret ${JWT_SECRET} --token-store ${TOKEN_STORE}"
+CMD="uv run python app/main_web.py --host 0.0.0.0 --port ${PORT} --jwt-secret ${JWT_SECRET} --token-store ${TOKEN_STORE}"
 
 echo "Starting server..."
 echo "Command: ${CMD}"

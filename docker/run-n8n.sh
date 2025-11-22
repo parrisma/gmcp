@@ -41,12 +41,12 @@ else
 fi
 
 # Create docker network if it doesn't exist
-echo "Checking for gplot_net network..."
-if ! docker network inspect gplot_net >/dev/null 2>&1; then
-    echo "Creating gplot_net network..."
-    docker network create gplot_net
+echo "Checking for ai-net network..."
+if ! docker network inspect ai-net >/dev/null 2>&1; then
+    echo "Creating ai-net network..."
+    docker network create ai-net
 else
-    echo "Network gplot_net already exists"
+    echo "Network ai-net already exists"
 fi
 
 # Handle gplot_volume creation/recreation
@@ -84,8 +84,8 @@ echo "Starting n8n container..."
 echo "Port: $N8N_PORT"
 docker run -d \
   --name n8n \
-  --network gplot_net \
-  -p $N8N_PORT:5678 \
+  --network ai-net \
+  -p 0.0.0.0:$N8N_PORT:5678 \
   -e GENERIC_TIMEZONE="$TIMEZONE" \
   -e TZ="$TIMEZONE" \
   -e N8N_ENFORCE_SETTINGS_FILE_PERMISSIONS=true \
@@ -101,7 +101,7 @@ if docker ps -q -f name=n8n | grep -q .; then
     echo "Container n8n is now running"
     echo ""
     echo "n8n is accessible at http://localhost:$N8N_PORT"
-    echo "On gplot_net, other containers can reach it at http://n8n:5678"
+    echo "On ai-net, other containers can reach it at http://n8n:5678"
     echo "Data stored in Docker volume: gplot_volume"
     echo "Shared directory: ${N8N_SHARE_DIR} -> /data/n8n_share (inside container)"
     echo ""

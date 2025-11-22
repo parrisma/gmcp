@@ -76,7 +76,7 @@ if [[ "${NO_AUTH}" != "true" ]]; then
 fi
 
 # Build command
-CMD="uv run python app/main_mcp.py --port ${PORT}"
+CMD="uv run python app/main_mcp.py --host 0.0.0.0 --port ${PORT}"
 
 if [[ "${NO_AUTH}" == "true" ]]; then
     CMD="${CMD} --no-auth"

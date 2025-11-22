@@ -84,7 +84,7 @@ class GraphWebServer:
             This endpoint ensures the server never crashes by catching all exceptions
             and returning appropriate HTTP error responses.
             """
-            group = token_info.group if token_info else None
+            group = token_info.group if token_info else "public"
             datasets = data.get_datasets()
             data_points = len(datasets[0][0]) if datasets else 0
 
@@ -297,7 +297,7 @@ class GraphWebServer:
             Returns the raw image bytes with appropriate content type.
             Requires JWT authentication and group access (unless --no-auth is used).
             """
-            group = token_info.group if token_info else None
+            group = token_info.group if token_info else "public"
             self.logger.info("Get image request", guid=guid, group=group)
 
             try:
@@ -375,7 +375,7 @@ class GraphWebServer:
             Useful for viewing images directly in a browser.
             Requires JWT authentication and group access (unless --no-auth is used).
             """
-            group = token_info.group if token_info else None
+            group = token_info.group if token_info else "public"
             self.logger.info("Get image HTML request", guid=guid, group=group)
 
             try:

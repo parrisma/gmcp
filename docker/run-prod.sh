@@ -9,12 +9,12 @@ WEB_PORT=${1:-8000}
 MCP_PORT=${2:-8001}
 
 # Create docker network if it doesn't exist
-echo "Checking for gplot_net network..."
-if ! docker network inspect gplot_net >/dev/null 2>&1; then
-    echo "Creating gplot_net network..."
-    docker network create gplot_net
+echo "Checking for ai-net network..."
+if ! docker network inspect ai-net >/dev/null 2>&1; then
+    echo "Creating ai-net network..."
+    docker network create ai-net
 else
-    echo "Network gplot_net already exists"
+    echo "Network ai-net already exists"
 fi
 
 # Create docker volume for persistent data if it doesn't exist
@@ -41,7 +41,7 @@ echo "Web port: $WEB_PORT, MCP port: $MCP_PORT"
 
 docker run -d \
 --name gplot_prod \
---network gplot_net \
+--network ai-net \
 -v gplot_data:/home/gplot/data \
 -p $WEB_PORT:8000 \
 -p $MCP_PORT:8001 \

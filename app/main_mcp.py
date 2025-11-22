@@ -81,7 +81,7 @@ if __name__ == "__main__":
             host=args.host,
             port=args.port,
             transport="Streamable HTTP",
-            jwt_enabled=True,
+            jwt_enabled=not args.no_auth,
         )
         asyncio.run(main(host=args.host, port=args.port))
         startup_logger.info("MCP server shutdown complete")
