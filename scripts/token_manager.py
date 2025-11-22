@@ -34,6 +34,11 @@ def create_token(args):
         secret_key=jwt_secret,
         token_store_path=args.token_store,
     )
+    logger.info(
+        "Token manager auth context",
+        token_store=str(auth_service.token_store_path),
+        secret_fingerprint=auth_service.get_secret_fingerprint(),
+    )
 
     try:
         token = auth_service.create_token(group=args.group, expires_in_seconds=args.expires)
@@ -84,6 +89,11 @@ def list_tokens(args):
     auth_service = AuthService(
         secret_key=jwt_secret,
         token_store_path=args.token_store,
+    )
+    logger.info(
+        "Token manager auth context",
+        token_store=str(auth_service.token_store_path),
+        secret_fingerprint=auth_service.get_secret_fingerprint(),
     )
 
     try:
@@ -144,6 +154,11 @@ def revoke_token(args):
         secret_key=jwt_secret,
         token_store_path=args.token_store,
     )
+    logger.info(
+        "Token manager auth context",
+        token_store=str(auth_service.token_store_path),
+        secret_fingerprint=auth_service.get_secret_fingerprint(),
+    )
 
     try:
         auth_service.revoke_token(args.token)
@@ -152,6 +167,38 @@ def revoke_token(args):
     except Exception as e:
         logger.error(f"Error revoking token: {str(e)}")
         return 1
+
+
+def purge_tokens(args):
+    """Remove all tokens from the store."""
+    logger = ConsoleLogger(name="token_manager", level=logging.INFO)
+
+    jwt_secret = args.secret or os.environ.get("GPLOT_JWT_SECRET")
+    if not jwt_secret:
+        logger.error("FATAL: No JWT secret provided")
+        logger.error("Set GPLOT_JWT_SECRET environment variable or use --secret flag")
+        return 1
+
+    auth_service = AuthService(
+        secret_key=jwt_secret,
+        token_store_path=args.token_store,
+    )
+    logger.info(
+        "Token manager auth context",
+        token_store=str(auth_service.token_store_path),
+        secret_fingerprint=auth_service.get_secret_fingerprint(),
+    )
+
+    tokens = list(auth_service.list_tokens().keys())
+    if not tokens:
+        logger.info("Token store already empty")
+        return 0
+
+    for token in tokens:
+        auth_service.revoke_token(token)
+
+    logger.info("Purged tokens", count=len(tokens))
+    return 0
 
 
 def verify_token(args):
@@ -169,6 +216,11 @@ def verify_token(args):
     auth_service = AuthService(
         secret_key=jwt_secret,
         token_store_path=args.token_store,
+    )
+    logger.info(
+        "Token manager auth context",
+        token_store=str(auth_service.token_store_path),
+        secret_fingerprint=auth_service.get_secret_fingerprint(),
     )
 
     try:
@@ -252,6 +304,9 @@ Environment Variables:
     verify_parser = subparsers.add_parser("verify", help="Verify a token")
     verify_parser.add_argument("--token", type=str, required=True, help="Token to verify")
 
+    # Purge tokens
+    purge_parser = subparsers.add_parser("purge", help="Remove all tokens from the store")
+
     args = parser.parse_args()
 
     if not args.command:
@@ -267,6 +322,8 @@ Environment Variables:
         return revoke_token(args)
     elif args.command == "verify":
         return verify_token(args)
+    elif args.command == "purge":
+        return purge_tokens(args)
     else:
         logger = ConsoleLogger(name="token_manager", level=logging.ERROR)
         logger.error(f"Unknown command: {args.command}")

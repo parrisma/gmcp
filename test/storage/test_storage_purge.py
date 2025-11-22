@@ -15,14 +15,7 @@ from app.storage.file_storage import FileStorage
 from app.logger import ConsoleLogger
 import logging
 
-
-@pytest.fixture
-def temp_storage_dir():
-    """Create a temporary storage directory for tests"""
-    temp_dir = tempfile.mkdtemp(prefix="gplot_purge_test_")
-    yield temp_dir
-    # Cleanup
-    shutil.rmtree(temp_dir, ignore_errors=True)
+# Note: temp_storage_dir fixture is now defined in conftest.py
 
 
 @pytest.fixture

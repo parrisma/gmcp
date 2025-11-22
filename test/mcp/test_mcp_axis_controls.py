@@ -2,33 +2,19 @@
 
 import pytest
 import logging
+import os
 from mcp import ClientSession
 from mcp.client.streamable_http import streamablehttp_client
 from app.auth.service import AuthService
 from app.logger import ConsoleLogger
 
-
-@pytest.fixture
-def test_jwt_token():
-    """Create a JWT token for testing"""
-    auth_service = AuthService(
-        secret_key="test-secret-key-for-auth-testing",
-        token_store_path="/tmp/gplot_test_tokens.json",
-    )
-    token = auth_service.create_token(group="test_group")
-    return token
-
-
-@pytest.fixture
-def logger():
-    """Create a logger for tests"""
-    return ConsoleLogger(name="mcp_axis_test", level=logging.INFO)
+# Note: test_jwt_token and logger fixtures are now defined in conftest.py
 
 
 @pytest.mark.asyncio
 async def test_render_with_axis_limits(test_jwt_token, logger):
     """Test rendering with axis limits via MCP"""
-    http_url = "http://localhost:8001/mcp/"
+    http_url = f"http://localhost:{os.environ.get('GPLOT_MCP_PORT', '8001')}/mcp/"
 
     async with streamablehttp_client(http_url) as (read, write, _):
         async with ClientSession(read, write) as session:

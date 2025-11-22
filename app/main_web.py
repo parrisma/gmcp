@@ -51,9 +51,26 @@ if __name__ == "__main__":
         )
         sys.exit(1)
 
-    # Initialize server with JWT configuration
+    # Create AuthService instance if authentication is enabled (dependency injection)
+    auth_service_instance = None
+    if not args.no_auth:
+        from app.auth.service import AuthService
+
+        auth_service_instance = AuthService(
+            secret_key=jwt_secret, token_store_path=args.token_store
+        )
+        logger.info(
+            "Authentication service created",
+            token_store=str(auth_service_instance.token_store_path),
+            secret_fingerprint=auth_service_instance.get_secret_fingerprint(),
+        )
+
+    # Initialize server with dependency injection
     server = GraphWebServer(
-        jwt_secret=jwt_secret, token_store_path=args.token_store, require_auth=not args.no_auth
+        jwt_secret=jwt_secret,  # Legacy parameter (ignored if auth_service provided)
+        token_store_path=args.token_store,  # Legacy parameter (ignored if auth_service provided)
+        require_auth=not args.no_auth,
+        auth_service=auth_service_instance,  # Dependency injection
     )
 
     try:

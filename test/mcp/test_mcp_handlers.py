@@ -6,11 +6,7 @@ from mcp.client.streamable_http import streamablehttp_client
 from app.logger import ConsoleLogger
 import logging
 
-
-@pytest.fixture
-def logger():
-    """Create a logger for tests"""
-    return ConsoleLogger(name="mcp_handlers_test", level=logging.INFO)
+# Note: logger fixture is now defined in conftest.py
 
 
 @pytest.mark.asyncio

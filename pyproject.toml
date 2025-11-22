@@ -10,12 +10,23 @@ dependencies = [
     "pydantic>=2.0.0",
     "uvicorn>=0.20.0",
     "fastapi>=0.100.0",
+    "starlette>=0.27.0",
+    "sse-starlette>=1.6.0",
     "mcp>=0.9.0",
+    "PyJWT>=2.8.0",
+    "httpx>=0.24.0",
+    "pluggy>=1.6.0",
+    "pygments>=2.19.2",
+    "iniconfig>=2.3.0",
+    "freezegun>=1.5.5",
+    "mcpo>=0.0.19",
+    "requests>=2.32.5",
 ]
 
 [project.optional-dependencies]
 dev = [
     "pytest>=7.0.0",
+    "pytest-asyncio>=0.21.0",
     "black>=23.0.0",
     "ruff>=0.1.0",
 ]
@@ -38,6 +49,7 @@ target-version = "py311"
 [tool.uv]
 dev-dependencies = [
     "pytest>=7.0.0",
+    "pytest-asyncio>=0.21.0",
     "black>=23.0.0",
     "ruff>=0.1.0",
 ]
@@ -45,6 +57,10 @@ dev-dependencies = [
 [tool.pytest.ini_options]
 asyncio_mode = "auto"
 pythonpath = ["."]
+addopts = "--strict-markers --ignore=test/mcp/manual_test_mcp_server.py --ignore=test/mcp/manual_mcp_discovery.py --ignore=test/web/manual_test_web_server.py"
+markers = [
+    "mcpo: Tests requiring MCPO wrapper running (use --with-mcpo flag)",
+]
 filterwarnings = [
     "ignore::RuntimeWarning:matplotlib",
 ]

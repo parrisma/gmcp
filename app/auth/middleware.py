@@ -16,20 +16,37 @@ optional_security = HTTPBearer(auto_error=False)
 
 
 def init_auth_service(
-    secret_key: Optional[str] = None, token_store_path: Optional[str] = None
+    secret_key: Optional[str] = None,
+    token_store_path: Optional[str] = None,
+    auth_service: Optional[AuthService] = None,
 ) -> AuthService:
     """
     Initialize the global auth service
 
+    Supports two initialization patterns:
+    1. Dependency Injection: Pass an existing AuthService instance
+    2. Legacy: Create new AuthService from secret_key and token_store_path
+
     Args:
-        secret_key: JWT secret key
-        token_store_path: Path to token store
+        secret_key: JWT secret key (legacy, ignored if auth_service provided)
+        token_store_path: Path to token store (legacy, ignored if auth_service provided)
+        auth_service: Existing AuthService instance (preferred)
 
     Returns:
         AuthService instance
+
+    Raises:
+        ValueError: If auth_service is None and both secret_key and token_store_path are None
     """
     global _auth_service
-    _auth_service = AuthService(secret_key=secret_key, token_store_path=token_store_path)
+
+    if auth_service is not None:
+        # Dependency injection: use provided instance
+        _auth_service = auth_service
+    else:
+        # Legacy: create new instance from parameters
+        _auth_service = AuthService(secret_key=secret_key, token_store_path=token_store_path)
+
     return _auth_service
 
 

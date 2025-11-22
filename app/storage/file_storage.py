@@ -9,6 +9,7 @@ import uuid
 import json
 import time
 from datetime import datetime, timedelta
+from app.storage.exceptions import PermissionDeniedError
 from pathlib import Path
 from typing import Optional, Tuple, List
 from app.storage.base import ImageStorageBase
@@ -153,7 +154,9 @@ class FileStorage(ImageStorageBase):
                     requested_group=group,
                     stored_group=stored_group,
                 )
-                raise ValueError(f"Access denied: image belongs to different group")
+                raise PermissionDeniedError(
+                    f"Access denied: image belongs to group '{stored_group}', not '{group}'"
+                )
 
         self.logger.debug("Retrieving image from file", guid=identifier, group=group)
 
@@ -216,7 +219,9 @@ class FileStorage(ImageStorageBase):
                     requested_group=group,
                     stored_group=stored_group,
                 )
-                raise ValueError(f"Access denied: image belongs to different group")
+                raise PermissionDeniedError(
+                    f"Access denied: image belongs to group '{stored_group}', not '{group}'"
+                )
 
         deleted = False
         for ext in ["png", "jpg", "jpeg", "svg", "pdf"]:

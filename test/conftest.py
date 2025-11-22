@@ -12,6 +12,7 @@ sys.path.insert(0, str(Path(__file__).parent.parent))
 import pytest
 import tempfile
 import shutil
+import os
 from app.config import Config
 from app.storage import reset_storage, get_storage
 from app.storage.file_storage import FileStorage
@@ -60,14 +61,15 @@ def test_data_dir(tmp_path):
 @pytest.fixture(scope="function")
 def temp_storage_dir(tmp_path):
     """
-    Provide a temporary storage directory for specific tests that need it
+    Provide a temporary storage directory for specific tests that need it.
+    Returns string path for compatibility with storage tests.
 
     Returns:
-        Path object pointing to temporary storage directory
+        str: Path to temporary storage directory
     """
     storage_dir = tmp_path / "storage"
     storage_dir.mkdir(parents=True, exist_ok=True)
-    return storage_dir
+    return str(storage_dir)
 
 
 @pytest.fixture(scope="function")
@@ -88,19 +90,22 @@ def test_auth_service():
     """
     Create an AuthService instance for testing with a shared token store
 
-    Uses the same secret as documented in TEST_AUTH.md for consistency.
-    The MCP server must be started with:
-      --jwt-secret "test-secret-key-for-auth-testing"
-      --token-store "/tmp/gplot_test_tokens.json"
+        Uses the same secret and token store as run_tests.sh and launch.json.
+        The servers must be started with:
+            GPLOT_JWT_SECRET="test-secret-key-for-secure-testing-do-not-use-in-production" (override via env)
+            GPLOT_DATA_DIR="<workspace>/test/data"
 
     Returns:
         AuthService: Configured auth service for testing
     """
-    test_secret = "test-secret-key-for-auth-testing"
-    # Use a shared token store path that matches the MCP server launch config
-    token_store_path = "/tmp/gplot_test_tokens.json"
+    import os
 
-    auth_service = AuthService(secret_key=test_secret, token_store_path=token_store_path)
+    test_secret = os.environ.get(
+        "GPLOT_JWT_SECRET", "test-secret-key-for-secure-testing-do-not-use-in-production"
+    )
+    token_store_path = os.environ.get("GPLOT_TOKEN_STORE", "/tmp/gplot_test_tokens.json")
+
+    auth_service = AuthService(secret_key=test_secret, token_store_path=str(token_store_path))
     return auth_service
 
 
@@ -123,3 +128,46 @@ def test_jwt_token(test_auth_service):
         test_auth_service.revoke_token(token)
     except Exception:
         pass  # Token may already be revoked or expired
+
+
+@pytest.fixture(scope="function")
+def test_token(test_auth_service):
+    """
+    Create a test token for the 'secure' group with 90 second expiry.
+    Compatible with authentication tests that expect this fixture name.
+
+    Returns:
+        str: A valid JWT token for the 'secure' group
+    """
+    token = test_auth_service.create_token(group="secure", expires_in_seconds=90)
+    return token
+
+
+@pytest.fixture(scope="function")
+def invalid_token():
+    """
+    Create a token with wrong secret to test authentication failure.
+    This token will have correct format but wrong signature.
+
+    Returns:
+        str: An invalid JWT token for testing auth failures
+    """
+    fake_service = AuthService(
+        secret_key="wrong-secret-key", token_store_path="/tmp/fake_store.json"
+    )
+    return fake_service.create_token(group="fake", expires_in_seconds=60)
+
+
+@pytest.fixture(scope="function")
+def logger():
+    """
+    Provide a ConsoleLogger instance for test logging.
+    Reusable across all test files.
+
+    Returns:
+        ConsoleLogger: Logger configured for testing
+    """
+    import logging
+    from app.logger import ConsoleLogger
+
+    return ConsoleLogger(name="test", level=logging.INFO)

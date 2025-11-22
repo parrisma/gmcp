@@ -10,6 +10,7 @@ Complete documentation for the gplot graph rendering service.
 
 ### Server and Protocol
 - [MCP Server](./MCP_README.md) - Model Context Protocol implementation
+- [MCPO Integration](./MCPO.md) - OpenAPI proxy layer for LLM tools (OpenWebUI, etc.)
 - [N8N MCP Integration](./README_N8N_MCP.md) - Integration with N8N workflow automation
 - [Proxy Mode](./PROXY_MODE.md) - GUID-based image storage and retrieval
 - [Ping Endpoint](./PING.md) - Health check and monitoring
@@ -44,9 +45,11 @@ Complete documentation for the gplot graph rendering service.
 
 ## Testing
 
-- [MCP Tests](./TEST_MCP.md) - MCP server testing guide
+- [MCP Tests](./TEST_MCP.md) - MCP server testing guide (81 tests)
+- [MCPO Tests](./MCPO.md#testing) - MCPO integration testing (17 tests)
 - [Web Tests](./TEST_WEB.md) - Web server testing guide
 - [Auth Tests](./TEST_AUTH.md) - Authentication testing guide
+- [Test Coverage](./TEST_COVERAGE_MULTI_DATASET.md) - Multi-dataset test coverage
 
 ## Architecture Overview
 
@@ -76,9 +79,10 @@ gplot/
 
 ## Key Features
 
-1. **Dual Server Architecture**
+1. **Triple Server Architecture**
    - REST API server (port 8000)
    - MCP protocol server (port 8001)
+   - MCPO OpenAPI proxy (port 8002)
 
 2. **Flexible Rendering**
    - Multiple chart types (line, bar, scatter)

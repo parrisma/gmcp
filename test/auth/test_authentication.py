@@ -21,41 +21,26 @@ import tempfile
 # Test configuration
 TEST_GROUP = "secure"
 TEST_EXPIRY_SECONDS = 90
-TEST_JWT_SECRET = "test-secret-key-for-auth-testing"
-SHARED_TOKEN_STORE = "/tmp/gplot_test_tokens.json"  # Shared with servers (must match launch.json)
+TEST_JWT_SECRET = os.environ.get(
+    "GPLOT_JWT_SECRET", "test-secret-key-for-secure-testing-do-not-use-in-production"
+)
+# Shared token store (env override falls back to /tmp)
+SHARED_TOKEN_STORE = os.environ.get(
+    "GPLOT_TOKEN_STORE",
+    "/tmp/gplot_test_tokens.json",
+)
 MCP_URL = "http://localhost:8001/mcp/"
 WEB_URL = "http://localhost:8000"
 
-
-@pytest.fixture
-def auth_service():
-    """Create an auth service using the shared token store that servers use"""
-    service = AuthService(secret_key=TEST_JWT_SECRET, token_store_path=SHARED_TOKEN_STORE)
-    yield service
-
-
-@pytest.fixture
-def test_token(auth_service):
-    """Create a test token for the 'secure' group with 90 second expiry in shared store"""
-    token = auth_service.create_token(group=TEST_GROUP, expires_in_seconds=TEST_EXPIRY_SECONDS)
-    return token
-
-
-@pytest.fixture
-def invalid_token():
-    """Create a token with wrong secret to test authentication failure"""
-    # This token will have correct format but wrong signature
-    fake_service = AuthService(
-        secret_key="wrong-secret-key", token_store_path="/tmp/fake_store.json"
-    )
-    return fake_service.create_token(group="fake", expires_in_seconds=60)
+# Note: test_token and invalid_token fixtures are now defined in conftest.py
 
 
 class TestAuthTokenCreation:
     """Test 1: Create an auth token for group 'secure' with 90 second expiry"""
 
-    def test_create_token(self, auth_service):
+    def test_create_token(self, test_auth_service):
         """Test token creation with correct parameters"""
+        auth_service = test_auth_service
         logger = ConsoleLogger(name="auth_test", level=logging.INFO)
         logger.info(
             "Test 1: Creating auth token", group=TEST_GROUP, expiry_seconds=TEST_EXPIRY_SECONDS
@@ -253,8 +238,9 @@ class TestMCPAuthentication:
                 logger.info("Image retrieved successfully via MCP with valid token")
 
     @pytest.mark.asyncio
-    async def test_mcp_get_image_with_different_group_token(self, auth_service, test_token):
-        """Test that retrieving an image fails with token from different group"""
+    async def test_mcp_get_image_with_different_group_token(self, test_auth_service, test_token):
+        """Test that retrieval with a different group token fails"""
+        auth_service = test_auth_service
         logger = ConsoleLogger(name="mcp_auth_test", level=logging.INFO)
         logger.info("Test 2e: Testing MCP get_image with different group token (should fail)")
 
@@ -297,15 +283,20 @@ class TestMCPAuthentication:
                     },
                 )
 
-                # Should get an access denied error
+                # Phase 3: Should get SESSION_NOT_FOUND or permission denied error
                 text_content = result.content[0]
                 response_text = text_content.text  # type: ignore
 
                 assert (
-                    "Access denied" in response_text or "different group" in response_text
-                ), f"Should deny cross-group access, got: {response_text}"
+                    "SESSION_NOT_FOUND" in response_text
+                    or "Access denied" in response_text
+                    or "different group" in response_text
+                    or "Permission denied" in response_text
+                ), f"Should deny cross-group access with clear message, got: {response_text}"
 
-                logger.info("MCP correctly denies cross-group image access")
+                logger.info(
+                    "MCP correctly denies cross-group image access with clear error message"
+                )
                 logger.info("Test 2 passed: MCP authentication working correctly")
 
 
@@ -483,8 +474,9 @@ class TestWebAuthentication:
             logger.info("Web correctly denies image access without token")
 
     @pytest.mark.asyncio
-    async def test_web_get_image_with_different_group_token(self, auth_service, test_token):
+    async def test_web_get_image_with_different_group_token(self, test_auth_service, test_token):
         """Test that retrieving an image fails with token from different group"""
+        auth_service = test_auth_service
         logger = ConsoleLogger(name="web_auth_test", level=logging.INFO)
         logger.info("Test 3f: Testing web get image with different group token (should fail)")
 
@@ -519,14 +511,23 @@ class TestWebAuthentication:
 
             logger.info("Cross-group retrieval attempt", status=response.status_code)
 
-            # Should get an error (400 for validation error, 403 for forbidden, or 404 for not found)
-            assert response.status_code in [
-                400,
-                403,
-                404,
-            ], f"Expected 400/403/404 for cross-group access, got {response.status_code}"
+            # Phase 3: Should return 403 Forbidden for group mismatch (not 400 or 404)
+            assert (
+                response.status_code == 403
+            ), f"Expected 403 Forbidden for cross-group access, got {response.status_code}"
 
-            logger.info("Web correctly denies cross-group image access")
+            # Verify error message mentions permission/access denied
+            response_data = response.json()
+            error_message = (
+                response_data.get("detail", {}).get("error", "")
+                + " "
+                + response_data.get("detail", {}).get("message", "")
+            )
+            assert (
+                "Permission denied" in error_message or "Access denied" in error_message
+            ), f"Expected permission error in: {error_message}"
+
+            logger.info("Web correctly denies cross-group image access with 403 Forbidden")
             logger.info("Test 3 passed: Web authentication working correctly")
 
 

@@ -36,10 +36,20 @@ from app.render import GraphRenderer
 from app.graph_params import GraphParams
 from app.validation import GraphDataValidator
 from app.storage import get_storage
+from app.storage.exceptions import PermissionDeniedError
 from app.auth import AuthService
 from app.logger import ConsoleLogger
 from app.themes import list_themes_with_descriptions
 from app.handlers import list_handlers_with_descriptions
+from app.mcp_responses import (
+    format_error,
+    format_success_text,
+    format_success_image,
+    format_list,
+    AUTH_REQUIRED_ERROR,
+    AUTH_INVALID_ERROR,
+    PERMISSION_DENIED_ERROR,
+)
 import logging as python_logging
 from datetime import datetime
 import base64
@@ -47,7 +57,7 @@ import os
 
 
 # Initialize the MCP server
-app = Server("gplot-renderer")
+app = Server("gplot")
 renderer = GraphRenderer()
 validator = GraphDataValidator()
 storage = get_storage()
@@ -57,21 +67,45 @@ logger = ConsoleLogger(name="mcp_server", level=python_logging.INFO)
 auth_service: AuthService | None = None
 
 
+def set_auth_service(service: AuthService | None) -> None:
+    """
+    Set the module-level auth service instance (dependency injection)
+
+    Args:
+        service: AuthService instance or None to disable authentication
+    """
+    global auth_service
+    auth_service = service
+
+
 @app.list_tools()
 async def handle_list_tools() -> list[Tool]:
     """List available tools for graph rendering."""
     return [
         Tool(
             name="ping",
-            description="Health check that returns the current server timestamp to verify the server is running.",
+            description=(
+                "Health check endpoint that verifies the MCP server is running and responsive. "
+                "Returns the current server timestamp and service name. "
+                "This tool does NOT require authentication and can be called without a token parameter."
+            ),
             inputSchema={"type": "object", "properties": {}, "required": []},
         ),
         Tool(
             name="render_graph",
             description=(
-                "Render a graph (line or bar chart) and return it as a base64-encoded PNG image or GUID. "
-                "Provide data points, labels, and styling options to create the visualization. "
-                "If proxy=true, the image is saved to disk and a GUID is returned instead of base64 data."
+                "Render a graph visualization and return it as a base64-encoded image or storage GUID. "
+                "\n\n**AUTHENTICATION**: Requires a valid JWT 'token' parameter for all operations. "
+                "\n\n**BASIC USAGE**: Provide 'title' (string) and at least one dataset (y1 array or legacy 'y' array). "
+                "The 'x' parameter is optional - if omitted, indices [0, 1, 2, ...] are auto-generated. "
+                "\n\n**MULTI-DATASET**: Supports up to 5 datasets (y1-y5) with optional labels (label1-label5) and colors (color1-color5). "
+                "When using themes, dataset colors are optional and will use theme defaults unless overridden. "
+                "\n\n**CHART TYPES**: 'line' (default), 'scatter', or 'bar'. Use list_handlers tool to see descriptions. "
+                "\n\n**THEMES**: 'light' (default), 'dark', 'bizlight', 'bizdark'. Use list_themes tool for details. "
+                "\n\n**PROXY MODE**: Set proxy=true to save the image to persistent storage and receive a GUID instead of base64 data. "
+                "Use get_image with the GUID to retrieve the image later. This is useful for large images or long-term storage. "
+                "\n\n**OUTPUT FORMATS**: 'png' (default), 'jpg', 'svg', 'pdf'. "
+                "\n\n**AXIS CONTROLS**: Optional parameters for axis limits (xmin/xmax/ymin/ymax) and custom tick positions."
             ),
             inputSchema={
                 "type": "object",
@@ -238,11 +272,11 @@ async def handle_list_tools() -> list[Tool]:
                     "y_minor_ticks": {
                         "type": "array",
                         "items": {"type": "number"},
-                        "description": "Custom positions for y-axis minor tick marks (optional)",
+                        "description": "Custom positions for y-axis minor tick marks (optional). Example: [0.5, 1.5, 2.5]",
                     },
                     "token": {
                         "type": "string",
-                        "description": "JWT authentication token (required for all operations)",
+                        "description": "JWT authentication token (REQUIRED). The token's group claim determines ownership of created images and access rights. Example: 'eyJ0eXAiOiJKV1QiLCJhbGc...'",
                     },
                 },
                 "required": ["title", "token"],
@@ -251,19 +285,24 @@ async def handle_list_tools() -> list[Tool]:
         Tool(
             name="get_image",
             description=(
-                "Retrieve a previously rendered image by its GUID. "
-                "Returns the image as base64-encoded data."
+                "Retrieve a previously stored graph image using its GUID identifier. "
+                "\n\n**AUTHENTICATION**: Requires a valid JWT 'token' parameter. "
+                "The token's group must match the group that created the image (group-based access control). "
+                "\n\n**WORKFLOW**: Use this after calling render_graph with proxy=true, which returns a GUID. "
+                "The GUID can be stored and used later to retrieve the image. "
+                "\n\n**OUTPUT**: Returns the image as base64-encoded data with its original format (png, jpg, svg, pdf). "
+                "\n\n**ERROR HANDLING**: If the image doesn't exist or belongs to a different group, an error message is returned."
             ),
             inputSchema={
                 "type": "object",
                 "properties": {
                     "guid": {
                         "type": "string",
-                        "description": "The GUID of the image to retrieve (returned by render_graph with proxy=true)",
+                        "description": "The GUID identifier of the stored image (returned by render_graph when proxy=true). Example: '550e8400-e29b-41d4-a716-446655440000'",
                     },
                     "token": {
                         "type": "string",
-                        "description": "JWT authentication token (required for all operations)",
+                        "description": "JWT authentication token (REQUIRED). Must match the group that created the image. Example: 'eyJ0eXAiOiJKV1QiLCJhbGc...'",
                     },
                 },
                 "required": ["guid", "token"],
@@ -272,16 +311,22 @@ async def handle_list_tools() -> list[Tool]:
         Tool(
             name="list_themes",
             description=(
-                "List all available themes with their descriptions. "
-                "Use this to discover which themes are available for the 'theme' parameter in render_graph."
+                "Discover all available visual themes with descriptions. "
+                "\n\n**AUTHENTICATION**: Does NOT require a token parameter. "
+                "\n\n**PURPOSE**: Use this tool to see which theme names can be passed to the 'theme' parameter in render_graph. "
+                "Each theme includes color palettes, background colors, and grid styles optimized for different use cases. "
+                "\n\n**OUTPUT**: Returns a formatted list of theme names with descriptions explaining their visual style and intended use."
             ),
             inputSchema={"type": "object", "properties": {}, "required": []},
         ),
         Tool(
             name="list_handlers",
             description=(
-                "List all available graph types (handlers) with their descriptions. "
-                "Use this to discover which graph types are available for the 'type' parameter in render_graph."
+                "Discover all available graph types (chart types) with descriptions. "
+                "\n\n**AUTHENTICATION**: Does NOT require a token parameter. "
+                "\n\n**PURPOSE**: Use this tool to see which chart type names can be passed to the 'type' parameter in render_graph. "
+                "Each handler supports different visualization styles (line plots, scatter plots, bar charts) with specific capabilities. "
+                "\n\n**OUTPUT**: Returns a formatted list of type names with descriptions explaining what each chart type renders and its multi-dataset support."
             ),
             inputSchema={"type": "object", "properties": {}, "required": []},
         ),
@@ -315,23 +360,19 @@ async def handle_call_tool(
         # Validate required arguments
         if "guid" not in arguments:
             logger.warning("Missing required argument: guid")
-            return [
-                TextContent(
-                    type="text",
-                    text="Error: Missing required argument 'guid'\n\n"
-                    "Provide the GUID of the image to retrieve.",
-                )
-            ]
+            return format_error(
+                "Missing Parameter",
+                "The required 'guid' parameter was not provided",
+                [
+                    "Include the GUID of the image you want to retrieve",
+                    "GUIDs are returned by render_graph when proxy=true",
+                    "Example: guid='550e8400-e29b-41d4-a716-446655440000'",
+                ],
+            )
 
         if "token" not in arguments:
             logger.warning("Missing required argument: token")
-            return [
-                TextContent(
-                    type="text",
-                    text="Error: Missing required argument 'token'\n\n"
-                    "JWT authentication token is required for all operations.",
-                )
-            ]
+            return AUTH_REQUIRED_ERROR
 
         guid = arguments["guid"]
         token = arguments["token"]
@@ -345,13 +386,7 @@ async def handle_call_tool(
             logger.debug("Token verified", group=group)
         except Exception as e:
             logger.error("Token validation failed", error=str(e))
-            return [
-                TextContent(
-                    type="text",
-                    text=f"Authentication Error: {str(e)}\n\n"
-                    "Provide a valid JWT token to access this resource.",
-                )
-            ]
+            return AUTH_INVALID_ERROR(str(e))
 
         try:
             # Retrieve image from storage with group access control
@@ -359,13 +394,16 @@ async def handle_call_tool(
 
             if image_result is None:
                 logger.warning("Image not found", guid=guid)
-                return [
-                    TextContent(
-                        type="text",
-                        text=f"Error: Image not found for GUID: {guid}\n\n"
-                        "The image may have been deleted or the GUID is invalid.",
-                    )
-                ]
+                return format_error(
+                    "Not Found",
+                    f"No image found with GUID: {guid}",
+                    [
+                        "Verify the GUID is correct",
+                        "The image may have been deleted",
+                        "Check that you have access to the correct storage group",
+                    ],
+                    {"guid": guid, "group": group},
+                )
 
             image_data, img_format = image_result
 
@@ -376,85 +414,84 @@ async def handle_call_tool(
                 "Image retrieved successfully", guid=guid, format=img_format, size=len(image_data)
             )
 
-            return [
-                ImageContent(type="image", data=base64_image, mimeType=f"image/{img_format}"),
-                TextContent(
-                    type="text",
-                    text=f"Successfully retrieved image: {guid}.{img_format}",
-                ),
-            ]
+            return format_success_image(
+                base64_image,
+                f"image/{img_format}",
+                f"Retrieved image {guid}",
+                {"format": img_format, "size_bytes": len(image_data)},
+            )
+
+        except PermissionDeniedError as e:
+            logger.warning("Permission denied", guid=guid, error=str(e), group=group)
+            return PERMISSION_DENIED_ERROR(guid, group)
 
         except ValueError as e:
             logger.error("Invalid GUID", guid=guid, error=str(e))
-            return [
-                TextContent(
-                    type="text",
-                    text=f"Error: Invalid GUID format: {guid}\n\n{str(e)}",
-                )
-            ]
+            return format_error(
+                "Invalid Input",
+                f"Invalid GUID format: {guid}",
+                [
+                    "Ensure the GUID is a valid UUID format",
+                    "Example: '550e8400-e29b-41d4-a716-446655440000'",
+                    "GUIDs are returned by render_graph when proxy=true",
+                ],
+                {"provided": guid},
+            )
+
         except Exception as e:
             logger.error("Failed to retrieve image", guid=guid, error=str(e))
-            return [
-                TextContent(
-                    type="text",
-                    text=f"Error retrieving image: {str(e)}",
-                )
-            ]
+            return format_error(
+                "Retrieval Failed",
+                f"Unexpected error retrieving image: {str(e)}",
+                [
+                    "Check server logs for details",
+                    "Verify the storage system is accessible",
+                    "Try the operation again",
+                ],
+            )
 
     if name == "list_themes":
         logger.info("List themes tool called")
         try:
             themes = list_themes_with_descriptions()
-
-            # Format the themes as a readable text response
-            response_lines = ["Available Themes:\n"]
-            for theme_name, description in sorted(themes.items()):
-                response_lines.append(f"• {theme_name}: {description}")
-
-            response_text = "\n".join(response_lines)
             logger.debug("Themes listed", count=len(themes))
-
-            return [TextContent(type="text", text=response_text)]
+            return format_list("Available Themes", themes)
         except Exception as e:
             logger.error("Failed to list themes", error=str(e))
-            return [
-                TextContent(
-                    type="text",
-                    text=f"Error listing themes: {str(e)}",
-                )
-            ]
+            return format_error(
+                "Discovery Failed",
+                f"Unable to list themes: {str(e)}",
+                ["Check server logs for details", "Try the operation again"],
+            )
 
     if name == "list_handlers":
         logger.info("List handlers tool called")
         try:
             handlers = list_handlers_with_descriptions()
-
-            # Format the handlers as a readable text response
-            response_lines = ["Available Graph Types:\n"]
-            for handler_name, description in sorted(handlers.items()):
-                response_lines.append(f"• {handler_name}: {description}")
-
-            response_text = "\n".join(response_lines)
             logger.debug("Handlers listed", count=len(handlers))
-
-            return [TextContent(type="text", text=response_text)]
+            return format_list("Available Graph Types", handlers)
         except Exception as e:
             logger.error("Failed to list handlers", error=str(e))
-            return [
-                TextContent(
-                    type="text",
-                    text=f"Error listing handlers: {str(e)}",
-                )
-            ]
+            return format_error(
+                "Discovery Failed",
+                f"Unable to list graph types: {str(e)}",
+                ["Check server logs for details", "Try the operation again"],
+            )
 
     if name != "render_graph":
         logger.warning("Unknown tool requested", tool_name=name)
-        return [
-            TextContent(
-                type="text",
-                text=f"Error: Unknown tool '{name}'\n\nAvailable tools:\n- ping\n- render_graph\n- get_image\n- list_themes\n- list_handlers",
-            )
-        ]
+        return format_error(
+            "Unknown Tool",
+            f"Tool '{name}' does not exist",
+            [
+                "Use one of the available tools listed below",
+                "Call list_tools to see detailed descriptions",
+            ],
+            {
+                "requested": name,
+                "available": "ping, render_graph, get_image, list_themes, list_handlers",
+            },
+        )
 
     logger.info("Render tool called")
 
@@ -465,18 +502,18 @@ async def handle_call_tool(
         missing_args = [arg for arg in required_args if arg not in arguments]
         if missing_args:
             logger.warning("Missing required arguments", missing=missing_args)
-            return [
-                TextContent(
-                    type="text",
-                    text=f"Missing required arguments: {', '.join(missing_args)}\n\n"
-                    f"Required: title, token (JWT)\n"
-                    f"Data arrays: x (optional, auto-generated if omitted), y (backward compat) or y1-y5 (up to 5 datasets)\n"
-                    f"Labels: label1-label5 (optional, for legend)\n"
-                    f"Colors: color1-color5 (optional, per-dataset colors)\n"
-                    f"Other: xlabel, ylabel, type, format, line_width, marker_size, alpha, theme, "
-                    f"xmin, xmax, ymin, ymax, x_major_ticks, y_major_ticks, x_minor_ticks, y_minor_ticks",
-                )
-            ]
+            if "token" in missing_args:
+                return AUTH_REQUIRED_ERROR
+            return format_error(
+                "Missing Parameters",
+                f"Required parameters not provided: {', '.join(missing_args)}",
+                [
+                    "title (string): The graph title - REQUIRED",
+                    "token (string): JWT authentication token - REQUIRED",
+                    "y1 or y (array): First dataset values - at least one dataset required",
+                    "Use list_themes and list_handlers to discover optional parameters",
+                ],
+            )
 
         # Verify JWT token
         token = arguments["token"]
@@ -488,25 +525,22 @@ async def handle_call_tool(
             logger.debug("Token verified", group=group)
         except Exception as e:
             logger.error("Token validation failed", error=str(e))
-            return [
-                TextContent(
-                    type="text",
-                    text=f"Authentication Error: {str(e)}\n\n"
-                    "Provide a valid JWT token to access this service.",
-                )
-            ]
+            return AUTH_INVALID_ERROR(str(e))
 
         # Validate data arrays if provided
         # x is optional (will be auto-generated if omitted)
         # y is backward compat, y1-y5 are the new multi-dataset parameters
         if "x" in arguments and not isinstance(arguments["x"], list):
             logger.warning("Invalid x argument type", type=type(arguments["x"]).__name__)
-            return [
-                TextContent(
-                    type="text",
-                    text="Error: 'x' must be an array of numbers\n\nExample: x=[1, 2, 3, 4, 5]",
-                )
-            ]
+            return format_error(
+                "Invalid Parameter Type",
+                f"Parameter 'x' must be an array, received {type(arguments['x']).__name__}",
+                [
+                    "Provide x as an array of numbers: [1, 2, 3, 4, 5]",
+                    "Or omit x entirely to auto-generate indices [0, 1, 2, ...]",
+                ],
+                {"provided_type": type(arguments["x"]).__name__},
+            )
 
         logger.debug(
             "Request validated",
@@ -563,18 +597,17 @@ async def handle_call_tool(
             logger.debug("GraphData created successfully")
         except Exception as e:
             logger.error("Failed to create GraphData", error=str(e), error_type=type(e).__name__)
-            return [
-                TextContent(
-                    type="text",
-                    text=f"Error creating graph data: {str(e)}\n\n"
-                    f"Suggestions:\n"
-                    f"- Ensure y1 (required) is an array of numbers\n"
-                    f"- If providing x, ensure it's an array of numbers (optional, defaults to indices)\n"
-                    f"- For multiple datasets, provide y2, y3, y4, y5 as arrays of numbers\n"
-                    f"- Check that all numeric parameters (alpha, line_width, marker_size) are valid numbers\n"
-                    f"- For backward compatibility, you can use 'y' which maps to 'y1'",
-                )
-            ]
+            return format_error(
+                "Parameter Error",
+                f"Failed to create graph parameters: {str(e)}",
+                [
+                    "Ensure y1 (or legacy 'y') is an array of numbers - at least one dataset required",
+                    "If providing x, ensure it's an array of numbers (optional, auto-generated if omitted)",
+                    "For multiple datasets, provide y2, y3, y4, y5 as arrays of numbers",
+                    "Check that numeric parameters (alpha, line_width, marker_size) are valid numbers",
+                    "Example: {title: 'Sales', y1: [10, 20, 30], type: 'line'}",
+                ],
+            )
 
         # Validate the input data
         try:
@@ -589,18 +622,23 @@ async def handle_call_tool(
                 )
                 # Return validation errors as text
                 error_message = validation_result.get_error_summary()
-                return [TextContent(type="text", text=f"Validation Error:\n\n{error_message}")]
+                return format_error(
+                    "Validation",
+                    "Input data validation failed",
+                    [error_message, "Fix the validation errors and try again"],
+                )
             logger.debug("Validation passed")
         except Exception as e:
             logger.error("Validation error", error=str(e), error_type=type(e).__name__)
-            return [
-                TextContent(
-                    type="text",
-                    text=f"Error during validation: {str(e)}\n\n"
-                    f"The validation system encountered an unexpected error.\n"
-                    f"Please check your input data format.",
-                )
-            ]
+            return format_error(
+                "Validation System",
+                f"Validation system error: {str(e)}",
+                [
+                    "Check your input data format",
+                    "Ensure arrays contain only numbers",
+                    "Verify all required parameters are provided",
+                ],
+            )
 
         # Render the graph (will be base64 string or GUID)
         try:
@@ -615,43 +653,42 @@ async def handle_call_tool(
             )
         except ValueError as e:
             logger.error("Configuration error", error=str(e), chart_type=graph_data.type)
-            # Handle known validation errors from renderer
-            return [
-                TextContent(
-                    type="text",
-                    text=f"Configuration Error: {str(e)}\n\n"
-                    f"Suggestions:\n"
-                    f"- Check that the chart type is valid (line, scatter, bar)\n"
-                    f"- Verify the theme name is correct (light, dark)\n"
-                    f"- Ensure the format is supported (png, jpg, svg, pdf)",
-                )
-            ]
+            return format_error(
+                "Configuration",
+                str(e),
+                [
+                    "Check that the chart type is valid (use list_handlers tool)",
+                    "Verify the theme name is correct (use list_themes tool)",
+                    "Ensure the format is supported: png, jpg, svg, pdf",
+                ],
+                {"type": graph_data.type, "theme": graph_data.theme, "format": graph_data.format},
+            )
         except RuntimeError as e:
             logger.error("Runtime error during render", error=str(e), chart_type=graph_data.type)
-            # Handle rendering errors
-            return [
-                TextContent(
-                    type="text",
-                    text=f"Rendering Error: {str(e)}\n\n"
-                    f"The graph rendering process failed.\n"
-                    f"Suggestions:\n"
-                    f"- Verify your data values are valid numbers\n"
-                    f"- Check that arrays are not empty\n"
-                    f"- Try reducing the data size or simplifying the request",
-                )
-            ]
+            return format_error(
+                "Rendering",
+                f"Graph rendering failed: {str(e)}",
+                [
+                    "Verify your data values are valid finite numbers (not NaN or Inf)",
+                    "Check that data arrays are not empty",
+                    "Try simplifying the request (fewer data points or datasets)",
+                    "Check server logs for matplotlib errors",
+                ],
+            )
         except Exception as e:
             logger.error(
                 "Unexpected error during render", error=str(e), error_type=type(e).__name__
             )
-            return [
-                TextContent(
-                    type="text",
-                    text=f"Unexpected rendering error: {str(e)}\n\n"
-                    f"An unexpected error occurred during rendering.\n"
-                    f"Please verify your input data and try again.",
-                )
-            ]
+            return format_error(
+                "Unexpected Error",
+                f"Rendering failed unexpectedly: {str(e)}",
+                [
+                    "Verify your input data format",
+                    "Check server logs for details",
+                    "Try the operation again with simpler parameters",
+                ],
+                {"error_type": type(e).__name__},
+            )
 
         # Check if result is a GUID (proxy mode) or base64 data
         if is_proxy:

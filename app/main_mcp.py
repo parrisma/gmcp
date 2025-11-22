@@ -61,15 +61,19 @@ if __name__ == "__main__":
     auth_service = None
     if not args.no_auth:
         auth_service = AuthService(secret_key=jwt_secret, token_store_path=args.token_store)
-        startup_logger.info("Authentication service initialized", jwt_enabled=True)
+        startup_logger.info(
+            "Authentication service initialized",
+            jwt_enabled=True,
+            token_store=str(auth_service.token_store_path),
+            secret_fingerprint=auth_service.get_secret_fingerprint(),
+        )
     else:
         startup_logger.info("Authentication disabled", jwt_enabled=False)
 
-    # Import and configure mcp_server with auth service
-    import app.mcp_server as mcp_server_module
+    # Import and configure mcp_server with auth service (dependency injection)
+    from app.mcp_server import set_auth_service, main
 
-    mcp_server_module.auth_service = auth_service
-    from app.mcp_server import main
+    set_auth_service(auth_service)
 
     try:
         startup_logger.info(

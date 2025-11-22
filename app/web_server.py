@@ -4,6 +4,7 @@ from app.graph_params import GraphParams
 from app.render import GraphRenderer
 from app.validation import GraphDataValidator
 from app.storage import get_storage
+from app.storage.exceptions import PermissionDeniedError
 from app.auth import TokenInfo, verify_token, optional_verify_token, init_auth_service
 from app.logger import ConsoleLogger
 import logging
@@ -19,20 +20,38 @@ class GraphWebServer:
         jwt_secret: Optional[str] = None,
         token_store_path: Optional[str] = None,
         require_auth: bool = True,
+        auth_service: Optional["AuthService"] = None,  # Type hint quoted for forward reference
     ):
+        """
+        Initialize GraphWebServer
+
+        Args:
+            jwt_secret: JWT secret key (deprecated - use auth_service instead)
+            token_store_path: Path to token store (deprecated - use auth_service instead)
+            require_auth: Whether authentication is required
+            auth_service: AuthService instance (preferred - enables dependency injection)
+        """
         self.app = FastAPI(title="gplot", description="Graph rendering service")
         self.renderer = GraphRenderer()
         self.validator = GraphDataValidator()
         self.storage = get_storage()
         self.require_auth = require_auth
 
-        # Initialize auth service only if auth is required
+        # Initialize auth service - prefer injected instance, fallback to legacy init
         if require_auth:
-            init_auth_service(secret_key=jwt_secret, token_store_path=token_store_path)
+            if auth_service is not None:
+                # Use injected AuthService instance (dependency injection)
+                init_auth_service(auth_service=auth_service)
+            else:
+                # Legacy path: create AuthService from jwt_secret and token_store_path
+                init_auth_service(secret_key=jwt_secret, token_store_path=token_store_path)
 
         self.logger = ConsoleLogger(name="web_server", level=logging.INFO)
         self.logger.info(
-            "Web server initialized", version="1.0.0", authentication_enabled=require_auth
+            "Web server initialized",
+            version="1.0.0",
+            authentication_enabled=require_auth,
+            auth_service_injected=auth_service is not None,
         )
         self._setup_routes()
 
@@ -321,6 +340,15 @@ class GraphWebServer:
 
             except HTTPException:
                 raise
+            except PermissionDeniedError as e:
+                self.logger.warning("Permission denied", guid=guid, error=str(e), group=group)
+                raise HTTPException(
+                    status_code=403,
+                    detail={
+                        "error": "Permission denied",
+                        "message": str(e),
+                    },
+                )
             except ValueError as e:
                 self.logger.error("Invalid GUID", guid=guid, error=str(e))
                 raise HTTPException(
@@ -464,6 +492,17 @@ class GraphWebServer:
 
             except HTTPException:
                 raise
+            except PermissionDeniedError as e:
+                self.logger.warning(
+                    "Permission denied for HTML", guid=guid, error=str(e), group=group
+                )
+                raise HTTPException(
+                    status_code=403,
+                    detail={
+                        "error": "Permission denied",
+                        "message": str(e),
+                    },
+                )
             except ValueError as e:
                 self.logger.error("Invalid GUID for HTML", guid=guid, error=str(e))
                 raise HTTPException(

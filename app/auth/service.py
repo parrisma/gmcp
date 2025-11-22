@@ -13,6 +13,7 @@ import json
 from app.config import get_default_token_store_path
 from app.logger import ConsoleLogger
 import logging
+import hashlib
 
 
 @dataclass
@@ -53,18 +54,38 @@ class AuthService:
         self.token_store_path = Path(token_store_path)
         self._load_token_store()
 
-        self.logger.info("AuthService initialized", token_store=str(self.token_store_path))
+        self.logger.info(
+            "AuthService initialized",
+            token_store=str(self.token_store_path),
+            secret_fingerprint=self._secret_fingerprint(),
+        )
+
+    def _secret_fingerprint(self) -> str:
+        """Return a stable fingerprint for the current secret without exposing it."""
+        digest = hashlib.sha256(self.secret_key.encode()).hexdigest()
+        return f"sha256:{digest[:12]}"
+
+    def get_secret_fingerprint(self) -> str:
+        """Public accessor for the JWT secret fingerprint."""
+        return self._secret_fingerprint()
 
     def _load_token_store(self) -> None:
         """Load token-group mappings from disk"""
+        # ALWAYS log to verify this is being called
+        self.logger.info(
+            f"_load_token_store called, path={self.token_store_path}, exists={self.token_store_path.exists()}"
+        )
         if self.token_store_path.exists():
             try:
                 with open(self.token_store_path, "r") as f:
                     self.token_store = json.load(f)
-                self.logger.debug(
-                    "Token store loaded from disk",
-                    tokens_count=len(self.token_store),
+                sample_tokens = list(self.token_store.keys())[:2]
+                preview = [f"{token[:12]}..." for token in sample_tokens]
+                self.logger.info(
+                    "Token store loaded",
                     path=str(self.token_store_path),
+                    tokens_count=len(self.token_store),
+                    token_preview=preview,
                 )
             except Exception as e:
                 self.logger.error("Failed to load token store", error=str(e))
@@ -79,6 +100,8 @@ class AuthService:
             self.token_store_path.parent.mkdir(parents=True, exist_ok=True)
             with open(self.token_store_path, "w") as f:
                 json.dump(self.token_store, f, indent=2)
+                f.flush()
+                os.fsync(f.fileno())
             self.logger.debug("Token store saved", tokens_count=len(self.token_store))
         except Exception as e:
             self.logger.error("Failed to save token store", error=str(e))
@@ -136,9 +159,14 @@ class AuthService:
         Raises:
             ValueError: If token is invalid or expired
         """
+        self.logger.info(f"verify_token called with token={token[:20]}...")
         try:
             # Reload token store to get latest tokens created by admin
+            self.logger.info("About to call _load_token_store from verify_token")
             self._load_token_store()
+            self.logger.info(
+                f"After _load_token_store, token_store has {len(self.token_store)} tokens"
+            )
 
             # Decode and verify token
             payload = jwt.decode(token, self.secret_key, algorithms=["HS256"])
