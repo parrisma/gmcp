@@ -1,129 +1,76 @@
 {
     "version": "0.2.0",
     "configurations": [
-        // ===== Test Mode Configurations (With Auth) =====
+        // ===== Quick Start - All Servers =====
         {
-            "name": "MCP Server (Test - With Auth)",
-            "type": "debugpy",
+            "name": "Start All Servers",
+            "type": "node-terminal",
             "request": "launch",
-            "module": "app.main_mcp",
-            "console": "integratedTerminal",
-            "cwd": "${workspaceFolder}",
-            "env": {
-                "PYTHONPATH": "${workspaceFolder}",
-                "GPLOT_JWT_SECRET": "test-secret-key-for-secure-testing-do-not-use-in-production",
-                "GPLOT_TOKEN_STORE": "/tmp/gplot_test_tokens.json",
-                "GPLOT_DATA_DIR": "${workspaceFolder}/test/data"
-            },
-            "args": [
-                "--host",
-                "0.0.0.0",
-                "--port",
-                "8001",
-                "--jwt-secret",
-                "test-secret-key-for-secure-testing-do-not-use-in-production",
-                "--token-store",
-                "/tmp/gplot_test_tokens.json"
-            ]
+            "command": "bash scripts/run_all_servers.sh",
+            "cwd": "${workspaceFolder}"
         },
         {
-            "name": "Web Server (Test - With Auth)",
-            "type": "debugpy",
+            "name": "Stop All Servers",
+            "type": "node-terminal",
             "request": "launch",
-            "module": "app.main_web",
-            "console": "integratedTerminal",
-            "cwd": "${workspaceFolder}",
-            "env": {
-                "PYTHONPATH": "${workspaceFolder}",
-                "GPLOT_JWT_SECRET": "test-secret-key-for-secure-testing-do-not-use-in-production",
-                "GPLOT_TOKEN_STORE": "/tmp/gplot_test_tokens.json",
-                "GPLOT_DATA_DIR": "${workspaceFolder}/test/data"
-            },
-            "args": [
-                "--host",
-                "0.0.0.0",
-                "--port",
-                "8000",
-                "--jwt-secret",
-                "test-secret-key-for-secure-testing-do-not-use-in-production",
-                "--token-store",
-                "/tmp/gplot_test_tokens.json"
-            ]
+            "command": "bash scripts/stop_all_servers.sh",
+            "cwd": "${workspaceFolder}"
         },
-        // ===== Development Mode Configurations (No Auth) =====
-        {
-            "name": "MCP Server (Dev - No Auth)",
-            "type": "debugpy",
-            "request": "launch",
-            "module": "app.main_mcp",
-            "console": "integratedTerminal",
-            "cwd": "${workspaceFolder}",
-            "env": {
-                "PYTHONPATH": "${workspaceFolder}",
-                "GPLOT_DATA_DIR": "${workspaceFolder}/data"
-            },
-            "args": [
-                "--host",
-                "0.0.0.0",
-                "--port",
-                "8001",
-                "--no-auth"
-            ]
-        },
-        {
-            "name": "Web Server (Dev - No Auth)",
-            "type": "debugpy",
-            "request": "launch",
-            "module": "app.main_web",
-            "console": "integratedTerminal",
-            "cwd": "${workspaceFolder}",
-            "env": {
-                "PYTHONPATH": "${workspaceFolder}",
-                "GPLOT_DATA_DIR": "${workspaceFolder}/data"
-            },
-            "args": [
-                "--host",
-                "0.0.0.0",
-                "--port",
-                "8000",
-                "--no-auth"
-            ]
-        },
-        // ===== Test Suite Configurations =====
+        // ===== Testing =====
         {
             "name": "Run All Tests",
             "type": "node-terminal",
             "request": "launch",
-            "command": "./scripts/run_tests.sh --with-servers",
+            "command": "bash scripts/run_tests.sh --with-servers",
             "cwd": "${workspaceFolder}"
         },
-        // ===== Production Mode Configurations =====
         {
-            "name": "MCP Server (Production - With Auth)",
-            "type": "debugpy",
+            "name": "Run Tests with Coverage",
+            "type": "node-terminal",
             "request": "launch",
-            "module": "app.main_mcp",
-            "console": "integratedTerminal",
-            "cwd": "${workspaceFolder}",
-            "env": {
-                "PYTHONPATH": "${workspaceFolder}",
-                "GPLOT_JWT_SECRET": "${input:jwtSecret}",
-                "GPLOT_TOKEN_STORE": "${workspaceFolder}/data/auth/tokens.json",
-                "GPLOT_DATA_DIR": "${workspaceFolder}/data"
-            },
-            "args": [
-                "--host",
-                "0.0.0.0",
-                "--port",
-                "8001",
-                "--jwt-secret",
-                "${input:jwtSecret}",
-                "--token-store",
-                "${workspaceFolder}/data/auth/tokens.json"
-            ]
+            "command": "bash scripts/run_tests_with_coverage.sh",
+            "cwd": "${workspaceFolder}"
+        },
+        // ===== Individual Servers (No Auth - Development) =====
+        {
+            "name": "MCP Server (No Auth)",
+            "type": "node-terminal",
+            "request": "launch",
+            "command": "bash scripts/run_mcp.sh",
+            "cwd": "${workspaceFolder}"
         },
         {
-            "name": "MCP Server (Production - No Auth)",
+            "name": "Web Server (No Auth)",
+            "type": "node-terminal",
+            "request": "launch",
+            "command": "bash scripts/run_web.sh",
+            "cwd": "${workspaceFolder}"
+        },
+        {
+            "name": "MCPO Wrapper",
+            "type": "node-terminal",
+            "request": "launch",
+            "command": "bash scripts/run_mcpo.sh",
+            "cwd": "${workspaceFolder}"
+        },
+        // ===== Individual Servers (With Auth - Production) =====
+        {
+            "name": "MCP Server (With Auth)",
+            "type": "node-terminal",
+            "request": "launch",
+            "command": "bash scripts/run_mcp_auth.sh",
+            "cwd": "${workspaceFolder}"
+        },
+        {
+            "name": "Web Server (With Auth)",
+            "type": "node-terminal",
+            "request": "launch",
+            "command": "bash scripts/run_web_auth.sh",
+            "cwd": "${workspaceFolder}"
+        },
+        // ===== Debug Mode (Python Debugger) =====
+        {
+            "name": "Debug: MCP Server (No Auth)",
             "type": "debugpy",
             "request": "launch",
             "module": "app.main_mcp",
@@ -142,7 +89,7 @@
             ]
         },
         {
-            "name": "Web Server (Production - With Auth)",
+            "name": "Debug: Web Server (No Auth)",
             "type": "debugpy",
             "request": "launch",
             "module": "app.main_web",
@@ -150,8 +97,6 @@
             "cwd": "${workspaceFolder}",
             "env": {
                 "PYTHONPATH": "${workspaceFolder}",
-                "GPLOT_JWT_SECRET": "${input:jwtSecret}",
-                "GPLOT_TOKEN_STORE": "${workspaceFolder}/data/auth/tokens.json",
                 "GPLOT_DATA_DIR": "${workspaceFolder}/data"
             },
             "args": [
@@ -159,57 +104,56 @@
                 "0.0.0.0",
                 "--port",
                 "8000",
-                "--jwt-secret",
-                "${input:jwtSecret}",
-                "--token-store",
-                "${workspaceFolder}/data/auth/tokens.json"
+                "--no-auth"
             ]
         },
-        // ===== MCPO Wrapper Configurations =====
         {
-            "name": "MCPO Wrapper (Public - No Auth)",
+            "name": "Debug: MCP Server (With Auth)",
             "type": "debugpy",
             "request": "launch",
-            "module": "app.main_mcpo",
+            "module": "app.main_mcp",
             "console": "integratedTerminal",
             "cwd": "${workspaceFolder}",
             "env": {
                 "PYTHONPATH": "${workspaceFolder}",
-                "GPLOT_MCP_PORT": "8001",
-                "GPLOT_MCPO_PORT": "8002",
-                "GPLOT_MCPO_MODE": "public"
+                "GPLOT_JWT_SECRET": "test-secret-key-for-secure-testing-do-not-use-in-production",
+                "GPLOT_TOKEN_STORE": "/tmp/gplot_test_tokens.json",
+                "GPLOT_DATA_DIR": "${workspaceFolder}/test/data"
             },
-            "args": []
+            "args": [
+                "--host",
+                "0.0.0.0",
+                "--port",
+                "8001",
+                "--jwt-secret",
+                "test-secret-key-for-secure-testing-do-not-use-in-production",
+                "--token-store",
+                "/tmp/gplot_test_tokens.json"
+            ]
         },
         {
-            "name": "MCPO Wrapper (Authenticated)",
+            "name": "Debug: Web Server (With Auth)",
             "type": "debugpy",
             "request": "launch",
-            "module": "app.main_mcpo",
+            "module": "app.main_web",
             "console": "integratedTerminal",
             "cwd": "${workspaceFolder}",
             "env": {
                 "PYTHONPATH": "${workspaceFolder}",
-                "GPLOT_MCP_PORT": "8001",
-                "GPLOT_MCPO_PORT": "8002",
-                "GPLOT_MCPO_MODE": "auth",
-                "GPLOT_MCPO_API_KEY": "${input:mcpoApiKey}"
+                "GPLOT_JWT_SECRET": "test-secret-key-for-secure-testing-do-not-use-in-production",
+                "GPLOT_TOKEN_STORE": "/tmp/gplot_test_tokens.json",
+                "GPLOT_DATA_DIR": "${workspaceFolder}/test/data"
             },
-            "args": []
-        }
-    ],
-    "inputs": [
-        {
-            "id": "jwtSecret",
-            "type": "promptString",
-            "description": "Enter JWT secret key for production",
-            "default": "your-secure-production-secret-key-change-me"
-        },
-        {
-            "id": "mcpoApiKey",
-            "type": "promptString",
-            "description": "Enter MCPO API key",
-            "default": "changeme"
+            "args": [
+                "--host",
+                "0.0.0.0",
+                "--port",
+                "8000",
+                "--jwt-secret",
+                "test-secret-key-for-secure-testing-do-not-use-in-production",
+                "--token-store",
+                "/tmp/gplot_test_tokens.json"
+            ]
         }
     ]
 }

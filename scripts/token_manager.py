@@ -116,7 +116,7 @@ def list_tokens(args):
             try:
                 issued_dt = datetime.fromisoformat(issued)
                 issued_str = issued_dt.strftime("%Y-%m-%d %H:%M")
-            except:
+            except:  # noqa: E722 - intentionally broad
                 issued_str = issued[:16] if len(issued) > 16 else issued
 
             try:
@@ -126,7 +126,7 @@ def list_tokens(args):
                 # Check if expired
                 if expires_dt < datetime.utcnow():
                     expires_str += " (EXPIRED)"
-            except:
+            except:  # noqa: E722 - intentionally broad
                 expires_str = expires[:16] if len(expires) > 16 else expires
 
             token_preview = token[:20] + "..."
@@ -294,7 +294,7 @@ Environment Variables:
     )
 
     # List tokens
-    list_parser = subparsers.add_parser("list", help="List all tokens")
+    subparsers.add_parser("list", help="List all tokens")
 
     # Revoke token
     revoke_parser = subparsers.add_parser("revoke", help="Revoke a token")
@@ -305,7 +305,7 @@ Environment Variables:
     verify_parser.add_argument("--token", type=str, required=True, help="Token to verify")
 
     # Purge tokens
-    purge_parser = subparsers.add_parser("purge", help="Remove all tokens from the store")
+    subparsers.add_parser("purge", help="Remove all tokens from the store")
 
     args = parser.parse_args()
 

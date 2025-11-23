@@ -1,9 +1,8 @@
 """Tests for dependency injection pattern in auth system"""
 
-import pytest
-from unittest.mock import MagicMock, patch
+from unittest.mock import MagicMock
 from app.auth.service import AuthService
-from app.auth.middleware import init_auth_service, get_auth_service, _auth_service
+from app.auth.middleware import init_auth_service, get_auth_service
 
 
 class TestAuthServiceDependencyInjection:
@@ -60,7 +59,7 @@ class TestGraphWebServerDependencyInjection:
 
     def test_web_server_accepts_injected_auth_service(self):
         """Test GraphWebServer.__init__ accepts auth_service parameter"""
-        from app.web_server import GraphWebServer
+        from app.web_server.web_server import GraphWebServer
 
         # Create mock AuthService
         mock_service = MagicMock(spec=AuthService)
@@ -83,7 +82,7 @@ class TestGraphWebServerDependencyInjection:
 
     def test_web_server_legacy_parameters_still_work(self):
         """Test GraphWebServer still accepts legacy jwt_secret and token_store_path"""
-        from app.web_server import GraphWebServer
+        from app.web_server.web_server import GraphWebServer
 
         # Create server with legacy parameters (no injection)
         server = GraphWebServer(
@@ -102,7 +101,7 @@ class TestGraphWebServerDependencyInjection:
 
     def test_web_server_no_auth_skips_injection(self):
         """Test GraphWebServer skips auth service when require_auth=False"""
-        from app.web_server import GraphWebServer
+        from app.web_server.web_server import GraphWebServer
 
         # Create mock AuthService
         mock_service = MagicMock(spec=AuthService)
@@ -123,14 +122,14 @@ class TestMCPServerDependencyInjection:
 
     def test_mcp_set_auth_service_function_exists(self):
         """Test set_auth_service function is available"""
-        from app.mcp_server import set_auth_service
+        from app.mcp_server.mcp_server import set_auth_service
 
         assert callable(set_auth_service)
 
     def test_mcp_set_auth_service_sets_module_variable(self):
         """Test set_auth_service updates module-level auth_service variable"""
-        from app.mcp_server import set_auth_service
-        import app.mcp_server as mcp_module
+        from app.mcp_server.mcp_server import set_auth_service
+        import app.mcp_server.mcp_server as mcp_module
 
         # Create mock AuthService
         mock_service = MagicMock(spec=AuthService)
@@ -144,8 +143,8 @@ class TestMCPServerDependencyInjection:
 
     def test_mcp_set_auth_service_accepts_none(self):
         """Test set_auth_service accepts None to disable authentication"""
-        from app.mcp_server import set_auth_service
-        import app.mcp_server as mcp_module
+        from app.mcp_server.mcp_server import set_auth_service
+        import app.mcp_server.mcp_server as mcp_module
 
         # Set auth service to None
         set_auth_service(None)
@@ -159,7 +158,7 @@ class TestDependencyInjectionLogging:
 
     def test_web_server_logs_auth_service_injected(self, caplog):
         """Test GraphWebServer logs when auth_service is injected"""
-        from app.web_server import GraphWebServer
+        from app.web_server.web_server import GraphWebServer
 
         # Create mock AuthService
         mock_service = MagicMock(spec=AuthService)
@@ -184,7 +183,7 @@ class TestDependencyInjectionDocumentation:
 
     def test_web_server_init_has_auth_service_parameter(self):
         """Test GraphWebServer.__init__ has auth_service parameter in signature"""
-        from app.web_server import GraphWebServer
+        from app.web_server.web_server import GraphWebServer
         import inspect
 
         sig = inspect.signature(GraphWebServer.__init__)
@@ -192,7 +191,7 @@ class TestDependencyInjectionDocumentation:
 
     def test_web_server_init_has_docstring(self):
         """Test GraphWebServer.__init__ documents dependency injection"""
-        from app.web_server import GraphWebServer
+        from app.web_server.web_server import GraphWebServer
 
         docstring = GraphWebServer.__init__.__doc__
         assert docstring is not None
@@ -217,7 +216,7 @@ class TestDependencyInjectionDocumentation:
 
     def test_set_auth_service_has_docstring(self):
         """Test set_auth_service documents dependency injection"""
-        from app.mcp_server import set_auth_service
+        from app.mcp_server.mcp_server import set_auth_service
 
         docstring = set_auth_service.__doc__
         assert docstring is not None

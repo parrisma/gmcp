@@ -12,7 +12,7 @@ sys.path.insert(0, str(Path(__file__).parent.parent.parent))
 import pytest
 from httpx import AsyncClient, ASGITransport
 from app.logger import ConsoleLogger
-from app.web_server import GraphWebServer
+from app.web_server.web_server import GraphWebServer
 from app.auth import TokenInfo, verify_token
 from datetime import datetime, timedelta
 import logging
@@ -308,7 +308,7 @@ async def test_validation_empty_arrays(app):
         )
 
         assert response.status_code == 400
-        error_data = response.json()
+        response.json()
         logger.info("Validation correctly caught empty arrays")
 
 
@@ -331,7 +331,7 @@ async def test_validation_invalid_alpha(app):
         )
 
         assert response.status_code == 400
-        error_data = response.json()
+        response.json()
         logger.info("Validation correctly caught invalid alpha value")
 
 
@@ -354,5 +354,5 @@ async def test_validation_invalid_color(app):
         )
 
         assert response.status_code == 400
-        error_data = response.json()
+        response.json()
         logger.info("Validation correctly caught invalid color format")

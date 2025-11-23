@@ -182,7 +182,7 @@ class TestErrorResponseFormat:
                 assert len(result.content) == 1
                 assert result.content[0].type == "text"
 
-                error_text = result.content[0].text
+                error_text = result.content[0].text  # type: ignore[union-attr]
                 logger.info("Error response", text=error_text)
 
                 # Check for standardized error format
@@ -211,7 +211,7 @@ class TestSuccessResponseFormat:
                 assert len(result.content) == 1
                 assert result.content[0].type == "text"
 
-                text = result.content[0].text
+                text = result.content[0].text  # type: ignore[union-attr]
                 logger.info("Success response", text=text[:200])
 
                 # Should have title and list format

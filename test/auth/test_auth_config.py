@@ -10,7 +10,6 @@ Tests the precedence and validation of:
 import os
 import sys
 from unittest.mock import patch, MagicMock
-import pytest
 
 
 class TestAuthConfigPrecedence:
@@ -21,7 +20,6 @@ class TestAuthConfigPrecedence:
         monkeypatch.setenv("GPLOT_JWT_SECRET", "env-secret")
 
         with patch.object(sys, "argv", ["main_web.py", "--jwt-secret", "cli-secret"]):
-            import app.main_web
 
             # Mock argparse to capture the parsed args
             with patch("app.main_web.argparse.ArgumentParser.parse_args") as mock_parse:

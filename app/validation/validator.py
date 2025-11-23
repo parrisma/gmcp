@@ -1,20 +1,25 @@
-from typing import Any, List, Optional
+from typing import List
 from app.graph_params import GraphParams
 from app.validation.models import ValidationError, ValidationResult
 from app.themes import list_themes
+from app.security import Sanitizer, SanitizationError
 
 
 class GraphDataValidator:
     """Validates GraphData with helpful error messages and suggestions"""
 
-    def __init__(self):
+    def __init__(self, enable_sanitization: bool = True):
         self.valid_types = ["line", "scatter", "bar"]
         self.valid_formats = ["png", "jpg", "svg", "pdf"]
         self.valid_themes = list_themes()
+        self.enable_sanitization = enable_sanitization
+        if enable_sanitization:
+            self.sanitizer = Sanitizer(strict=True)
 
     def validate(self, data: GraphParams) -> ValidationResult:
         """
         Validate graph data and return structured validation results.
+        Includes security sanitization checks if enabled.
 
         Args:
             data: The graph data to validate
@@ -23,9 +28,25 @@ class GraphDataValidator:
             ValidationResult with errors and warnings
         """
         errors: List[ValidationError] = []
-        warnings: List[ValidationError] = []
 
         try:
+            # Sanitization checks (if enabled)
+            if self.enable_sanitization:
+                try:
+                    errors.extend(self._sanitize_inputs(data))
+                except Exception as e:
+                    errors.append(
+                        ValidationError(
+                            field="sanitization",
+                            message=f"Error during input sanitization: {str(e)}",
+                            received_value=None,
+                            expected="Safe, validated inputs",
+                            suggestions=[
+                                "Check that input values are properly formatted",
+                                "Avoid special characters in text fields",
+                            ],
+                        )
+                    )
             # Validate x and y arrays
             try:
                 errors.extend(self._validate_arrays(data))
@@ -245,9 +266,9 @@ class GraphDataValidator:
                     received_value=data.type,
                     expected=f"One of: {', '.join(self.valid_types)}",
                     suggestions=[
-                        f"Use 'line' for line charts",
-                        f"Use 'scatter' for scatter plots",
-                        f"Use 'bar' for bar charts",
+                        "Use 'line' for line charts",
+                        "Use 'scatter' for scatter plots",
+                        "Use 'bar' for bar charts",
                         f"Did you mean '{self._find_closest_match(data.type, self.valid_types)}'?",
                     ],
                 )
@@ -309,7 +330,7 @@ class GraphDataValidator:
             errors.append(
                 ValidationError(
                     field="alpha",
-                    message=f"Alpha (transparency) must be between 0.0 and 1.0",
+                    message="Alpha (transparency) must be between 0.0 and 1.0",
                     received_value=data.alpha,
                     expected="Number between 0.0 (transparent) and 1.0 (opaque)",
                     suggestions=[
@@ -326,7 +347,7 @@ class GraphDataValidator:
             errors.append(
                 ValidationError(
                     field="line_width",
-                    message=f"Line width must be positive",
+                    message="Line width must be positive",
                     received_value=data.line_width,
                     expected="Positive number (typically 0.5 to 5.0)",
                     suggestions=[
@@ -343,7 +364,7 @@ class GraphDataValidator:
             errors.append(
                 ValidationError(
                     field="marker_size",
-                    message=f"Marker size must be positive",
+                    message="Marker size must be positive",
                     received_value=data.marker_size,
                     expected="Positive number (typically 10 to 200)",
                     suggestions=[
@@ -432,3 +453,168 @@ class GraphDataValidator:
 
         # Return first option as fallback
         return options[0]
+
+    def _sanitize_inputs(self, data: GraphParams) -> List[ValidationError]:
+        """Sanitize inputs to prevent injection attacks and invalid data"""
+        errors = []
+
+        try:
+            # Sanitize chart type
+            try:
+                self.sanitizer.sanitize_chart_type(data.type)
+            except SanitizationError as e:
+                errors.append(
+                    ValidationError(
+                        field="type",
+                        message=f"Security: Invalid chart type - {str(e)}",
+                        received_value=data.type,
+                        expected="One of: line, scatter, bar",
+                        suggestions=[
+                            "Chart type must be one of the predefined types",
+                            "Avoid special characters or injection attempts",
+                        ],
+                    )
+                )
+
+            # Sanitize format
+            try:
+                self.sanitizer.sanitize_format(data.format)
+            except SanitizationError as e:
+                errors.append(
+                    ValidationError(
+                        field="format",
+                        message=f"Security: Invalid format - {str(e)}",
+                        received_value=data.format,
+                        expected="One of: png, jpg, svg, pdf",
+                        suggestions=[
+                            "Format must be one of the predefined types",
+                            "Avoid special characters or injection attempts",
+                        ],
+                    )
+                )
+
+            # Sanitize theme
+            try:
+                self.sanitizer.sanitize_theme(data.theme)
+            except SanitizationError as e:
+                errors.append(
+                    ValidationError(
+                        field="theme",
+                        message=f"Security: Invalid theme - {str(e)}",
+                        received_value=data.theme,
+                        expected=f"One of: {', '.join(self.valid_themes)}",
+                        suggestions=[
+                            "Theme must be one of the predefined themes",
+                            "Avoid special characters or injection attempts",
+                        ],
+                    )
+                )
+
+            # Sanitize title (prevent XSS/injection)
+            if data.title:
+                try:
+                    self.sanitizer.sanitize_string(data.title, max_length=200, allow_newlines=False)
+                except SanitizationError as e:
+                    errors.append(
+                        ValidationError(
+                            field="title",
+                            message=f"Security: Invalid title - {str(e)}",
+                            received_value=(
+                                data.title[:50] + "..." if len(data.title) > 50 else data.title
+                            ),
+                            expected="Plain text title (max 200 chars)",
+                            suggestions=[
+                                "Title should not contain script tags or HTML",
+                                "Keep title under 200 characters",
+                                "Use plain text only",
+                            ],
+                        )
+                    )
+
+            # Sanitize axis labels
+            for label_field in ["xlabel", "ylabel"]:
+                label_value = getattr(data, label_field, None)
+                if label_value:
+                    try:
+                        self.sanitizer.sanitize_string(
+                            label_value, max_length=100, allow_newlines=False
+                        )
+                    except SanitizationError as e:
+                        errors.append(
+                            ValidationError(
+                                field=label_field,
+                                message=f"Security: Invalid label - {str(e)}",
+                                received_value=(
+                                    label_value[:50] + "..."
+                                    if len(label_value) > 50
+                                    else label_value
+                                ),
+                                expected="Plain text label (max 100 chars)",
+                                suggestions=[
+                                    "Label should not contain script tags or HTML",
+                                    "Keep label under 100 characters",
+                                    "Use plain text only",
+                                ],
+                            )
+                        )
+
+            # Sanitize dataset labels
+            for i in range(1, 6):
+                label_field = f"label{i}"
+                label_value = getattr(data, label_field, None)
+                if label_value:
+                    try:
+                        self.sanitizer.sanitize_string(
+                            label_value, max_length=50, allow_newlines=False
+                        )
+                    except SanitizationError as e:
+                        errors.append(
+                            ValidationError(
+                                field=label_field,
+                                message=f"Security: Invalid dataset label - {str(e)}",
+                                received_value=(
+                                    label_value[:50] + "..."
+                                    if len(label_value) > 50
+                                    else label_value
+                                ),
+                                expected="Plain text label (max 50 chars)",
+                                suggestions=[
+                                    "Dataset label should not contain script tags or HTML",
+                                    "Keep label under 50 characters",
+                                    "Use plain text only",
+                                ],
+                            )
+                        )
+
+            # Sanitize numeric ranges
+            try:
+                self.sanitizer.sanitize_numeric_range(data.alpha, 0.0, 1.0)
+                self.sanitizer.sanitize_numeric_range(data.line_width, 0.1, 20.0)
+                self.sanitizer.sanitize_numeric_range(data.marker_size, 1.0, 500.0)
+            except SanitizationError as e:
+                errors.append(
+                    ValidationError(
+                        field="numeric_parameters",
+                        message=f"Security: Invalid numeric range - {str(e)}",
+                        received_value=None,
+                        expected="Numeric values within safe ranges",
+                        suggestions=[
+                            "alpha: 0.0 to 1.0",
+                            "line_width: 0.1 to 20.0",
+                            "marker_size: 1.0 to 500.0",
+                        ],
+                    )
+                )
+
+        except Exception as e:
+            errors.append(
+                ValidationError(
+                    field="sanitization",
+                    message=f"Unexpected error during sanitization: {str(e)}",
+                    received_value=None,
+                    expected="Valid input data",
+                    suggestions=["Check that all input values are properly formatted"],
+                )
+            )
+
+        return errors

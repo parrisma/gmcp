@@ -194,7 +194,7 @@ Examples:
     )
 
     # Stats command
-    stats_parser = subparsers.add_parser("stats", help="Show storage statistics")
+    subparsers.add_parser("stats", help="Show storage statistics")
 
     args = parser.parse_args()
 

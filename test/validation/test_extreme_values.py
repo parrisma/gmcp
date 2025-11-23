@@ -7,10 +7,9 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).parent.parent.parent))
 
 import pytest
-import math
 from httpx import AsyncClient, ASGITransport
 from app.logger import ConsoleLogger
-from app.web_server import GraphWebServer
+from app.web_server.web_server import GraphWebServer
 import logging
 
 

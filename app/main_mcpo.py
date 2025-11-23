@@ -28,9 +28,8 @@ import asyncio
 import os
 import signal
 import sys
-from typing import Optional
 
-from app.mcpo.wrapper import start_mcpo_wrapper
+from app.mcpo_server.wrapper import start_mcpo_wrapper
 
 
 def main():
@@ -40,7 +39,7 @@ def main():
     mcp_port = int(os.environ.get("GPLOT_MCP_PORT", "8001"))
     mcpo_port = int(os.environ.get("GPLOT_MCPO_PORT", "8002"))
 
-    print(f"Starting MCPO wrapper for gplot MCP server...")
+    print("Starting MCPO wrapper for gplot MCP server...")
     print(f"  MCP server: http://localhost:{mcp_port}/mcp")
     print(f"  MCPO proxy: http://localhost:{mcpo_port}")
 
@@ -49,18 +48,18 @@ def main():
     if mcpo_api_key:
         print(f"  MCPO API Key: {'*' * 8} (from GPLOT_MCPO_API_KEY)")
     else:
-        print(f"  MCPO API Key: None (no authentication required)")
+        print("  MCPO API Key: None (no authentication required)")
 
     # Check for auth mode
     mode = os.environ.get("GPLOT_MCPO_MODE", "public").lower()
     if mode == "auth":
         jwt_token = os.environ.get("GPLOT_JWT_TOKEN")
         if jwt_token:
-            print(f"  Mode: Authenticated (JWT token will be passed to MCP)")
+            print("  Mode: Authenticated (JWT token will be passed to MCP)")
         else:
-            print(f"  Mode: Authenticated (but GPLOT_JWT_TOKEN not set - will fail)")
+            print("  Mode: Authenticated (but GPLOT_JWT_TOKEN not set - will fail)")
     else:
-        print(f"  Mode: Public (no JWT token passed to MCP)")
+        print("  Mode: Public (no JWT token passed to MCP)")
 
     # Start the wrapper
     wrapper = start_mcpo_wrapper(
@@ -77,11 +76,11 @@ def main():
     signal.signal(signal.SIGINT, signal_handler)
     signal.signal(signal.SIGTERM, signal_handler)
 
-    print(f"\nMCPO proxy is running!")
+    print("\nMCPO proxy is running!")
     print(f"  Health check: curl http://localhost:{mcpo_port}/health")
     print(f"  OpenAPI spec: curl http://localhost:{mcpo_port}/openapi.json")
     print(f"  List tools: curl http://localhost:{mcpo_port}/tools/list")
-    print(f"\nPress Ctrl+C to stop...")
+    print("\nPress Ctrl+C to stop...")
 
     try:
         # Run the wrapper

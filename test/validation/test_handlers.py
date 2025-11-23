@@ -1,6 +1,5 @@
 """Tests for handler descriptions and handler listing functionality"""
 
-import pytest
 from app.handlers import (
     list_handlers_with_descriptions,
     LineGraphHandler,

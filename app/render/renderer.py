@@ -6,14 +6,9 @@ Main renderer class that coordinates the rendering pipeline.
 import matplotlib.pyplot as plt
 import io
 import base64
-from typing import Dict, Optional
+from typing import Optional
 from app.graph_params import GraphParams
-from app.handlers import (
-    GraphHandler,
-    LineGraphHandler,
-    ScatterGraphHandler,
-    BarGraphHandler,
-)
+from app.handlers import get_handler, list_handlers
 from app.themes import get_theme
 from app.storage import get_storage
 from app.logger import ConsoleLogger
@@ -21,16 +16,11 @@ import logging
 
 
 class GraphRenderer:
-    """Main renderer that delegates to specific graph handlers"""
+    """Main renderer that delegates to specific graph handlers via registry"""
 
     def __init__(self):
-        self.handlers: Dict[str, GraphHandler] = {
-            "line": LineGraphHandler(),
-            "scatter": ScatterGraphHandler(),
-            "bar": BarGraphHandler(),
-        }
         self.logger = ConsoleLogger(name="renderer", level=logging.INFO)
-        self.logger.debug("GraphRenderer initialized", handlers=list(self.handlers.keys()))
+        self.logger.debug("GraphRenderer initialized", handlers=list_handlers())
 
     def render(self, data: GraphParams, group: Optional[str] = None) -> str | bytes:
         """
@@ -63,13 +53,13 @@ class GraphRenderer:
         )
 
         try:
-            # Get the appropriate handler
-            handler = self.handlers.get(data.type)
-            if not handler:
-                self.logger.error("Unsupported graph type", chart_type=data.type)
-                raise ValueError(f"Unsupported graph type: {data.type}")
-
-            self.logger.debug("Handler selected", handler=type(handler).__name__)
+            # Get the appropriate handler from registry
+            try:
+                handler = get_handler(data.type)
+                self.logger.debug("Handler selected", handler=type(handler).__name__)
+            except ValueError as e:
+                self.logger.error("Unsupported graph type", chart_type=data.type, error=str(e))
+                raise
 
             # Get and apply theme
             try:

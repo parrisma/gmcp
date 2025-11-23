@@ -26,7 +26,7 @@ def is_mcpo_available():
     try:
         response = requests.get(f"{MCPO_URL}/openapi.json", timeout=1)
         return response.status_code == 200
-    except:
+    except:  # noqa: E722 - intentionally broad
         return False
 
 

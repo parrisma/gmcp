@@ -9,8 +9,6 @@ sys.path.insert(0, str(Path(__file__).parent.parent.parent))
 import pytest
 import os
 import json
-import tempfile
-import shutil
 from app.storage.file_storage import FileStorage
 from app.logger import ConsoleLogger
 import logging

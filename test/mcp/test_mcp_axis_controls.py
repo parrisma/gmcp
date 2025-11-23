@@ -1,12 +1,9 @@
 """Tests for MCP server axis control parameters"""
 
 import pytest
-import logging
 import os
 from mcp import ClientSession
 from mcp.client.streamable_http import streamablehttp_client
-from app.auth.service import AuthService
-from app.logger import ConsoleLogger
 
 # Note: test_jwt_token and logger fixtures are now defined in conftest.py
 

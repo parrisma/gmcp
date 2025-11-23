@@ -87,7 +87,7 @@ def test_auth_service_reloads_token_store_on_verify():
     try:
         # Create first service and token
         auth1 = AuthService(secret_key="test-secret-reload", token_store_path=token_store_path)
-        token1 = auth1.create_token(group="group1", expires_in_seconds=3600)
+        auth1.create_token(group="group1", expires_in_seconds=3600)
         logger.info("First token created")
 
         # Create second service (simulates server that started before token was created)

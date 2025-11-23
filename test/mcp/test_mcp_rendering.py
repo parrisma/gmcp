@@ -60,7 +60,7 @@ async def test_render_line_chart():
 
             result = await session.call_tool("render_graph", line_args)
             assert len(result.content) > 0, "No content returned"
-            logger.info(f"Line chart rendered successfully")
+            logger.info("Line chart rendered successfully")
 
 
 @pytest.mark.asyncio
@@ -84,7 +84,7 @@ async def test_render_bar_chart():
 
             result = await session.call_tool("render_graph", bar_args)
             assert len(result.content) > 0, "No content returned"
-            logger.info(f"Bar chart rendered successfully")
+            logger.info("Bar chart rendered successfully")
 
 
 @pytest.mark.asyncio
@@ -108,7 +108,7 @@ async def test_render_scatter_plot():
 
             result = await session.call_tool("render_graph", scatter_args)
             assert len(result.content) > 0, "No content returned"
-            logger.info(f"Scatter plot rendered successfully")
+            logger.info("Scatter plot rendered successfully")
 
 
 @pytest.mark.asyncio
@@ -131,7 +131,7 @@ async def test_render_with_dark_theme():
 
             result = await session.call_tool("render_graph", dark_args)
             assert len(result.content) > 0, "No content returned"
-            logger.info(f"Dark theme chart rendered successfully")
+            logger.info("Dark theme chart rendered successfully")
 
 
 @pytest.mark.asyncio
@@ -184,7 +184,7 @@ async def test_validation_invalid_chart_type(test_jwt_token):
                 "token": test_jwt_token,
             }
 
-            result = await session.call_tool("render_graph", error_args)
+            await session.call_tool("render_graph", error_args)
 
 
 @pytest.mark.asyncio

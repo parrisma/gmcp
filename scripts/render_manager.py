@@ -8,7 +8,6 @@ parameter inspection, and validation capabilities for the gplot service.
 import argparse
 import sys
 from pathlib import Path
-from typing import Optional
 
 # Add parent directory to path
 sys.path.insert(0, str(Path(__file__).parent.parent))
@@ -119,7 +118,7 @@ def get_theme_details(args):
 
         return 0
 
-    except ValueError as e:
+    except ValueError:
         logger.error(f"Theme '{args.theme_name}' not found")
         logger.info("Available themes:")
         for theme in list_themes():
@@ -211,7 +210,7 @@ def validate_graph_params(args):
                             import json
 
                             value = json.loads(value)
-                        except:
+                        except:  # noqa: E722 - intentionally broad
                             pass
                     # Try to parse as number
                     elif value.replace(".", "", 1).replace("-", "", 1).isdigit():
@@ -258,7 +257,7 @@ def validate_graph_params(args):
                 logger.error(f"  - {error.field}: {error.message}")
                 logger.error(f"    Expected: {error.expected}")
                 if error.suggestions:
-                    logger.error(f"    Suggestions:")
+                    logger.error("    Suggestions:")
                     for suggestion in error.suggestions:
                         logger.error(f"      • {suggestion}")
             return 1

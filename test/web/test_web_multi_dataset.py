@@ -3,7 +3,7 @@
 import pytest
 from httpx import AsyncClient, ASGITransport
 from app.logger import ConsoleLogger
-from app.web_server import GraphWebServer
+from app.web_server.web_server import GraphWebServer
 from app.auth import TokenInfo, verify_token
 from datetime import datetime, timedelta
 import logging

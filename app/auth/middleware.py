@@ -3,16 +3,40 @@
 Provides utilities for validating JWT tokens in web requests.
 """
 
+import hashlib
 from typing import Optional
-from fastapi import HTTPException, Security
+from fastapi import HTTPException, Security, Request
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from app.auth.service import AuthService, TokenInfo
+from app.security import SecurityAuditor
 
 # Global auth service instance
 _auth_service: Optional[AuthService] = None
 
+# Global security auditor instance
+_security_auditor: Optional[SecurityAuditor] = None
+
 security = HTTPBearer()
 optional_security = HTTPBearer(auto_error=False)
+
+
+def _generate_fingerprint(request: Request) -> str:
+    """
+    Generate a device fingerprint from request context
+
+    Combines User-Agent and client IP to create a stable fingerprint.
+    Used for token binding to prevent token theft.
+
+    Args:
+        request: FastAPI request object
+
+    Returns:
+        SHA256 hash of user-agent + IP
+    """
+    user_agent = request.headers.get("user-agent", "unknown")
+    client_ip = request.client.host if request.client else "unknown"
+    fingerprint_data = f"{user_agent}:{client_ip}"
+    return hashlib.sha256(fingerprint_data.encode()).hexdigest()
 
 
 def init_auth_service(
@@ -65,11 +89,37 @@ def get_auth_service() -> AuthService:
     return _auth_service
 
 
-def verify_token(credentials: HTTPAuthorizationCredentials = Security(security)) -> TokenInfo:
+def set_security_auditor(auditor: Optional[SecurityAuditor]) -> None:
     """
-    Verify JWT token from request
+    Set the global security auditor instance
 
     Args:
+        auditor: SecurityAuditor instance or None to disable auditing
+    """
+    global _security_auditor
+    _security_auditor = auditor
+
+
+def get_security_auditor() -> Optional[SecurityAuditor]:
+    """
+    Get the global security auditor instance
+
+    Returns:
+        SecurityAuditor instance or None if not configured
+    """
+    return _security_auditor
+
+
+def verify_token(
+    request: Request, credentials: HTTPAuthorizationCredentials = Security(security)
+) -> TokenInfo:
+    """
+    Verify JWT token from request with enhanced security checks
+
+    Generates device fingerprint and validates token binding if configured.
+
+    Args:
+        request: FastAPI request object (for fingerprinting)
         credentials: HTTP authorization credentials
 
     Returns:
@@ -80,21 +130,31 @@ def verify_token(credentials: HTTPAuthorizationCredentials = Security(security))
     """
     try:
         auth_service = get_auth_service()
-        token_info = auth_service.verify_token(credentials.credentials)
+        # Generate fingerprint for token binding validation
+        fingerprint = _generate_fingerprint(request)
+        token_info = auth_service.verify_token(credentials.credentials, fingerprint=fingerprint)
         return token_info
     except ValueError as e:
+        # Log authentication failure
+        auditor = get_security_auditor()
+        if auditor:
+            auditor.log_auth_failure(client_id="token_user", reason=str(e), endpoint="verify_token")
         raise HTTPException(status_code=401, detail=str(e))
     except RuntimeError as e:
         raise HTTPException(status_code=500, detail=str(e))
 
 
 def optional_verify_token(
+    request: Request,
     credentials: Optional[HTTPAuthorizationCredentials] = Security(optional_security),
 ) -> Optional[TokenInfo]:
     """
-    Optionally verify JWT token from request (doesn't require authentication)
+    Optionally verify JWT token from request with enhanced security checks
+
+    Generates device fingerprint and validates token binding if configured.
 
     Args:
+        request: FastAPI request object (for fingerprinting)
         credentials: HTTP authorization credentials (optional)
 
     Returns:
@@ -109,9 +169,17 @@ def optional_verify_token(
 
     try:
         auth_service = get_auth_service()
-        token_info = auth_service.verify_token(credentials.credentials)
+        # Generate fingerprint for token binding validation
+        fingerprint = _generate_fingerprint(request)
+        token_info = auth_service.verify_token(credentials.credentials, fingerprint=fingerprint)
         return token_info
     except ValueError as e:
+        # Log authentication failure
+        auditor = get_security_auditor()
+        if auditor:
+            auditor.log_auth_failure(
+                client_id="optional_token_user", reason=str(e), endpoint="optional_verify_token"
+            )
         raise HTTPException(status_code=401, detail=str(e))
     except RuntimeError:
         # Auth service not initialized - allow anonymous access

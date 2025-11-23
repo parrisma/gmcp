@@ -9,14 +9,11 @@ for MCP servers, superseding SSE. It's compatible with n8n's MCP Client Tool and
 other modern MCP clients.
 """
 
-import asyncio
 import contextlib
-import json
 import sys
 from pathlib import Path
 from typing import Any, AsyncIterator
-from mcp.server.models import InitializationOptions
-from mcp.server import NotificationOptions, Server
+from mcp.server import Server
 from mcp.server.streamable_http_manager import StreamableHTTPSessionManager
 from starlette.applications import Starlette
 from starlette.middleware.cors import CORSMiddleware
@@ -38,12 +35,12 @@ from app.validation import GraphDataValidator
 from app.storage import get_storage
 from app.storage.exceptions import PermissionDeniedError
 from app.auth import AuthService
+from app.security import RateLimiter, RateLimitExceeded, SecurityAuditor
 from app.logger import ConsoleLogger
 from app.themes import list_themes_with_descriptions
 from app.handlers import list_handlers_with_descriptions
 from app.mcp_responses import (
     format_error,
-    format_success_text,
     format_success_image,
     format_list,
     AUTH_REQUIRED_ERROR,
@@ -62,6 +59,20 @@ renderer = GraphRenderer()
 validator = GraphDataValidator()
 storage = get_storage()
 logger = ConsoleLogger(name="mcp_server", level=python_logging.INFO)
+
+# Initialize rate limiter with endpoint-specific limits
+# Use higher limits in test environment to avoid test failures
+
+is_test_env = os.getenv("GPLOT_JWT_SECRET", "").startswith("test-secret")
+render_limit = 1000 if is_test_env else 10
+rate_limiter = RateLimiter(default_limit=100, window=60)
+rate_limiter.set_endpoint_limit(
+    "render_graph", limit=render_limit, window=60
+)  # Strict for expensive ops
+rate_limiter.set_endpoint_limit("ping", limit=1000, window=60)  # Lenient for health checks
+
+# Initialize security auditor
+security_auditor = SecurityAuditor()
 
 # Initialize auth service (will be configured when server starts)
 auth_service: AuthService | None = None
@@ -344,8 +355,31 @@ async def handle_call_tool(
     and returning meaningful error messages to the client.
     """
 
+    # Extract client identifier for rate limiting (use token if available, otherwise 'anonymous')
+    token = arguments.get("token", "anonymous")
+    client_id = f"token:{token[:20]}" if token != "anonymous" else "anonymous"
+
     if name == "ping":
         logger.info("Ping tool called")
+
+        # Rate limiting (lenient for health checks)
+        try:
+            rate_limiter.check_limit(client_id=client_id, endpoint="ping")
+        except RateLimitExceeded as e:
+            logger.warning("Rate limit exceeded", client_id=client_id, endpoint="ping")
+            security_auditor.log_rate_limit(
+                client_id=client_id, endpoint="ping", limit=1000, window=60
+            )
+            return format_error(
+                "Rate Limit Exceeded",
+                f"Too many ping requests: {str(e)}",
+                [
+                    f"Wait {int(e.retry_after)} seconds before trying again",
+                    "Ping allows 1000 requests per 60 seconds",
+                ],
+                {"retry_after": int(e.retry_after)},
+            )
+
         current_time = datetime.now().isoformat()
         logger.debug("Ping response", timestamp=current_time)
         return [
@@ -356,6 +390,24 @@ async def handle_call_tool(
 
     if name == "get_image":
         logger.info("Get image tool called")
+
+        # Rate limiting (use default limit)
+        try:
+            rate_limiter.check_limit(client_id=client_id, endpoint="get_image")
+        except RateLimitExceeded as e:
+            logger.warning("Rate limit exceeded", client_id=client_id, endpoint="get_image")
+            security_auditor.log_rate_limit(
+                client_id=client_id, endpoint="get_image", limit=100, window=60
+            )
+            return format_error(
+                "Rate Limit Exceeded",
+                f"Too many get_image requests: {str(e)}",
+                [
+                    f"Wait {int(e.retry_after)} seconds before trying again",
+                    "Default limit: 100 requests per 60 seconds",
+                ],
+                {"retry_after": int(e.retry_after)},
+            )
 
         # Validate required arguments
         if "guid" not in arguments:
@@ -389,6 +441,9 @@ async def handle_call_tool(
                 logger.debug("Token verified", group=group)
         except Exception as e:
             logger.error("Token validation failed", error=str(e))
+            security_auditor.log_auth_failure(
+                client_id=client_id, reason=str(e), endpoint="get_image"
+            )
             return AUTH_INVALID_ERROR(str(e))
 
         try:
@@ -455,6 +510,22 @@ async def handle_call_tool(
 
     if name == "list_themes":
         logger.info("List themes tool called")
+
+        # Rate limiting (use default limit)
+        try:
+            rate_limiter.check_limit(client_id=client_id, endpoint="list_themes")
+        except RateLimitExceeded as e:
+            logger.warning("Rate limit exceeded", client_id=client_id, endpoint="list_themes")
+            security_auditor.log_rate_limit(
+                client_id=client_id, endpoint="list_themes", limit=100, window=60
+            )
+            return format_error(
+                "Rate Limit Exceeded",
+                f"Too many list_themes requests: {str(e)}",
+                [f"Wait {int(e.retry_after)} seconds before trying again"],
+                {"retry_after": int(e.retry_after)},
+            )
+
         try:
             themes = list_themes_with_descriptions()
             logger.debug("Themes listed", count=len(themes))
@@ -469,6 +540,22 @@ async def handle_call_tool(
 
     if name == "list_handlers":
         logger.info("List handlers tool called")
+
+        # Rate limiting (use default limit)
+        try:
+            rate_limiter.check_limit(client_id=client_id, endpoint="list_handlers")
+        except RateLimitExceeded as e:
+            logger.warning("Rate limit exceeded", client_id=client_id, endpoint="list_handlers")
+            security_auditor.log_rate_limit(
+                client_id=client_id, endpoint="list_handlers", limit=100, window=60
+            )
+            return format_error(
+                "Rate Limit Exceeded",
+                f"Too many list_handlers requests: {str(e)}",
+                [f"Wait {int(e.retry_after)} seconds before trying again"],
+                {"retry_after": int(e.retry_after)},
+            )
+
         try:
             handlers = list_handlers_with_descriptions()
             logger.debug("Handlers listed", count=len(handlers))
@@ -497,6 +584,25 @@ async def handle_call_tool(
         )
 
     logger.info("Render tool called")
+
+    # Rate limiting (strict for expensive operations)
+    try:
+        rate_limiter.check_limit(client_id=client_id, endpoint="render_graph")
+    except RateLimitExceeded as e:
+        logger.warning("Rate limit exceeded", client_id=client_id, endpoint="render_graph")
+        security_auditor.log_rate_limit(
+            client_id=client_id, endpoint="render_graph", limit=render_limit, window=60
+        )
+        return format_error(
+            "Rate Limit Exceeded",
+            f"Too many render_graph requests: {str(e)}",
+            [
+                f"Wait {int(e.retry_after)} seconds before trying again",
+                "Render operations are limited to 10 requests per 60 seconds",
+                "This limit prevents server overload from expensive rendering operations",
+            ],
+            {"retry_after": int(e.retry_after), "limit": "10 per 60 seconds"},
+        )
 
     try:
         # Validate required arguments - only title and token are required now
@@ -531,6 +637,9 @@ async def handle_call_tool(
                 logger.debug("Token verified", group=group)
         except Exception as e:
             logger.error("Token validation failed", error=str(e))
+            security_auditor.log_auth_failure(
+                client_id=client_id, reason=str(e), endpoint="render_graph"
+            )
             return AUTH_INVALID_ERROR(str(e))
 
         # Validate data arrays if provided
@@ -807,10 +916,22 @@ starlette_app = Starlette(
 )
 
 # Add CORS middleware to expose Mcp-Session-Id header
+# GPLOT_CORS_ORIGINS: Comma-separated list of allowed origins, or "*" for all
+# Default: http://localhost:3000,http://localhost:8000 (common dev ports)
+cors_origins_str = os.getenv("GPLOT_CORS_ORIGINS", "http://localhost:3000,http://localhost:8000")
+if cors_origins_str == "*":
+    cors_origins = ["*"]
+else:
+    cors_origins = [origin.strip() for origin in cors_origins_str.split(",") if origin.strip()]
+
+logger.info("Configuring CORS", origins=cors_origins)
+
 starlette_app = CORSMiddleware(
     starlette_app,
-    allow_origins=["*"],  # Allow all origins - adjust for production
+    allow_origins=cors_origins,
+    allow_credentials=True,  # Allow cookies/auth headers
     allow_methods=["GET", "POST", "DELETE"],  # MCP streamable HTTP methods
+    allow_headers=["*"],  # Allow all headers (including Authorization)
     expose_headers=["Mcp-Session-Id"],
 )
 

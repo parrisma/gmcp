@@ -3,8 +3,6 @@
 import pytest
 from mcp import ClientSession
 from mcp.client.streamable_http import streamablehttp_client
-from app.logger import ConsoleLogger
-import logging
 
 # Note: logger fixture is now defined in conftest.py
 
@@ -40,7 +38,7 @@ async def test_list_themes_tool_no_parameters(logger):
             assert len(result.content) > 0
 
             # Should return text content
-            text_content = str(result.content[0].text)
+            text_content = str(result.content[0].text)  # type: ignore[union-attr]
             assert len(text_content) > 0
             logger.info(f"List themes response: {text_content[:100]}...")
 
@@ -55,7 +53,7 @@ async def test_list_themes_returns_all_themes(logger):
             await session.initialize()
 
             result = await session.call_tool("list_themes", arguments={})
-            text_content = str(result.content[0].text)
+            text_content = str(result.content[0].text)  # type: ignore[union-attr]
 
             # Check that all expected themes are present
             expected_themes = ["light", "dark", "bizlight", "bizdark"]
@@ -77,7 +75,7 @@ async def test_list_themes_includes_descriptions(logger):
             await session.initialize()
 
             result = await session.call_tool("list_themes", arguments={})
-            text_content = str(result.content[0].text)
+            text_content = str(result.content[0].text)  # type: ignore[union-attr]
 
             # Each theme should have a colon followed by description
             assert "light:" in text_content.lower()
@@ -105,7 +103,7 @@ async def test_list_themes_formatted_correctly(logger):
             await session.initialize()
 
             result = await session.call_tool("list_themes", arguments={})
-            text_content = str(result.content[0].text)
+            text_content = str(result.content[0].text)  # type: ignore[union-attr]
 
             # Should have a header
             assert "Available Themes" in text_content or "available themes" in text_content.lower()

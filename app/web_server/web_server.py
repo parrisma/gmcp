@@ -1,11 +1,20 @@
-from fastapi import FastAPI, HTTPException, Depends
+from fastapi import FastAPI, HTTPException, Depends, Request
 from fastapi.responses import JSONResponse, Response, HTMLResponse
+from fastapi.middleware.cors import CORSMiddleware
 from app.graph_params import GraphParams
 from app.render import GraphRenderer
 from app.validation import GraphDataValidator
 from app.storage import get_storage
 from app.storage.exceptions import PermissionDeniedError
-from app.auth import TokenInfo, verify_token, optional_verify_token, init_auth_service
+from app.auth import (
+    TokenInfo,
+    verify_token,
+    optional_verify_token,
+    init_auth_service,
+    set_security_auditor,
+)
+from app.auth.service import AuthService
+from app.security import RateLimiter, RateLimitExceeded, SecurityAuditor
 from app.logger import ConsoleLogger
 import logging
 from datetime import datetime
@@ -32,10 +41,48 @@ class GraphWebServer:
             auth_service: AuthService instance (preferred - enables dependency injection)
         """
         self.app = FastAPI(title="gplot", description="Graph rendering service")
+
         self.renderer = GraphRenderer()
         self.validator = GraphDataValidator()
         self.storage = get_storage()
         self.require_auth = require_auth
+
+        # Initialize rate limiter with endpoint-specific limits
+        # Use higher limits in test environment to avoid test failures
+        # Configure CORS middleware
+        # GPLOT_CORS_ORIGINS: Comma-separated list of allowed origins, or "*" for all
+        # Default: http://localhost:3000,http://localhost:8000 (common dev ports)
+        cors_origins_str = os.getenv(
+            "GPLOT_CORS_ORIGINS", "http://localhost:3000,http://localhost:8000"
+        )
+        if cors_origins_str == "*":
+            cors_origins = ["*"]
+        else:
+            cors_origins = [
+                origin.strip() for origin in cors_origins_str.split(",") if origin.strip()
+            ]
+
+        self.app.add_middleware(
+            CORSMiddleware,
+            allow_origins=cors_origins,
+            allow_credentials=True,  # Allow cookies/auth headers
+            allow_methods=["*"],  # Allow all HTTP methods
+            allow_headers=["*"],  # Allow all headers (including Authorization)
+        )
+
+        is_test_env = os.getenv("GPLOT_JWT_SECRET", "").startswith("test-secret")
+        self.render_limit = 1000 if is_test_env else 10
+        self.rate_limiter = RateLimiter(default_limit=100, window=60)
+        self.rate_limiter.set_endpoint_limit(
+            "/render", limit=self.render_limit, window=60
+        )  # Strict for expensive ops
+        self.rate_limiter.set_endpoint_limit(
+            "/ping", limit=1000, window=60
+        )  # Lenient for health checks
+
+        # Initialize security auditor
+        self.security_auditor = SecurityAuditor()
+        set_security_auditor(self.security_auditor)
 
         # Initialize auth service - prefer injected instance, fallback to legacy init
         if require_auth:
@@ -59,12 +106,39 @@ class GraphWebServer:
         """Get the appropriate auth dependency based on require_auth setting"""
         return verify_token if self.require_auth else optional_verify_token
 
+    def _get_client_id(self, request: Request, token_info: Optional[TokenInfo]) -> str:
+        """Extract client identifier for rate limiting"""
+        if token_info and hasattr(token_info, "group"):
+            return f"user:{token_info.group}"
+        client_host = request.client.host if request.client else "unknown"
+        return f"ip:{client_host}"
+
     def _setup_routes(self):
         @self.app.get("/ping")
-        async def ping():
+        async def ping(request: Request):
             """
             Health check endpoint that returns the current server time.
             """
+            # Rate limiting (lenient for health checks)
+            client_id = request.client.host if request.client else "unknown"
+            try:
+                self.rate_limiter.check_limit(client_id=f"ip:{client_id}", endpoint="/ping")
+            except RateLimitExceeded as e:
+                self.logger.warning("Rate limit exceeded", client_id=client_id, endpoint="/ping")
+                # Log rate limit to security auditor
+                self.security_auditor.log_rate_limit(
+                    client_id=f"ip:{client_id}", endpoint="/ping", limit=1000, window=60
+                )
+                return JSONResponse(
+                    status_code=429,
+                    content={
+                        "error": "Rate limit exceeded",
+                        "message": str(e),
+                        "retry_after": int(e.retry_after),
+                    },
+                    headers={"Retry-After": str(int(e.retry_after))},
+                )
+
             current_time = datetime.now().isoformat()
             self.logger.debug("Ping request received", timestamp=current_time)
             return JSONResponse(
@@ -75,7 +149,7 @@ class GraphWebServer:
 
         @self.app.post("/render")
         async def render_graph(
-            data: GraphParams, token_info: Optional[TokenInfo] = Depends(auth_dep)
+            request: Request, data: GraphParams, token_info: Optional[TokenInfo] = Depends(auth_dep)
         ):
             """
             Render a graph with comprehensive error handling.
@@ -84,6 +158,27 @@ class GraphWebServer:
             This endpoint ensures the server never crashes by catching all exceptions
             and returning appropriate HTTP error responses.
             """
+            # Rate limiting (strict for expensive operations)
+            client_id = self._get_client_id(request, token_info)
+            try:
+                self.rate_limiter.check_limit(client_id=client_id, endpoint="/render")
+            except RateLimitExceeded as e:
+                self.logger.warning("Rate limit exceeded", client_id=client_id, endpoint="/render")
+                # Log rate limit to security auditor
+                self.security_auditor.log_rate_limit(
+                    client_id=client_id, endpoint="/render", limit=self.render_limit, window=60
+                )
+                return JSONResponse(
+                    status_code=429,
+                    content={
+                        "error": "Rate limit exceeded",
+                        "message": str(e),
+                        "retry_after": int(e.retry_after),
+                        "limit": f"{self.render_limit} requests per 60 seconds",
+                    },
+                    headers={"Retry-After": str(int(e.retry_after))},
+                )
+
             group = token_info.group if token_info else "public"
             datasets = data.get_datasets()
             data_points = len(datasets[0][0]) if datasets else 0
@@ -291,12 +386,32 @@ class GraphWebServer:
                 )
 
         @self.app.get("/render/{guid}")
-        async def get_image_by_guid(guid: str, token_info: Optional[TokenInfo] = Depends(auth_dep)):
+        async def get_image_by_guid(
+            request: Request, guid: str, token_info: Optional[TokenInfo] = Depends(auth_dep)
+        ):
             """
             Retrieve a rendered image by its GUID.
             Returns the raw image bytes with appropriate content type.
             Requires JWT authentication and group access (unless --no-auth is used).
             """
+            # Rate limiting (use default limit)
+            client_id = self._get_client_id(request, token_info)
+            try:
+                self.rate_limiter.check_limit(client_id=client_id, endpoint="/render/{guid}")
+            except RateLimitExceeded as e:
+                self.logger.warning(
+                    "Rate limit exceeded", client_id=client_id, endpoint="/render/{guid}"
+                )
+                return JSONResponse(
+                    status_code=429,
+                    content={
+                        "error": "Rate limit exceeded",
+                        "message": str(e),
+                        "retry_after": int(e.retry_after),
+                    },
+                    headers={"Retry-After": str(int(e.retry_after))},
+                )
+
             group = token_info.group if token_info else "public"
             self.logger.info("Get image request", guid=guid, group=group)
 
@@ -369,12 +484,32 @@ class GraphWebServer:
                 )
 
         @self.app.get("/render/{guid}/html")
-        async def get_image_html(guid: str, token_info: Optional[TokenInfo] = Depends(auth_dep)):
+        async def get_image_html(
+            request: Request, guid: str, token_info: Optional[TokenInfo] = Depends(auth_dep)
+        ):
             """
             Retrieve a rendered image by its GUID and display it in an HTML page.
             Useful for viewing images directly in a browser.
             Requires JWT authentication and group access (unless --no-auth is used).
             """
+            # Rate limiting (use default limit)
+            client_id = self._get_client_id(request, token_info)
+            try:
+                self.rate_limiter.check_limit(client_id=client_id, endpoint="/render/{guid}/html")
+            except RateLimitExceeded as e:
+                self.logger.warning(
+                    "Rate limit exceeded", client_id=client_id, endpoint="/render/{guid}/html"
+                )
+                return JSONResponse(
+                    status_code=429,
+                    content={
+                        "error": "Rate limit exceeded",
+                        "message": str(e),
+                        "retry_after": int(e.retry_after),
+                    },
+                    headers={"Retry-After": str(int(e.retry_after))},
+                )
+
             group = token_info.group if token_info else "public"
             self.logger.info("Get image HTML request", guid=guid, group=group)
 

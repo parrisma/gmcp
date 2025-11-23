@@ -6,16 +6,13 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).parent.parent.parent))
 
-import asyncio
 import pytest
 import httpx
 from mcp import ClientSession
 from mcp.client.streamable_http import streamablehttp_client
-from app.auth import AuthService
 from app.logger import ConsoleLogger
 import logging
 import os
-import tempfile
 
 
 # Test configuration

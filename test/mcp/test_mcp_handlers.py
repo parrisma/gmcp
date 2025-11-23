@@ -3,8 +3,6 @@
 import pytest
 from mcp import ClientSession
 from mcp.client.streamable_http import streamablehttp_client
-from app.logger import ConsoleLogger
-import logging
 
 # Note: logger fixture is now defined in conftest.py
 
@@ -40,7 +38,7 @@ async def test_list_handlers_tool_no_parameters(logger):
             assert len(result.content) > 0
 
             # Should return text content
-            text_content = str(result.content[0].text)
+            text_content = str(result.content[0].text)  # type: ignore[union-attr]
             assert len(text_content) > 0
             logger.info(f"List handlers response: {text_content[:100]}...")
 
@@ -55,7 +53,7 @@ async def test_list_handlers_returns_all_handlers(logger):
             await session.initialize()
 
             result = await session.call_tool("list_handlers", arguments={})
-            text_content = str(result.content[0].text)
+            text_content = str(result.content[0].text)  # type: ignore[union-attr]
 
             # Check that all expected handlers are present
             expected_handlers = ["line", "scatter", "bar"]
@@ -77,7 +75,7 @@ async def test_list_handlers_includes_descriptions(logger):
             await session.initialize()
 
             result = await session.call_tool("list_handlers", arguments={})
-            text_content = str(result.content[0].text)
+            text_content = str(result.content[0].text)  # type: ignore[union-attr]
 
             # Each handler should have a colon followed by description
             assert "line:" in text_content.lower()
@@ -104,7 +102,7 @@ async def test_list_handlers_formatted_correctly(logger):
             await session.initialize()
 
             result = await session.call_tool("list_handlers", arguments={})
-            text_content = str(result.content[0].text)
+            text_content = str(result.content[0].text)  # type: ignore[union-attr]
 
             # Should have a header
             assert (

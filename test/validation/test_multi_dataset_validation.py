@@ -156,7 +156,7 @@ def test_validation_auto_x_axis(validator):
     assert result.is_valid
 
     # Verify x-axis is auto-generated
-    x_values = params.get_x_values(len(params.y1))
+    x_values = params.get_x_values(len(params.y1))  # type: ignore[arg-type]
     assert x_values == [0, 1, 2, 3, 4]
 
 

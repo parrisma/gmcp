@@ -4,7 +4,7 @@ Provides consistent success and error message formatting across all MCP tools.
 """
 
 from mcp.types import TextContent, ImageContent, EmbeddedResource
-from typing import List, Union
+from typing import List
 
 
 def format_error(
@@ -138,7 +138,8 @@ AUTH_REQUIRED_ERROR = format_error(
     ],
 )
 
-AUTH_INVALID_ERROR = lambda error_msg: format_error(
+def AUTH_INVALID_ERROR(error_msg):
+    return format_error(
     "Authentication",
     f"Token validation failed: {error_msg}",
     [
@@ -149,7 +150,8 @@ AUTH_INVALID_ERROR = lambda error_msg: format_error(
     ],
 )
 
-PERMISSION_DENIED_ERROR = lambda resource_id, group: format_error(
+def PERMISSION_DENIED_ERROR(resource_id, group):
+    return format_error(
     "Authorization",
     "Access denied to the requested resource",
     [

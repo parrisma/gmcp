@@ -1,9 +1,7 @@
 """Tests for theme descriptions and theme listing functionality"""
 
-import pytest
 from app.themes import (
     get_theme,
-    list_themes,
     list_themes_with_descriptions,
     LightTheme,
     DarkTheme,

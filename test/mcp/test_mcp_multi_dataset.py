@@ -1,12 +1,8 @@
 """Tests for multi-dataset rendering via MCP protocol"""
 
 import pytest
-import base64
-import os
 from mcp import ClientSession
 from mcp.client.streamable_http import streamablehttp_client
-from app.logger import ConsoleLogger
-import logging
 
 # Note: logger fixture is now defined in conftest.py
 
@@ -245,7 +241,7 @@ async def test_render_proxy_mode_multi_dataset_mcp(test_jwt_token, logger):
             assert len(result.content) > 0
 
             # Check for GUID in response
-            text_content = str(result.content[0].text)
+            text_content = str(result.content[0].text)  # type: ignore[union-attr]
             assert "guid" in text_content.lower() or "GUID" in text_content
 
 
@@ -270,6 +266,6 @@ async def test_validation_mismatched_lengths_mcp(test_jwt_token, logger):
             )
 
             # Should return validation error
-            text_content = str(result.content[0].text)
+            text_content = str(result.content[0].text)  # type: ignore[union-attr]
             assert "validation" in text_content.lower() or "error" in text_content.lower()
             assert "length" in text_content.lower()

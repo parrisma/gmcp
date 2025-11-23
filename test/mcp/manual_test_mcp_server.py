@@ -5,12 +5,10 @@ This script tests the render_graph tool through the MCP protocol using Streamabl
 """
 
 import asyncio
-import json
 import logging
 import os
 import sys
 from pathlib import Path
-import httpx
 
 # Add parent directory to path to enable imports when run directly
 sys.path.insert(0, str(Path(__file__).parent.parent.parent))

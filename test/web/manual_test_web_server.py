@@ -5,7 +5,6 @@ Tests the FastAPI endpoints for graph rendering.
 """
 
 import asyncio
-import base64
 import logging
 import sys
 from pathlib import Path
@@ -15,7 +14,7 @@ sys.path.insert(0, str(Path(__file__).parent.parent.parent))
 
 from httpx import AsyncClient, ASGITransport
 from app.logger import ConsoleLogger
-from app.web_server import GraphWebServer
+from app.web_server.web_server import GraphWebServer
 from app.auth.service import AuthService
 
 

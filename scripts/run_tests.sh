@@ -31,7 +31,7 @@ mkdir -p "${STORAGE_DIR}" "${AUTH_DIR}"
 
 print_header() {
     echo -e "${GREEN}=== GPLOT Test Runner ===${NC}"
-    echo "Project root: ${PROJECT_ROOT}"
+    echo "Project root: ${PROJECT_ROOT}"al
     echo "JWT Secret: ${GPLOT_JWT_SECRET:0:20}..."
     echo "Token store: ${GPLOT_TOKEN_STORE}"
     echo "MCP Port: ${GPLOT_MCP_PORT}"
@@ -112,43 +112,21 @@ cleanup_environment() {
     
     # Clean up other transient data
     rm -f data/sessions/*.json 2>/dev/null || true
-    .venv/bin/python scripts/storage_manager.py purge --age-days=0 --yes 2>/dev/null || \
+    python scripts/storage_manager.py purge --age-days=0 --yes 2>/dev/null || \
         echo "  (storage purge skipped - no existing data)"
     echo -e "${GREEN}Cleanup complete${NC}\n"
-}
-
-check_log_freshness() {
-    local log_file=$1
-    local server_name=$2
-    
-    if [ -f "${log_file}" ]; then
-        local log_age_seconds=$(( $(date +%s) - $(stat -c %Y "${log_file}" 2>/dev/null || stat -f %m "${log_file}" 2>/dev/null || echo 0) ))
-        local log_age_hours=$(( log_age_seconds / 3600 ))
-        
-        if [ ${log_age_hours} -gt 1 ]; then
-            echo -e "${RED}ERROR: ${server_name} log file is ${log_age_hours} hours old!${NC}"
-            echo -e "${RED}This indicates stale server processes may be running.${NC}"
-            echo -e "${YELLOW}First 5 lines of old log:${NC}"
-            head -5 "${log_file}"
-            echo -e "${YELLOW}Run: ./scripts/run_tests.sh --stop-servers${NC}"
-            return 1
-        fi
-    fi
-    return 0
 }
 
 start_mcp_server() {
     local log_file="/tmp/gplot_mcp_test.log"
     echo -e "${YELLOW}Starting MCP server on port ${GPLOT_MCP_PORT}...${NC}"
     
-    # Check for stale log before starting
-    if ! check_log_freshness "${log_file}" "MCP server"; then
-        return 1
-    fi
-    
     free_port "${GPLOT_MCP_PORT}"
+    
+    # Remove stale log file
+    rm -f "${log_file}"
 
-    .venv/bin/python app/main_mcp.py \
+    nohup python app/main_mcp.py \
         --port "${GPLOT_MCP_PORT}" \
         --jwt-secret "${GPLOT_JWT_SECRET}" \
         --token-store "${GPLOT_TOKEN_STORE}" \
@@ -179,14 +157,12 @@ start_web_server() {
     local log_file="/tmp/gplot_web_test.log"
     echo -e "${YELLOW}Starting Web server on port ${GPLOT_WEB_PORT}...${NC}"
     
-    # Check for stale log before starting
-    if ! check_log_freshness "${log_file}" "Web server"; then
-        return 1
-    fi
-    
     free_port "${GPLOT_WEB_PORT}"
+    
+    # Remove stale log file
+    rm -f "${log_file}"
 
-    .venv/bin/python app/main_web.py \
+    nohup python app/main_web.py \
         --port "${GPLOT_WEB_PORT}" \
         --jwt-secret "${GPLOT_JWT_SECRET}" \
         --token-store "${GPLOT_TOKEN_STORE}" \
@@ -217,12 +193,10 @@ start_mcpo_server() {
     local log_file="/tmp/gplot_mcpo_test.log"
     echo -e "${YELLOW}Starting MCPO wrapper on port ${GPLOT_MCPO_PORT}...${NC}"
     
-    # Check for stale log before starting
-    if ! check_log_freshness "${log_file}" "MCPO server"; then
-        return 1
-    fi
-    
     free_port "${GPLOT_MCPO_PORT}"
+    
+    # Remove stale log file
+    rm -f "${log_file}"
     
     # Wait for MCP server to be available first
     echo -n "Checking MCP server availability"
@@ -334,7 +308,7 @@ JSON
 fi
 
 create_bootstrap_token() {
-    .venv/bin/python - <<'PY'
+    python - <<'PY'
 import os
 from app.auth import AuthService
 secret = os.environ["GPLOT_JWT_SECRET"]
@@ -359,9 +333,9 @@ fi
 echo -e "${GREEN}=== Running Tests ===${NC}"
 set +e
 if [ ${#PYTEST_ARGS[@]} -eq 0 ]; then
-    .venv/bin/python -m pytest test/ -v
+    python -m pytest test/ -v
 else
-    .venv/bin/python -m pytest "${PYTEST_ARGS[@]}"
+    python -m pytest "${PYTEST_ARGS[@]}"
 fi
 TEST_EXIT_CODE=$?
 set -e

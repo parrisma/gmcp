@@ -1,8 +1,8 @@
-import uvicorn
 import argparse
-import os
 import sys
 import asyncio
+from pathlib import Path
+from app.settings import Settings
 from app.auth import AuthService
 from app.logger import ConsoleLogger
 import logging
@@ -17,26 +17,26 @@ if __name__ == "__main__":
     parser.add_argument(
         "--host",
         type=str,
-        default="0.0.0.0",
-        help="Host address to bind to (default: 0.0.0.0)",
+        default=None,
+        help="Host address to bind to (default: from env or 0.0.0.0)",
     )
     parser.add_argument(
         "--port",
         type=int,
-        default=8001,
-        help="Port number to listen on (default: 8001)",
+        default=None,
+        help="Port number to listen on (default: from env or 8001)",
     )
     parser.add_argument(
         "--jwt-secret",
         type=str,
         default=None,
-        help="JWT secret key (default: from GPLOT_JWT_SECRET env var or auto-generated)",
+        help="JWT secret key (default: from GPLOT_JWT_SECRET env var)",
     )
     parser.add_argument(
         "--token-store",
         type=str,
         default=None,
-        help="Path to token store file (default: configured in app.config)",
+        help="Path to token store file (default: {data_dir}/auth/tokens.json)",
     )
     parser.add_argument(
         "--no-auth",
@@ -48,19 +48,40 @@ if __name__ == "__main__":
     # Create logger for startup messages
     startup_logger = ConsoleLogger(name="startup", level=logging.INFO)
 
-    # Validate JWT secret if authentication is enabled
-    jwt_secret = args.jwt_secret or os.environ.get("GPLOT_JWT_SECRET")
-    if not args.no_auth and not jwt_secret:
+    try:
+        # Build settings from environment and CLI args
+        require_auth = not args.no_auth
+        settings = Settings.from_env(require_auth=require_auth)
+
+        # Override with CLI arguments if provided
+        if args.host:
+            settings.server.host = args.host
+        if args.port:
+            settings.server.mcp_port = args.port
+        if args.jwt_secret:
+            settings.auth.jwt_secret = args.jwt_secret
+        if args.token_store:
+            settings.auth.token_store_path = Path(args.token_store)
+
+        # Resolve defaults and validate
+        settings.resolve_defaults()
+        settings.validate()
+
+    except ValueError as e:
         startup_logger.error(
-            "FATAL: Authentication enabled but no JWT secret provided",
+            "FATAL: Configuration error",
+            error=str(e),
             help="Set GPLOT_JWT_SECRET environment variable or use --jwt-secret flag, or use --no-auth to disable authentication",
         )
         sys.exit(1)
 
     # Initialize auth service only if auth is required
     auth_service = None
-    if not args.no_auth:
-        auth_service = AuthService(secret_key=jwt_secret, token_store_path=args.token_store)
+    if require_auth:
+        auth_service = AuthService(
+            secret_key=settings.auth.jwt_secret,
+            token_store_path=str(settings.auth.token_store_path),
+        )
         startup_logger.info(
             "Authentication service initialized",
             jwt_enabled=True,
@@ -71,19 +92,19 @@ if __name__ == "__main__":
         startup_logger.info("Authentication disabled", jwt_enabled=False)
 
     # Import and configure mcp_server with auth service (dependency injection)
-    from app.mcp_server import set_auth_service, main
+    from app.mcp_server.mcp_server import set_auth_service, main
 
     set_auth_service(auth_service)
 
     try:
         startup_logger.info(
             "Starting MCP server",
-            host=args.host,
-            port=args.port,
+            host=settings.server.host,
+            port=settings.server.mcp_port,
             transport="Streamable HTTP",
-            jwt_enabled=not args.no_auth,
+            jwt_enabled=require_auth,
         )
-        asyncio.run(main(host=args.host, port=args.port))
+        asyncio.run(main(host=settings.server.host, port=settings.server.mcp_port))
         startup_logger.info("MCP server shutdown complete")
     except KeyboardInterrupt:
         startup_logger.info("Shutdown complete")

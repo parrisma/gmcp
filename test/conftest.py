@@ -10,12 +10,9 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
 import pytest
-import tempfile
-import shutil
 import os
 from app.config import Config
 from app.storage import reset_storage, get_storage
-from app.storage.file_storage import FileStorage
 from app.auth import AuthService
 
 
@@ -98,7 +95,6 @@ def test_auth_service():
     Returns:
         AuthService: Configured auth service for testing
     """
-    import os
 
     test_secret = os.environ.get(
         "GPLOT_JWT_SECRET", "test-secret-key-for-secure-testing-do-not-use-in-production"

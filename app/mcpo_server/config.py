@@ -36,10 +36,10 @@ class MCPOConfig:
         }
 
         if auth_token:
-            server_config["headers"] = {"Authorization": f"Bearer {auth_token}"}
+            server_config["headers"] = {"Authorization": f"Bearer {auth_token}"}  # type: ignore[assignment]
 
         if disabled_tools:
-            server_config["disabledTools"] = disabled_tools
+            server_config["disabledTools"] = disabled_tools  # type: ignore[assignment]
 
         self.servers[name] = server_config
 

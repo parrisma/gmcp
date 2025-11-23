@@ -5,7 +5,6 @@ Run this to see what tools the MCP server exposes.
 """
 
 import asyncio
-import json
 from mcp import ClientSession
 from mcp.client.streamable_http import streamablehttp_client
 
@@ -31,9 +30,9 @@ async def discover_mcp_server():
             print("-" * 60)
             print("SERVER INFORMATION")
             print("-" * 60)
-            print(f"Server: gplot-renderer")
-            print(f"Version: 1.0.0")
-            print(f"Transport: Streamable HTTP")
+            print("Server: gplot-renderer")
+            print("Version: 1.0.0")
+            print("Transport: Streamable HTTP")
             print()
 
             # List available tools
@@ -56,7 +55,7 @@ async def discover_mcp_server():
 
                     # Show all parameters
                     if "properties" in schema:
-                        print(f"   Parameters:")
+                        print("   Parameters:")
                         for param_name, param_info in schema["properties"].items():
                             param_type = param_info.get("type", "unknown")
                             param_desc = param_info.get("description", "No description")
@@ -77,10 +76,10 @@ async def discover_mcp_server():
             print("\n" + "=" * 60)
             print("ENDPOINT INFORMATION")
             print("=" * 60)
-            print(f"Streamable HTTP Endpoint: http://localhost:8001/mcp/")
-            print(f"For N8N: http://gplot_dev:8001/mcp/ (on gplot_net)")
-            print(f"For Host: http://localhost:8001/mcp/")
-            print(f"Transport: Streamable HTTP (modern MCP standard)")
+            print("Streamable HTTP Endpoint: http://localhost:8001/mcp/")
+            print("For N8N: http://gplot_dev:8001/mcp/ (on gplot_net)")
+            print("For Host: http://localhost:8001/mcp/")
+            print("Transport: Streamable HTTP (modern MCP standard)")
             print("=" * 60)
 
 
