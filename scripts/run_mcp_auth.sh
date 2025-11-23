@@ -51,7 +51,7 @@ if command -v lsof >/dev/null 2>&1; then
 fi
 
 # Build and execute command
-CMD="uv run python app/main_mcp.py --host 0.0.0.0 --port ${PORT} --jwt-secret ${JWT_SECRET} --token-store ${TOKEN_STORE}"
+CMD="uv run python app/main_mcp.py --host 0.0.0.0 --port ${PORT} --jwt-secret ${JWT_SECRET} --token-store ${TOKEN_STORE} --web-url http://localhost:8000 --proxy-url-mode url"
 
 echo "Starting server..."
 echo "Command: ${CMD}"

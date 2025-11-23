@@ -153,7 +153,7 @@ class WebServerHelper(ServerHelper):
         Returns:
             Response object with image data
         """
-        url = f"{self.base_url}/image/{guid}"
+        url = f"{self.base_url}/proxy/{guid}"
         return self.session.get(url)
 
     def list_charts(self, group: Optional[str] = None) -> requests.Response:

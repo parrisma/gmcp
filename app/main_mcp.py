@@ -43,6 +43,19 @@ if __name__ == "__main__":
         action="store_true",
         help="Disable authentication (WARNING: insecure, for development only)",
     )
+    parser.add_argument(
+        "--web-url",
+        type=str,
+        default=None,
+        help="Web server base URL for proxy mode downloads (default: from GPLOT_WEB_URL env or http://localhost:8000)",
+    )
+    parser.add_argument(
+        "--proxy-url-mode",
+        type=str,
+        choices=["guid", "url"],
+        default="url",
+        help="Proxy mode response format: 'url' returns download URL, 'guid' returns only GUID (default: url)",
+    )
     args = parser.parse_args()
 
     # Create logger for startup messages
@@ -92,9 +105,14 @@ if __name__ == "__main__":
         startup_logger.info("Authentication disabled", jwt_enabled=False)
 
     # Import and configure mcp_server with auth service (dependency injection)
-    from app.mcp_server.mcp_server import set_auth_service, main
+    from app.mcp_server import mcp_server as mcp_server_module
 
-    set_auth_service(auth_service)
+    mcp_server_module.set_auth_service(auth_service)
+
+    # Configure web URL and proxy mode
+    if args.web_url:
+        mcp_server_module.web_url_override = args.web_url
+    mcp_server_module.proxy_url_mode = args.proxy_url_mode
 
     try:
         startup_logger.info(
@@ -103,8 +121,12 @@ if __name__ == "__main__":
             port=settings.server.mcp_port,
             transport="Streamable HTTP",
             jwt_enabled=require_auth,
+            web_url=mcp_server_module.web_url_override,
+            proxy_url_mode=mcp_server_module.proxy_url_mode,
         )
-        asyncio.run(main(host=settings.server.host, port=settings.server.mcp_port))
+        asyncio.run(
+            mcp_server_module.main(host=settings.server.host, port=settings.server.mcp_port)
+        )
         startup_logger.info("MCP server shutdown complete")
     except KeyboardInterrupt:
         startup_logger.info("Shutdown complete")

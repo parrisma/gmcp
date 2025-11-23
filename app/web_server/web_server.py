@@ -354,8 +354,8 @@ class GraphWebServer:
                                 "guid": image_data,
                                 "format": data.format,
                                 "message": f"Image saved with GUID: {image_data}",
-                                "retrieve_url": f"/render/{image_data}",
-                                "html_url": f"/render/{image_data}/html",
+                                "retrieve_url": f"/proxy/{image_data}",
+                                "html_url": f"/proxy/{image_data}/html",
                             }
                         )
                     except ValueError:
@@ -385,7 +385,7 @@ class GraphWebServer:
                     },
                 )
 
-        @self.app.get("/render/{guid}")
+        @self.app.get("/proxy/{guid}")
         async def get_image_by_guid(
             request: Request, guid: str, token_info: Optional[TokenInfo] = Depends(auth_dep)
         ):
@@ -397,10 +397,10 @@ class GraphWebServer:
             # Rate limiting (use default limit)
             client_id = self._get_client_id(request, token_info)
             try:
-                self.rate_limiter.check_limit(client_id=client_id, endpoint="/render/{guid}")
+                self.rate_limiter.check_limit(client_id=client_id, endpoint="/proxy/{guid}")
             except RateLimitExceeded as e:
                 self.logger.warning(
-                    "Rate limit exceeded", client_id=client_id, endpoint="/render/{guid}"
+                    "Rate limit exceeded", client_id=client_id, endpoint="/proxy/{guid}"
                 )
                 return JSONResponse(
                     status_code=429,
@@ -483,7 +483,7 @@ class GraphWebServer:
                     },
                 )
 
-        @self.app.get("/render/{guid}/html")
+        @self.app.get("/proxy/{guid}/html")
         async def get_image_html(
             request: Request, guid: str, token_info: Optional[TokenInfo] = Depends(auth_dep)
         ):
@@ -495,10 +495,10 @@ class GraphWebServer:
             # Rate limiting (use default limit)
             client_id = self._get_client_id(request, token_info)
             try:
-                self.rate_limiter.check_limit(client_id=client_id, endpoint="/render/{guid}/html")
+                self.rate_limiter.check_limit(client_id=client_id, endpoint="/proxy/{guid}/html")
             except RateLimitExceeded as e:
                 self.logger.warning(
-                    "Rate limit exceeded", client_id=client_id, endpoint="/render/{guid}/html"
+                    "Rate limit exceeded", client_id=client_id, endpoint="/proxy/{guid}/html"
                 )
                 return JSONResponse(
                     status_code=429,
@@ -613,7 +613,7 @@ class GraphWebServer:
                         </div>
                         <img src="data:{mime_type};base64,{base64_data}" alt="Rendered graph {guid}">
                         <div class="links">
-                            <a href="/render/{guid}" download="{guid}.{img_format}">Download Image</a>
+                            <a href="/proxy/{guid}" download="{guid}.{img_format}">Download Image</a>
                             <a href="/ping">Server Status</a>
                         </div>
                     </div>

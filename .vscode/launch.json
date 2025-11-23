@@ -47,7 +47,7 @@
             "cwd": "${workspaceFolder}"
         },
         {
-            "name": "MCPO Wrapper",
+            "name": "MCPO Wrapper (No Auth)",
             "type": "node-terminal",
             "request": "launch",
             "command": "bash scripts/run_mcpo.sh",
@@ -68,6 +68,13 @@
             "command": "bash scripts/run_web_auth.sh",
             "cwd": "${workspaceFolder}"
         },
+        {
+            "name": "MCPO Wrapper (With Auth)",
+            "type": "node-terminal",
+            "request": "launch",
+            "command": "bash scripts/run_mcpo_auth.sh",
+            "cwd": "${workspaceFolder}"
+        },
         // ===== Debug Mode (Python Debugger) =====
         {
             "name": "Debug: MCP Server (No Auth)",
@@ -85,7 +92,9 @@
                 "0.0.0.0",
                 "--port",
                 "8001",
-                "--no-auth"
+                "--no-auth",
+                "--web-url",
+                "http://172.22.9.172:8000"
             ]
         },
         {
@@ -128,7 +137,9 @@
                 "--jwt-secret",
                 "test-secret-key-for-secure-testing-do-not-use-in-production",
                 "--token-store",
-                "/tmp/gplot_test_tokens.json"
+                "/tmp/gplot_test_tokens.json",
+                "--web-url",
+                "http://localhost:8000"
             ]
         },
         {

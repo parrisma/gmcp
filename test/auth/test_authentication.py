@@ -415,7 +415,7 @@ class TestWebAuthentication:
 
             # Now retrieve it
             response = await client.get(
-                f"{WEB_URL}/render/{guid}", headers={"Authorization": f"Bearer {test_token}"}
+                f"{WEB_URL}/proxy/{guid}", headers={"Authorization": f"Bearer {test_token}"}
             )
 
             logger.info(
@@ -460,7 +460,7 @@ class TestWebAuthentication:
             logger.info("Image created", guid=guid)
 
             # Try to retrieve without token
-            response = await client.get(f"{WEB_URL}/render/{guid}")
+            response = await client.get(f"{WEB_URL}/proxy/{guid}")
 
             logger.info("Image retrieval without token", status=response.status_code)
 
@@ -503,7 +503,7 @@ class TestWebAuthentication:
 
             # Try to retrieve with 'other-group' token
             response = await client.get(
-                f"{WEB_URL}/render/{guid}", headers={"Authorization": f"Bearer {other_token}"}
+                f"{WEB_URL}/proxy/{guid}", headers={"Authorization": f"Bearer {other_token}"}
             )
 
             logger.info("Cross-group retrieval attempt", status=response.status_code)

@@ -294,7 +294,7 @@ Content-Type: application/json
 }
 ```
 
-#### GET /render/{guid}
+#### GET /proxy/{guid}
 
 Retrieve a rendered image by GUID.
 
@@ -305,7 +305,7 @@ Authorization: Bearer YOUR_TOKEN
 
 **Response:** Raw image bytes with appropriate Content-Type
 
-#### GET /render/{guid}/html
+#### GET /proxy/{guid}/html
 
 View a rendered image in an HTML page.
 

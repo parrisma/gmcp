@@ -46,12 +46,12 @@ export OPENROUTER_API_KEY="sk-or-v1-your-key-here"
 **Key Endpoints**:
 - API Docs: `http://172.22.9.172:8000/docs`
 - Render Graph: `POST http://172.22.9.172:8000/render`
-- Get Image: `GET http://172.22.9.172:8000/render/{guid}`
-- Get HTML: `GET http://172.22.9.172:8000/render/{guid}/html`
+- Get Image: `GET http://172.22.9.172:8000/proxy/{guid}`
+- Get HTML: `GET http://172.22.9.172:8000/proxy/{guid}/html`
 - List Images: `GET http://172.22.9.172:8000/images`
 - Ping: `GET http://172.22.9.172:8000/ping`
 
-**Note**: The endpoint is `/render/{guid}`, not `/image/{guid}`
+**Note**: The endpoint is `/proxy/{guid}` for consistency with other proxy-rendering servers
 
 ---
 

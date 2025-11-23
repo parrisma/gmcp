@@ -1,5 +1,31 @@
 # Proxy Mode - GUID-Based Image Storage
 
+## 🤖 Quick Guide for AI Assistants
+
+When the MCP server responds to a proxy mode render request, **the response includes a complete download URL**:
+
+```
+Download URL: http://localhost:8000/proxy/{guid}
+```
+
+**What to do:**
+1. ✅ Extract this URL from the response text
+2. ✅ Provide it directly to the user
+3. ✅ Tell them they can click it or paste it in a browser
+4. ❌ Don't say "I don't have access to the URL" - it's right there in the response!
+5. ❌ Don't call `get_image` tool unless specifically needed for base64 data
+
+**Example Response Pattern to Look For:**
+```
+Image saved with GUID: 0816aa30-13e9-4724-bffa-5679f4042b19
+...
+Download URL: http://localhost:8000/proxy/0816aa30-13e9-4724-bffa-5679f4042b19
+```
+
+The URL is immediately usable - no additional processing needed!
+
+---
+
 ## Overview
 
 Proxy mode allows rendered images to be saved to disk with a unique GUID identifier instead of returning large base64-encoded data directly. This is useful for:
@@ -8,12 +34,15 @@ Proxy mode allows rendered images to be saved to disk with a unique GUID identif
 - **Persistent Storage**: Images remain accessible after rendering
 - **Deferred Retrieval**: Retrieve images later via multiple access methods
 - **Reusability**: Access the same image multiple times without re-rendering
+- **Direct Browser Access**: Get a URL that can be opened directly in any web browser
 
 ## How It Works
 
 1. **Render with Proxy Mode**: Call `render_graph` with `proxy=true`
-2. **Get GUID**: Server saves image to disk and returns a GUID
-3. **Retrieve Image**: Use the GUID to access the image via MCP tool or web endpoint
+2. **Get Response with URL**: Server saves image to disk and returns both a GUID and a complete download URL
+3. **Access Image**: Use the provided URL directly in a browser, curl command, or any HTTP client
+
+**Important for AI Assistants:** When the MCP server is running in URL mode (default), the proxy mode response includes a complete download URL in the format `http://localhost:8000/proxy/{guid}`. This URL can be provided directly to users who want to view or download the image. You do not need to use the `get_image` tool unless specifically working with base64 data.
 
 ## Usage
 
@@ -34,17 +63,59 @@ Proxy mode allows rendered images to be saved to disk with a unique GUID identif
 }
 ```
 
-**Response:**
+**Response (URL mode - default):**
 ```
 Image saved with GUID: a1b2c3d4-e5f6-7890-1234-567890abcdef
+
 Chart: line - 'Sales Chart'
 Format: png
+
+Download URL: http://localhost:8000/proxy/a1b2c3d4-e5f6-7890-1234-567890abcdef
+(Or use get_image tool with guid='a1b2c3d4-e5f6-7890-1234-567890abcdef')
+```
+
+**✨ AI Assistant Note:** The "Download URL" is the complete, ready-to-use URL that can be:
+- Opened directly in a web browser
+- Used with curl/wget to download the image
+- Shared with users for immediate access
+- Embedded in HTML or markdown
+
+No additional tools or processing required!
+
+**Response (GUID mode):**
+```
+Image saved with GUID: a1b2c3d4-e5f6-7890-1234-567890abcdef
+
+Chart: line - 'Sales Chart'
+Format: png
+
 Use get_image tool with guid='a1b2c3d4-e5f6-7890-1234-567890abcdef' to retrieve the image.
 ```
 
 ### 2. Retrieve Image
 
-#### Option A: MCP `get_image` Tool
+#### Option A: Direct HTTP GET (Recommended - Works Immediately)
+
+The server provides a complete download URL in the proxy mode response. Just use it!
+
+**For AI Assistants:** Simply extract the "Download URL" line from the response and provide it to the user. The URL format is:
+```
+http://localhost:8000/proxy/{guid}
+```
+
+**For Command Line:**
+```bash
+curl http://localhost:8000/proxy/a1b2c3d4-e5f6-7890-1234-567890abcdef -o chart.png
+```
+
+**For Web Browsers:**
+```
+http://localhost:8000/proxy/a1b2c3d4-e5f6-7890-1234-567890abcdef
+```
+
+Click or paste this URL directly into any browser address bar to view or download the image.
+
+#### Option B: MCP `get_image` Tool (Only if you need base64 data)
 ```json
 {
   "tool": "get_image",
@@ -56,17 +127,54 @@ Use get_image tool with guid='a1b2c3d4-e5f6-7890-1234-567890abcdef' to retrieve 
 
 Returns base64-encoded image data.
 
-#### Option B: Web API (Raw Image)
+#### Option C: Web API (Legacy - Direct Access)
 ```bash
-curl http://localhost:8000/render/a1b2c3d4-e5f6-7890-1234-567890abcdef -o chart.png
+curl http://localhost:8000/proxy/a1b2c3d4-e5f6-7890-1234-567890abcdef -o chart.png
 ```
 
-#### Option C: Web Browser (HTML View)
+#### Option D: Web Browser (HTML View)
 ```
-http://localhost:8000/render/a1b2c3d4-e5f6-7890-1234-567890abcdef/html
+http://localhost:8000/proxy/a1b2c3d4-e5f6-7890-1234-567890abcdef/html
 ```
 
 Opens an HTML page with the embedded image for viewing in a browser.
+
+## Configuration
+
+### Proxy URL Mode
+
+Control how the MCP server returns proxy mode responses:
+
+**URL Mode (default - Recommended for AI Assistants):** Returns complete download URL
+```bash
+python -m app.main_mcp --proxy-url-mode url --web-url http://localhost:8000
+```
+
+With URL mode enabled (default), AI assistants and automated tools can immediately provide users with working download links without needing to construct URLs or use additional tools.
+
+**GUID Mode:** Returns only GUID (client constructs URL manually)
+```bash
+python -m app.main_mcp --proxy-url-mode guid
+```
+
+Use this mode only if you prefer to construct URLs programmatically or have custom URL routing.
+
+### Web Server Base URL
+
+Set the base URL for proxy downloads:
+
+**CLI Argument:**
+```bash
+python -m app.main_mcp --web-url http://localhost:8000
+```
+
+**Environment Variable:**
+```bash
+export GPLOT_WEB_URL=http://localhost:8000
+python -m app.main_mcp
+```
+
+**Priority:** CLI `--web-url` > env `GPLOT_WEB_URL` > default `http://localhost:8000`
 
 ## Storage Location
 
@@ -110,12 +218,12 @@ All standard image formats are supported in proxy mode:
 
 ### Web Endpoints
 
-#### `GET /render/{guid}`
+#### `GET /proxy/{guid}`
 - **Returns**: Raw image bytes
 - **Content-Type**: `image/png`, `image/bmp`, etc.
 - **Headers**: `Content-Disposition: inline; filename="{guid}.{format}"`
 
-#### `GET /render/{guid}/html`
+#### `GET /proxy/{guid}/html`
 - **Returns**: HTML page with embedded image
 - **Features**:
   - Responsive image display
@@ -131,8 +239,8 @@ All standard image formats are supported in proxy mode:
   "guid": "...",
   "format": "png",
   "message": "Image saved with GUID: ...",
-  "retrieve_url": "/render/{guid}",
-  "html_url": "/render/{guid}/html"
+  "retrieve_url": "/proxy/{guid}",
+  "html_url": "/proxy/{guid}/html"
 }
 ```
 
@@ -149,9 +257,9 @@ All standard image formats are supported in proxy mode:
     ↓
 [Extract GUID from response]
     ↓
-[HTTP Request: GET /render/{guid}]
+[HTTP Request: GET /proxy/{guid}]
   - Download raw image
-  - OR visit /render/{guid}/html in browser
+  - OR visit /proxy/{guid}/html in browser
 ```
 
 ### Code Node: Extract GUID
@@ -266,10 +374,10 @@ curl -X POST http://localhost:8000/render \
 # Response: {"guid": "...", "format": "png", ...}
 
 # Download image
-curl http://localhost:8000/render/{guid} -o chart.png
+curl http://localhost:8000/proxy/{guid} -o chart.png
 
-# View in browser
-xdg-open http://localhost:8000/render/{guid}/html
+# Open in browser
+xdg-open http://localhost:8000/proxy/{guid}/html
 ```
 
 ## Troubleshooting

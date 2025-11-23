@@ -209,7 +209,7 @@ All endpoints except `/ping` require authentication:
 ```
 POST /render          - Render graph and store
 POST /render/direct   - Render graph without storage
-GET  /image/{guid}    - Retrieve stored image
+GET  /proxy/{guid}    - Retrieve stored image
 ```
 
 **Unprotected Endpoints:**

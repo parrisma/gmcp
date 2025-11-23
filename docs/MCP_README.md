@@ -211,14 +211,14 @@ The REST API (port 8000) provides additional ways to access rendered images:
 - Returns: Base64 JSON or raw image bytes
 
 ### Get Image by GUID
-**GET** `/render/{guid}`
+**GET** `/proxy/{guid}`
 - Returns: Raw image bytes with appropriate Content-Type
-- Example: `http://localhost:8000/render/a1b2c3d4-e5f6-7890-1234-567890abcdef`
+- Example: `http://localhost:8000/proxy/a1b2c3d4-e5f6-7890-1234-567890abcdef`
 
 ### View Image in Browser
-**GET** `/render/{guid}/html`
+**GET** `/proxy/{guid}/html`
 - Returns: HTML page with embedded image
-- Example: `http://localhost:8000/render/a1b2c3d4-e5f6-7890-1234-567890abcdef/html`
+- Example: `http://localhost:8000/proxy/a1b2c3d4-e5f6-7890-1234-567890abcdef/html`
 - Useful for viewing images directly in a web browser
 
 ### Health Check

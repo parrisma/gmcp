@@ -130,6 +130,8 @@ start_mcp_server() {
         --port "${GPLOT_MCP_PORT}" \
         --jwt-secret "${GPLOT_JWT_SECRET}" \
         --token-store "${GPLOT_TOKEN_STORE}" \
+        --web-url "http://localhost:${GPLOT_WEB_PORT}" \
+        --proxy-url-mode url \
         > "${log_file}" 2>&1 &
     MCP_PID=$!
     echo "MCP PID: ${MCP_PID}"

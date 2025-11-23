@@ -77,6 +77,10 @@ security_auditor = SecurityAuditor()
 # Initialize auth service (will be configured when server starts)
 auth_service: AuthService | None = None
 
+# Web server URL for proxy mode (configurable via CLI)
+web_url_override: str | None = None
+proxy_url_mode: str = "url"  # "url" or "guid"
+
 
 def set_auth_service(service: AuthService | None) -> None:
     """
@@ -809,14 +813,32 @@ async def handle_call_tool(
         if is_proxy:
             # Proxy mode: base64_image is actually a GUID string
             guid = str(base64_image)
-            logger.info("Returning GUID response (proxy mode)", title=graph_data.title, guid=guid)
+            logger.info(
+                "Returning GUID response (proxy mode)",
+                title=graph_data.title,
+                guid=guid,
+                proxy_url_mode=proxy_url_mode,
+            )
+
+            # Build response based on proxy_url_mode
+            response_text = f"Image saved with GUID: {guid}\n\n"
+            response_text += f"Chart: {graph_data.type} - '{graph_data.title}'\n"
+            response_text += f"Format: {graph_data.format}\n\n"
+
+            if proxy_url_mode == "url":
+                # Construct full web server URL
+                web_base = web_url_override or os.getenv("GPLOT_WEB_URL", "http://localhost:8000")
+                download_url = f"{web_base}/proxy/{guid}"
+                response_text += f"Download URL: {download_url}\n"
+                response_text += f"(Or use get_image tool with guid='{guid}')"
+            else:
+                # GUID mode: only provide GUID
+                response_text += f"Use get_image tool with guid='{guid}' to retrieve the image."
+
             return [
                 TextContent(
                     type="text",
-                    text=f"Image saved with GUID: {guid}\n\n"
-                    f"Chart: {graph_data.type} - '{graph_data.title}'\n"
-                    f"Format: {graph_data.format}\n"
-                    f"Use get_image tool with guid='{guid}' to retrieve the image.",
+                    text=response_text,
                 ),
             ]
 

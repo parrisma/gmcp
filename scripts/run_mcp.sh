@@ -19,7 +19,8 @@ cd "${PROJECT_ROOT}"
 PORT="${GPLOT_MCP_PORT:-8001}"
 JWT_SECRET="${GPLOT_JWT_SECRET:-}"
 TOKEN_STORE="${GPLOT_TOKEN_STORE:-data/auth/tokens.json}"
-NO_AUTH="${GPLOT_NO_AUTH:-false}"
+NO_AUTH="${GPLOT_NO_AUTH:-true}"
+WEB_URL="${GPLOT_WEB_URL:-http://localhost:8000}"
 
 # Parse command-line arguments
 while [[ $# -gt 0 ]]; do
@@ -32,6 +33,10 @@ while [[ $# -gt 0 ]]; do
             JWT_SECRET="$2"
             shift 2
             ;;
+        --web-url)
+            WEB_URL="$2"
+            shift 2
+            ;;
         --token-store)
             TOKEN_STORE="$2"
             shift 2
@@ -39,6 +44,10 @@ while [[ $# -gt 0 ]]; do
         --no-auth)
             NO_AUTH="true"
             shift
+            ;;
+        --web-url)
+            WEB_URL="$2"
+            shift 2
             ;;
         -h|--help)
             echo "Usage: $0 [OPTIONS]"
@@ -76,7 +85,7 @@ if [[ "${NO_AUTH}" != "true" ]]; then
 fi
 
 # Build command
-CMD="uv run python app/main_mcp.py --host 0.0.0.0 --port ${PORT}"
+CMD="uv run python app/main_mcp.py --host 0.0.0.0 --port ${PORT} --web-url ${WEB_URL} --proxy-url-mode url"
 
 if [[ "${NO_AUTH}" == "true" ]]; then
     CMD="${CMD} --no-auth"

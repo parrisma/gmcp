@@ -30,7 +30,7 @@
 - **Tests**: extend `test/auth/test_authentication.py` with DI scenarios (mock services, multiple instances) and ensure old API paths stay functional.
 
 ## Phase 3 – Security Hardening & Coverage
-- Audit `/render/{guid}` + `/render/{guid}/html` (web) and MCP proxy retrieval to ensure group ownership enforcement using session metadata.
+- Audit `/proxy/{guid}` + `/proxy/{guid}/html` (web) and MCP proxy retrieval to ensure group ownership enforcement using session metadata.
 - If gaps exist, add explicit group checks (session metadata vs JWT claim) and consistent 403 responses.
 - Introduce `test/web/test_proxy_auth_security.py` style suite:
   - Cross-group access denied.

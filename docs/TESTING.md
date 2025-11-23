@@ -241,7 +241,7 @@ guid = create_resource(token=token1)
 
 # Try to access from group2 (should fail)
 token2 = auth_service.create_token(group="group2")
-response = await client.get(f"/image/{guid}", headers={"Authorization": f"Bearer {token2}"})
+response = await client.get(f"/proxy/{guid}", headers={"Authorization": f"Bearer {token2}"})
 assert response.status_code == 403  # Forbidden
 ```
 

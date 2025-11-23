@@ -31,7 +31,7 @@ echo
 
 # Step 2: Retrieve image via Web server
 echo "Step 2: Retrieving image via Web server..."
-HTTP_CODE=$(curl -s -o /tmp/test_graph.png -w "%{http_code}" "http://localhost:8000/render/$GUID")
+HTTP_CODE=$(curl -s -o /tmp/test_graph.png -w "%{http_code}" "http://localhost:8000/proxy/$GUID")
 
 if [ "$HTTP_CODE" = "200" ]; then
     FILE_SIZE=$(stat -f%z /tmp/test_graph.png 2>/dev/null || stat -c%s /tmp/test_graph.png)

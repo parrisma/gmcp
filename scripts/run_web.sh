@@ -19,7 +19,7 @@ cd "${PROJECT_ROOT}"
 PORT="${GPLOT_WEB_PORT:-8000}"
 JWT_SECRET="${GPLOT_JWT_SECRET:-}"
 TOKEN_STORE="${GPLOT_TOKEN_STORE:-data/auth/tokens.json}"
-NO_AUTH="${GPLOT_NO_AUTH:-false}"
+NO_AUTH="${GPLOT_NO_AUTH:-true}"
 
 # Parse command-line arguments
 while [[ $# -gt 0 ]]; do

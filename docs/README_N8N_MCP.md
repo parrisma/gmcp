@@ -75,8 +75,8 @@ Returns base64-encoded image data directly.
 
 Returns a GUID string. The image is saved to `/tmp/gplot_images/{guid}.png` on the server. You can retrieve it later using the `get_image` tool or access it via web endpoints:
 - MCP: `get_image` tool with the GUID
-- Web: `GET http://gplot_dev:8000/render/{guid}`
-- Browser: `GET http://gplot_dev:8000/render/{guid}/html`
+- Web: `GET http://gplot_dev:8000/proxy/{guid}`
+- Browser: `GET http://gplot_dev:8000/proxy/{guid}/html`
 
 **Proxy Mode Benefits:**
 - Reduces network bandwidth (only GUID transferred initially)

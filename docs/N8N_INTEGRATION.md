@@ -150,7 +150,7 @@ For workflows that need to save and retrieve charts:
 ```
 
 2. **Retrieve later using the GUID:**
-   - **URL**: `http://localhost:8000/image/{guid}`
+   - **URL**: `http://localhost:8000/proxy/{guid}`
    - **Method**: GET
    - **Header**: `Authorization: Bearer {token}`
 
