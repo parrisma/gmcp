@@ -452,9 +452,9 @@ For production deployments:
    python app/main_mcp.py --port 8001 &
    python -m app.main_mcpo --mcp-port 8001 --mcpo-port 8002 &
    
-   # MCP 2 + MCPO 2
-   python app/main_mcp.py --port 8011 &
-   python -m app.main_mcpo --mcp-port 8011 --mcpo-port 8012 &
+   # MCP 2 + MCPO 2 (use different port range to avoid conflicts)
+   python app/main_mcp.py --port 9001 &
+   python -m app.main_mcpo --mcp-port 9001 --mcpo-port 9002 &
    ```
 
 ## Related Documentation
