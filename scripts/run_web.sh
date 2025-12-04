@@ -1,5 +1,5 @@
 #!/bin/bash
-# gplot Web Server Startup Script
+# gofr-plot Web Server Startup Script
 # Starts the FastAPI web server with proper authentication and configuration.
 
 set -euo pipefail
@@ -16,15 +16,15 @@ PROJECT_ROOT="$(cd "${SCRIPT_DIR}/.." && pwd)"
 cd "${PROJECT_ROOT}"
 
 # Source centralized environment configuration
-if [ -f "${PROJECT_ROOT}/gplot.env" ]; then
-    source "${PROJECT_ROOT}/gplot.env"
+if [ -f "${PROJECT_ROOT}/gofr-plot.env" ]; then
+    source "${PROJECT_ROOT}/gofr-plot.env"
 fi
 
 # Configuration with environment variable fallbacks
-PORT="${GPLOT_WEB_PORT:-8012}"
-JWT_SECRET="${GPLOT_JWT_SECRET:-}"
-TOKEN_STORE="${GPLOT_TOKEN_STORE:-${GPLOT_LOGS}/gplot_tokens.json}"
-NO_AUTH="${GPLOT_NO_AUTH:-true}"
+PORT="${GOFR_PLOT_WEB_PORT:-8012}"
+JWT_SECRET="${GOFR_PLOT_JWT_SECRET:-}"
+TOKEN_STORE="${GOFR_PLOT_TOKEN_STORE:-${GOFR_PLOT_LOGS}/gofr-plot_tokens.json}"
+NO_AUTH="${GOFR_PLOT_NO_AUTH:-true}"
 
 # Parse command-line arguments
 while [[ $# -gt 0 ]]; do
@@ -56,10 +56,10 @@ while [[ $# -gt 0 ]]; do
             echo "  -h, --help            Show this help message"
             echo ""
             echo "Environment Variables:"
-            echo "  GPLOT_WEB_PORT        Default port (default: 8012)"
-            echo "  GPLOT_JWT_SECRET      Default JWT secret"
-            echo "  GPLOT_TOKEN_STORE     Default token store path"
-            echo "  GPLOT_NO_AUTH         Set to 'true' to disable auth"
+            echo "  GOFR_PLOT_WEB_PORT        Default port (default: 8012)"
+            echo "  GOFR_PLOT_JWT_SECRET      Default JWT secret"
+            echo "  GOFR_PLOT_TOKEN_STORE     Default token store path"
+            echo "  GOFR_PLOT_NO_AUTH         Set to 'true' to disable auth"
             exit 0
             ;;
         *)
@@ -74,7 +74,7 @@ done
 if [[ "${NO_AUTH}" != "true" ]]; then
     if [[ -z "${JWT_SECRET}" ]]; then
         echo -e "${RED}Error: JWT secret required when authentication is enabled${NC}"
-        echo "Provide via --jwt-secret or GPLOT_JWT_SECRET environment variable"
+        echo "Provide via --jwt-secret or GOFR_PLOT_JWT_SECRET environment variable"
         echo "Or use --no-auth to disable authentication"
         exit 1
     fi
@@ -93,7 +93,7 @@ else
 fi
 
 # Display startup information
-echo -e "${GREEN}=== Starting gplot Web Server ===${NC}"
+echo -e "${GREEN}=== Starting gofr-plot Web Server ===${NC}"
 echo "Port: ${PORT}"
 echo "URL: http://localhost:${PORT}"
 echo ""

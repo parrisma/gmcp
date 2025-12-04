@@ -31,7 +31,7 @@ class MCPServerHelper(ServerHelper):
 
     Example:
         import os
-        mcp_port = os.environ.get('GPLOT_MCP_PORT', '8010')
+        mcp_port = os.environ.get('GOFR_PLOT_MCP_PORT', '8010')
         mcp = MCPServerHelper(f"http://localhost:{mcp_port}", auth_token="...")
         response = mcp.create_chart("line", [1, 2, 3])
         assert response["success"]
@@ -41,7 +41,7 @@ class MCPServerHelper(ServerHelper):
         if base_url is None:
             import os
 
-            mcp_port = os.environ.get("GPLOT_MCP_PORT", "8010")
+            mcp_port = os.environ.get("GOFR_PLOT_MCP_PORT", "8010")
             base_url = f"http://localhost:{mcp_port}"
         super().__init__(base_url, auth_token)
 
@@ -126,7 +126,7 @@ class WebServerHelper(ServerHelper):
 
     Example:
         import os
-        web_port = os.environ.get('GPLOT_WEB_PORT', '8012')
+        web_port = os.environ.get('GOFR_PLOT_WEB_PORT', '8012')
         web = WebServerHelper(f"http://localhost:{web_port}", auth_token="...")
         response = web.render_chart("line", [1, 2, 3])
         assert response.status_code == 200
@@ -136,7 +136,7 @@ class WebServerHelper(ServerHelper):
         if base_url is None:
             import os
 
-            web_port = os.environ.get("GPLOT_WEB_PORT", "8012")
+            web_port = os.environ.get("GOFR_PLOT_WEB_PORT", "8012")
             base_url = f"http://localhost:{web_port}"
         super().__init__(base_url, auth_token)
 
@@ -225,7 +225,7 @@ def make_mcp_request(
     if base_url is None:
         import os
 
-        mcp_port = os.environ.get("GPLOT_MCP_PORT", "8010")
+        mcp_port = os.environ.get("GOFR_PLOT_MCP_PORT", "8010")
         base_url = f"http://localhost:{mcp_port}"
     helper = MCPServerHelper(base_url, auth_token)
     return helper.call_tool(tool_name, arguments)
@@ -253,7 +253,7 @@ def make_web_request(
     if base_url is None:
         import os
 
-        web_port = os.environ.get("GPLOT_WEB_PORT", "8012")
+        web_port = os.environ.get("GOFR_PLOT_WEB_PORT", "8012")
         base_url = f"http://localhost:{web_port}"
     helper = WebServerHelper(base_url, auth_token)
     url = f"{base_url}{endpoint}"

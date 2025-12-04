@@ -17,7 +17,7 @@ All authentication-related tests (19 failures) were failing with "Token not foun
 The `AuthService.verify_token()` method calls `_load_token_store()` on every verification, which should reload tokens from disk. However:
 
 1. Test fixtures created tokens by instantiating their own `AuthService` instances
-2. These fixtures wrote tokens to `/tmp/gplot_test_tokens.json`
+2. These fixtures wrote tokens to `/tmp/gofr-plot_test_tokens.json`
 3. Long-running server processes from days ago had loaded an empty token store
 4. The servers never saw the new tokens because they were the wrong processes entirely
 
@@ -51,7 +51,7 @@ stop_servers() {
 ```
 
 ### 2. Token Store Cleanup
-- Empty token store at test start: `echo "{}" > /tmp/gplot_test_tokens.json`
+- Empty token store at test start: `echo "{}" > /tmp/gofr-plot_test_tokens.json`
 - Empty token store after test completion
 - Ensures clean state for every test run
 

@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """JWT Token Management CLI
 
-Command-line utility to create, list, and revoke JWT tokens for gplot authentication.
+Command-line utility to create, list, and revoke JWT tokens for gofr-plot authentication.
 """
 
 import argparse
@@ -23,10 +23,10 @@ def create_token(args):
     logger = ConsoleLogger(name="token_manager", level=logging.INFO)
 
     # Validate JWT secret is provided
-    jwt_secret = args.secret or os.environ.get("GPLOT_JWT_SECRET")
+    jwt_secret = args.secret or os.environ.get("GOFR_PLOT_JWT_SECRET")
     if not jwt_secret:
         logger.error("FATAL: No JWT secret provided")
-        logger.error("Set GPLOT_JWT_SECRET environment variable or use --secret flag")
+        logger.error("Set GOFR_PLOT_JWT_SECRET environment variable or use --secret flag")
         return 1
 
     # Initialize auth service
@@ -79,10 +79,10 @@ def list_tokens(args):
     logger = ConsoleLogger(name="token_manager", level=logging.INFO)
 
     # Validate JWT secret is provided
-    jwt_secret = args.secret or os.environ.get("GPLOT_JWT_SECRET")
+    jwt_secret = args.secret or os.environ.get("GOFR_PLOT_JWT_SECRET")
     if not jwt_secret:
         logger.error("FATAL: No JWT secret provided")
-        logger.error("Set GPLOT_JWT_SECRET environment variable or use --secret flag")
+        logger.error("Set GOFR_PLOT_JWT_SECRET environment variable or use --secret flag")
         return 1
 
     # Initialize auth service
@@ -143,10 +143,10 @@ def revoke_token(args):
     logger = ConsoleLogger(name="token_manager", level=logging.INFO)
 
     # Validate JWT secret is provided
-    jwt_secret = args.secret or os.environ.get("GPLOT_JWT_SECRET")
+    jwt_secret = args.secret or os.environ.get("GOFR_PLOT_JWT_SECRET")
     if not jwt_secret:
         logger.error("FATAL: No JWT secret provided")
-        logger.error("Set GPLOT_JWT_SECRET environment variable or use --secret flag")
+        logger.error("Set GOFR_PLOT_JWT_SECRET environment variable or use --secret flag")
         return 1
 
     # Initialize auth service
@@ -173,10 +173,10 @@ def purge_tokens(args):
     """Remove all tokens from the store."""
     logger = ConsoleLogger(name="token_manager", level=logging.INFO)
 
-    jwt_secret = args.secret or os.environ.get("GPLOT_JWT_SECRET")
+    jwt_secret = args.secret or os.environ.get("GOFR_PLOT_JWT_SECRET")
     if not jwt_secret:
         logger.error("FATAL: No JWT secret provided")
-        logger.error("Set GPLOT_JWT_SECRET environment variable or use --secret flag")
+        logger.error("Set GOFR_PLOT_JWT_SECRET environment variable or use --secret flag")
         return 1
 
     auth_service = AuthService(
@@ -206,10 +206,10 @@ def verify_token(args):
     logger = ConsoleLogger(name="token_manager", level=logging.INFO)
 
     # Validate JWT secret is provided
-    jwt_secret = args.secret or os.environ.get("GPLOT_JWT_SECRET")
+    jwt_secret = args.secret or os.environ.get("GOFR_PLOT_JWT_SECRET")
     if not jwt_secret:
         logger.error("FATAL: No JWT secret provided")
-        logger.error("Set GPLOT_JWT_SECRET environment variable or use --secret flag")
+        logger.error("Set GOFR_PLOT_JWT_SECRET environment variable or use --secret flag")
         return 1
 
     # Initialize auth service
@@ -245,7 +245,7 @@ def verify_token(args):
 
 def main():
     parser = argparse.ArgumentParser(
-        description="gplot JWT Token Manager - Create and manage authentication tokens",
+        description="gofr-plot JWT Token Manager - Create and manage authentication tokens",
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog="""
 Examples:
@@ -265,18 +265,18 @@ Examples:
   python token_manager.py revoke --token eyJhbGc...
 
 Environment Variables:
-  GPLOT_JWT_SECRET    JWT secret key (can also use --secret option)
+  GOFR_PLOT_JWT_SECRET    JWT secret key (can also use --secret option)
         """,
     )
 
     parser.add_argument(
-        "--secret", type=str, help="JWT secret key (default: GPLOT_JWT_SECRET env var)"
+        "--secret", type=str, help="JWT secret key (default: GOFR_PLOT_JWT_SECRET env var)"
     )
     parser.add_argument(
         "--token-store",
         type=str,
         default=None,
-        help="Path to token store file (default: /tmp/gplot_tokens.json)",
+        help="Path to token store file (default: /tmp/gofr-plot_tokens.json)",
     )
 
     subparsers = parser.add_subparsers(dest="command", help="Command to execute")

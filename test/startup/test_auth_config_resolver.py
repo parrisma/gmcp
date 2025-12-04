@@ -21,8 +21,8 @@ class TestAuthConfigResolver:
     """Test authentication configuration resolution priority chain"""
 
     def test_cli_secret_takes_precedence_over_env(self, monkeypatch):
-        """CLI --jwt-secret argument takes precedence over GPLOT_JWT_SECRET"""
-        monkeypatch.setenv("GPLOT_JWT_SECRET", "env-secret")
+        """CLI --jwt-secret argument takes precedence over GOFR_PLOT_JWT_SECRET"""
+        monkeypatch.setenv("GOFR_PLOT_JWT_SECRET", "env-secret")
 
         secret, token_store, require_auth = resolve_auth_config(
             jwt_secret="cli-secret", require_auth=True
@@ -32,8 +32,8 @@ class TestAuthConfigResolver:
         assert require_auth is True
 
     def test_env_secret_used_when_no_cli_arg(self, monkeypatch):
-        """GPLOT_JWT_SECRET environment variable used when no CLI argument"""
-        monkeypatch.setenv("GPLOT_JWT_SECRET", "env-secret")
+        """GOFR_PLOT_JWT_SECRET environment variable used when no CLI argument"""
+        monkeypatch.setenv("GOFR_PLOT_JWT_SECRET", "env-secret")
 
         secret, token_store, require_auth = resolve_auth_config(require_auth=True)
 
@@ -42,8 +42,8 @@ class TestAuthConfigResolver:
 
     def test_auto_generated_secret_in_dev_mode(self, monkeypatch):
         """Auto-generate secret in development when no secret provided"""
-        monkeypatch.delenv("GPLOT_JWT_SECRET", raising=False)
-        monkeypatch.delenv("GPLOT_ENV", raising=False)
+        monkeypatch.delenv("GOFR_PLOT_JWT_SECRET", raising=False)
+        monkeypatch.delenv("GOFR_PLOT_ENV", raising=False)
 
         secret, token_store, require_auth = resolve_auth_config(
             require_auth=True, allow_auto_secret=True
@@ -55,24 +55,24 @@ class TestAuthConfigResolver:
 
     def test_auto_generation_fails_in_production(self, monkeypatch):
         """Auto-generation disabled in production environment"""
-        monkeypatch.delenv("GPLOT_JWT_SECRET", raising=False)
-        monkeypatch.setenv("GPLOT_ENV", "PROD")
+        monkeypatch.delenv("GOFR_PLOT_JWT_SECRET", raising=False)
+        monkeypatch.setenv("GOFR_PLOT_ENV", "PROD")
 
         with pytest.raises(ValueError, match="JWT secret required in production mode"):
             resolve_auth_config(require_auth=True, allow_auto_secret=True)
 
     def test_missing_secret_fails_when_auto_disabled(self, monkeypatch):
         """Missing secret fails when auto-generation disabled"""
-        monkeypatch.delenv("GPLOT_JWT_SECRET", raising=False)
-        monkeypatch.delenv("GPLOT_ENV", raising=False)
+        monkeypatch.delenv("GOFR_PLOT_JWT_SECRET", raising=False)
+        monkeypatch.delenv("GOFR_PLOT_ENV", raising=False)
 
         with pytest.raises(ValueError, match="JWT secret required"):
             resolve_auth_config(require_auth=True, allow_auto_secret=False)
 
     def test_cli_token_store_takes_precedence(self, monkeypatch):
-        """CLI --token-store argument takes precedence over GPLOT_TOKEN_STORE"""
-        monkeypatch.setenv("GPLOT_JWT_SECRET", "test-secret")
-        monkeypatch.setenv("GPLOT_TOKEN_STORE", "/env/path/tokens.json")
+        """CLI --token-store argument takes precedence over GOFR_PLOT_TOKEN_STORE"""
+        monkeypatch.setenv("GOFR_PLOT_JWT_SECRET", "test-secret")
+        monkeypatch.setenv("GOFR_PLOT_TOKEN_STORE", "/env/path/tokens.json")
 
         secret, token_store, require_auth = resolve_auth_config(
             token_store_path="/cli/path/tokens.json", require_auth=True
@@ -81,9 +81,9 @@ class TestAuthConfigResolver:
         assert str(token_store) == "/cli/path/tokens.json", "CLI path should override env var"
 
     def test_env_token_store_used_when_no_cli_arg(self, monkeypatch):
-        """GPLOT_TOKEN_STORE environment variable used when no CLI argument"""
-        monkeypatch.setenv("GPLOT_JWT_SECRET", "test-secret")
-        monkeypatch.setenv("GPLOT_TOKEN_STORE", "/env/path/tokens.json")
+        """GOFR_PLOT_TOKEN_STORE environment variable used when no CLI argument"""
+        monkeypatch.setenv("GOFR_PLOT_JWT_SECRET", "test-secret")
+        monkeypatch.setenv("GOFR_PLOT_TOKEN_STORE", "/env/path/tokens.json")
 
         secret, token_store, require_auth = resolve_auth_config(require_auth=True)
 
@@ -91,8 +91,8 @@ class TestAuthConfigResolver:
 
     def test_default_token_store_when_no_args_or_env(self, monkeypatch):
         """Default token store path used when no CLI arg or env var"""
-        monkeypatch.setenv("GPLOT_JWT_SECRET", "test-secret")
-        monkeypatch.delenv("GPLOT_TOKEN_STORE", raising=False)
+        monkeypatch.setenv("GOFR_PLOT_JWT_SECRET", "test-secret")
+        monkeypatch.delenv("GOFR_PLOT_TOKEN_STORE", raising=False)
 
         secret, token_store, require_auth = resolve_auth_config(require_auth=True)
 
@@ -101,7 +101,7 @@ class TestAuthConfigResolver:
 
     def test_no_auth_mode_returns_none(self, monkeypatch):
         """When auth disabled, returns None for secret and token store"""
-        monkeypatch.setenv("GPLOT_JWT_SECRET", "test-secret")
+        monkeypatch.setenv("GOFR_PLOT_JWT_SECRET", "test-secret")
 
         secret, token_store, require_auth = resolve_auth_config(require_auth=False)
 
@@ -111,7 +111,7 @@ class TestAuthConfigResolver:
 
     def test_no_auth_mode_ignores_missing_secret(self, monkeypatch):
         """When auth disabled, missing secret doesn't cause error"""
-        monkeypatch.delenv("GPLOT_JWT_SECRET", raising=False)
+        monkeypatch.delenv("GOFR_PLOT_JWT_SECRET", raising=False)
 
         secret, token_store, require_auth = resolve_auth_config(require_auth=False)
 
@@ -121,22 +121,22 @@ class TestAuthConfigResolver:
 
     def test_production_environment_detection(self, monkeypatch):
         """Test detection of production environment variants"""
-        monkeypatch.delenv("GPLOT_JWT_SECRET", raising=False)
+        monkeypatch.delenv("GOFR_PLOT_JWT_SECRET", raising=False)
 
         # Test "PRODUCTION" variant
-        monkeypatch.setenv("GPLOT_ENV", "PRODUCTION")
+        monkeypatch.setenv("GOFR_PLOT_ENV", "PRODUCTION")
         with pytest.raises(ValueError, match="production"):
             resolve_auth_config(require_auth=True, allow_auto_secret=True)
 
         # Test "prod" variant (lowercase)
-        monkeypatch.setenv("GPLOT_ENV", "prod")
+        monkeypatch.setenv("GOFR_PLOT_ENV", "prod")
         with pytest.raises(ValueError, match="production"):
             resolve_auth_config(require_auth=True, allow_auto_secret=True)
 
     def test_all_parameters_provided(self, monkeypatch):
         """Test when all parameters provided via CLI"""
-        monkeypatch.delenv("GPLOT_JWT_SECRET", raising=False)
-        monkeypatch.delenv("GPLOT_TOKEN_STORE", raising=False)
+        monkeypatch.delenv("GOFR_PLOT_JWT_SECRET", raising=False)
+        monkeypatch.delenv("GOFR_PLOT_TOKEN_STORE", raising=False)
 
         secret, token_store, require_auth = resolve_auth_config(
             jwt_secret="cli-secret", token_store_path="/cli/path/tokens.json", require_auth=True

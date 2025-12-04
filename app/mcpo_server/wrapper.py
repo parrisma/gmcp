@@ -1,4 +1,4 @@
-"""MCPO wrapper implementation for gplot MCP server
+"""MCPO wrapper implementation for gofr-plot MCP server
 
 Provides both authenticated and non-authenticated MCPO proxy modes.
 """
@@ -85,7 +85,7 @@ class MCPOWrapper:
         # Print detailed startup banner
         banner = f"""
 {'='*80}
-  gplot MCPO Wrapper - Starting
+  gofr-plot MCPO Wrapper - Starting
 {'='*80}
   Mode:             {mode.upper()}
   MCPO Port:        {self.mcpo_port}
@@ -99,8 +99,8 @@ class MCPOWrapper:
     - Tools List:    http://localhost:{self.mcpo_port}/tools/list
   
   Container Network (from openwebui):
-    - gplot_dev:     http://gplot_dev:{self.mcpo_port}
-    - gplot_prod:    http://gplot_prod:{self.mcpo_port}
+    - gofr-plot_dev:     http://gofr-plot_dev:{self.mcpo_port}
+    - gofr-plot_prod:    http://gofr-plot_prod:{self.mcpo_port}
   
   Command: {' '.join(cmd)}
 {'='*80}
@@ -173,7 +173,7 @@ def start_mcpo_wrapper(
     use_auth: bool = False,
 ) -> MCPOWrapper:
     """
-    Start MCPO wrapper for gplot MCP server
+    Start MCPO wrapper for gofr-plot MCP server
 
     Args:
         mcp_host: Host where MCP server is running (default: localhost)
@@ -187,20 +187,20 @@ def start_mcpo_wrapper(
         MCPOWrapper instance
 
     Environment Variables:
-        GPLOT_MCPO_API_KEY: API key for MCPO authentication (if not set, no API key required)
-        GPLOT_JWT_TOKEN: JWT token for MCP server authentication
-        GPLOT_MCPO_MODE: 'auth' or 'public' (overrides use_auth parameter)
+        GOFR_PLOT_MCPO_API_KEY: API key for MCPO authentication (if not set, no API key required)
+        GOFR_PLOT_JWT_TOKEN: JWT token for MCP server authentication
+        GOFR_PLOT_MCPO_MODE: 'auth' or 'public' (overrides use_auth parameter)
     """
     # Resolve API key from environment if not explicitly provided
     if mcpo_api_key is None:
-        mcpo_api_key = os.environ.get("GPLOT_MCPO_API_KEY")
+        mcpo_api_key = os.environ.get("GOFR_PLOT_MCPO_API_KEY")
 
     # Resolve auth token
     if auth_token is None:
-        auth_token = os.environ.get("GPLOT_JWT_TOKEN")
+        auth_token = os.environ.get("GOFR_PLOT_JWT_TOKEN")
 
     # Resolve auth mode from environment
-    mode = os.environ.get("GPLOT_MCPO_MODE", "").lower()
+    mode = os.environ.get("GOFR_PLOT_MCPO_MODE", "").lower()
     if mode == "auth":
         use_auth = True
     elif mode == "public":

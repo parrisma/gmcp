@@ -1,6 +1,6 @@
 # Documentation Index
 
-Complete documentation for the gplot graph rendering service.
+Complete documentation for the gofr-plot graph rendering service.
 
 ## Quick Start
 
@@ -114,7 +114,7 @@ python app/main_web.py --port 8000
 python app/main_mcp.py --port 8001
 
 # With Docker
-docker-compose up gplot_dev
+docker-compose up gofr-plot_dev
 ```
 
 **Create Token:**

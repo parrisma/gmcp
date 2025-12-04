@@ -2,7 +2,7 @@
 
 Implements priority chain for JWT secret and token store configuration:
 1. CLI arguments (--jwt-secret, --token-store)
-2. Environment variables (GPLOT_JWT_SECRET, GPLOT_TOKEN_STORE)
+2. Environment variables (GOFR_PLOT_JWT_SECRET, GOFR_PLOT_TOKEN_STORE)
 3. Auto-generated dev secret (dev only, not production)
 4. Defaults via Config.get_token_store_path()
 """
@@ -25,7 +25,7 @@ def resolve_auth_config(
 
     Priority chain:
         1. CLI arguments (jwt_secret, token_store_path params)
-        2. Environment variables (GPLOT_JWT_SECRET, GPLOT_TOKEN_STORE)
+        2. Environment variables (GOFR_PLOT_JWT_SECRET, GOFR_PLOT_TOKEN_STORE)
         3. Auto-generated secret (only if allow_auto_secret=True and not production)
         4. Default token store path from Config
 
@@ -62,17 +62,17 @@ def resolve_auth_config(
         secret_source = "CLI argument"
 
     # Priority 2: Environment variable
-    elif os.environ.get("GPLOT_JWT_SECRET"):
-        resolved_secret = os.environ["GPLOT_JWT_SECRET"]
-        secret_source = "GPLOT_JWT_SECRET environment variable"
+    elif os.environ.get("GOFR_PLOT_JWT_SECRET"):
+        resolved_secret = os.environ["GOFR_PLOT_JWT_SECRET"]
+        secret_source = "GOFR_PLOT_JWT_SECRET environment variable"
 
     # Priority 3: Auto-generated (only in development)
     elif allow_auto_secret:
-        is_production = os.environ.get("GPLOT_ENV", "").upper() in ("PROD", "PRODUCTION")
+        is_production = os.environ.get("GOFR_PLOT_ENV", "").upper() in ("PROD", "PRODUCTION")
         if is_production:
             logger.error(
                 "FATAL: No JWT secret provided in production environment",
-                help="Set GPLOT_JWT_SECRET environment variable or use --jwt-secret flag",
+                help="Set GOFR_PLOT_JWT_SECRET environment variable or use --jwt-secret flag",
             )
             raise ValueError("JWT secret required in production mode")
         else:
@@ -80,7 +80,7 @@ def resolve_auth_config(
             secret_source = "auto-generated (DEVELOPMENT ONLY)"
             logger.warning(
                 "Auto-generated JWT secret - not suitable for production. Tokens will be invalidated on server restart",
-                help="Set GPLOT_JWT_SECRET for persistent authentication",
+                help="Set GOFR_PLOT_JWT_SECRET for persistent authentication",
             )
 
     # If still no secret and auth required, fail
@@ -89,7 +89,7 @@ def resolve_auth_config(
             "FATAL: JWT secret required but not provided",
             require_auth=require_auth,
             allow_auto_secret=allow_auto_secret,
-            help="Set GPLOT_JWT_SECRET environment variable or use --jwt-secret flag, or use --no-auth to disable authentication",
+            help="Set GOFR_PLOT_JWT_SECRET environment variable or use --jwt-secret flag, or use --no-auth to disable authentication",
         )
         raise ValueError("JWT secret required when authentication is enabled")
 
@@ -103,9 +103,9 @@ def resolve_auth_config(
         store_source = "CLI argument"
 
     # Priority 2: Environment variable
-    elif os.environ.get("GPLOT_TOKEN_STORE"):
-        resolved_token_store = Path(os.environ["GPLOT_TOKEN_STORE"])
-        store_source = "GPLOT_TOKEN_STORE environment variable"
+    elif os.environ.get("GOFR_PLOT_TOKEN_STORE"):
+        resolved_token_store = Path(os.environ["GOFR_PLOT_TOKEN_STORE"])
+        store_source = "GOFR_PLOT_TOKEN_STORE environment variable"
 
     # Priority 3: Default from Config
     else:

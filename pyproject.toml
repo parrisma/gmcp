@@ -1,5 +1,5 @@
 [project]
-name = "gplot"
+name = "gofr-plot"
 version = "1.0.0"
 description = "Graph rendering service with MCP server support"
 readme = "README.md"

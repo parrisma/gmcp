@@ -1,5 +1,5 @@
 #!/bin/bash
-# gplot MCPO Flexible Wrapper
+# gofr-plot MCPO Flexible Wrapper
 # Supports both authentication modes with environment variables and CLI arguments.
 # Can start MCPO in public mode (JWT passthrough) or with MCPO API key.
 
@@ -18,16 +18,16 @@ PROJECT_ROOT="$(cd "${SCRIPT_DIR}/.." && pwd)"
 cd "${PROJECT_ROOT}"
 
 # Source centralized environment configuration
-if [ -f "${PROJECT_ROOT}/gplot.env" ]; then
-    source "${PROJECT_ROOT}/gplot.env"
+if [ -f "${PROJECT_ROOT}/gofr-plot.env" ]; then
+    source "${PROJECT_ROOT}/gofr-plot.env"
 fi
 
 # Default configuration
-MODE="${GPLOT_MCPO_MODE:-public}"
-MCPO_PORT="${GPLOT_MCPO_PORT:-8011}"
-MCP_PORT="${GPLOT_MCP_PORT:-8010}"
-MCPO_API_KEY="${GPLOT_MCPO_API_KEY:-changeme}"
-JWT_TOKEN="${GPLOT_JWT_TOKEN:-}"
+MODE="${GOFR_PLOT_MCPO_MODE:-public}"
+MCPO_PORT="${GOFR_PLOT_MCPO_PORT:-8011}"
+MCP_PORT="${GOFR_PLOT_MCP_PORT:-8010}"
+MCPO_API_KEY="${GOFR_PLOT_MCPO_API_KEY:-changeme}"
+JWT_TOKEN="${GOFR_PLOT_JWT_TOKEN:-}"
 
 # Parse command-line arguments
 while [[ $# -gt 0 ]]; do
@@ -66,11 +66,11 @@ while [[ $# -gt 0 ]]; do
             echo "  -h, --help            Show this help message"
             echo ""
             echo "Environment Variables:"
-            echo "  GPLOT_MCPO_MODE       Authentication mode (default: public)"
-            echo "  GPLOT_MCP_PORT        MCP server port (default: 8010)"
-            echo "  GPLOT_MCPO_PORT       MCPO proxy port (default: 8011)"
-            echo "  GPLOT_MCPO_API_KEY    MCPO API key (default: changeme)"
-            echo "  GPLOT_JWT_TOKEN       JWT token for MCP auth"
+            echo "  GOFR_PLOT_MCPO_MODE       Authentication mode (default: public)"
+            echo "  GOFR_PLOT_MCP_PORT        MCP server port (default: 8010)"
+            echo "  GOFR_PLOT_MCPO_PORT       MCPO proxy port (default: 8011)"
+            echo "  GOFR_PLOT_MCPO_API_KEY    MCPO API key (default: changeme)"
+            echo "  GOFR_PLOT_JWT_TOKEN       JWT token for MCP auth"
             echo ""
             echo "Modes:"
             echo "  public - JWT tokens pass through to MCP (group-based security)"
@@ -87,8 +87,8 @@ while [[ $# -gt 0 ]]; do
             echo "  bash scripts/mcpo_wrapper.sh --mcp-port 8001 --mcpo-port 8002"
             echo ""
             echo "  # Using environment variables"
-            echo "  export GPLOT_MCPO_MODE=auth"
-            echo "  export GPLOT_JWT_TOKEN=\"your-token\""
+            echo "  export GOFR_PLOT_MCPO_MODE=auth"
+            echo "  export GOFR_PLOT_JWT_TOKEN=\"your-token\""
             echo "  bash scripts/mcpo_wrapper.sh"
             exit 0
             ;;
@@ -109,12 +109,12 @@ fi
 # Validate auth mode requirements
 if [[ "${MODE}" == "auth" && -z "${JWT_TOKEN}" ]]; then
     echo -e "${RED}Error: JWT token required for auth mode${NC}"
-    echo "Provide via --jwt-token or GPLOT_JWT_TOKEN environment variable"
+    echo "Provide via --jwt-token or GOFR_PLOT_JWT_TOKEN environment variable"
     exit 1
 fi
 
 # Display startup information
-echo -e "${BLUE}=== Starting gplot MCPO Wrapper ===${NC}"
+echo -e "${BLUE}=== Starting gofr-plot MCPO Wrapper ===${NC}"
 echo "Mode:         ${MODE}"
 echo "MCPO Port:    ${MCPO_PORT}"
 echo "MCP Port:     ${MCP_PORT}"

@@ -2,7 +2,7 @@
 
 ## Overview
 
-This document describes the security architecture, threat model, and hardening procedures for the gplot graph rendering service.
+This document describes the security architecture, threat model, and hardening procedures for the gofr-plot graph rendering service.
 
 ## Table of Contents
 
@@ -180,7 +180,7 @@ except SanitizationError as e:
 ```python
 from app.security import SecurityAuditor, SecurityLevel
 
-auditor = SecurityAuditor(log_file="/var/log/gplot/security.log")
+auditor = SecurityAuditor(log_file="/var/log/gofr-plot/security.log")
 
 # Log authentication failure
 auditor.log_auth_failure(

@@ -1,5 +1,5 @@
 #!/bin/bash
-# gplot Test Runner
+# gofr-plot Test Runner
 # Mirrors doco workflow: consistent auth config, cleanup, optional server start, pytest execution.
 
 set -euo pipefail
@@ -17,34 +17,34 @@ PROJECT_ROOT="$(cd "${SCRIPT_DIR}/.." && pwd)"
 cd "${PROJECT_ROOT}"
 
 # Source centralized environment configuration in TEST mode
-export GPLOT_ENV="TEST"
-if [ -f "${PROJECT_ROOT}/gplot.env" ]; then
-    source "${PROJECT_ROOT}/gplot.env"
+export GOFR_PLOT_ENV="TEST"
+if [ -f "${PROJECT_ROOT}/gofr-plot.env" ]; then
+    source "${PROJECT_ROOT}/gofr-plot.env"
 fi
 
 # Shared authentication configuration
-export GPLOT_JWT_SECRET="test-secret-key-for-secure-testing-do-not-use-in-production"
-export GPLOT_TOKEN_STORE="${GPLOT_TOKEN_STORE:-${GPLOT_LOGS}/gplot_tokens_test.json}"
-export GPLOT_MCP_PORT="${GPLOT_MCP_PORT:-8010}"
-export GPLOT_WEB_PORT="${GPLOT_WEB_PORT:-8012}"
-export GPLOT_MCPO_PORT="${GPLOT_MCPO_PORT:-8011}"
+export GOFR_PLOT_JWT_SECRET="test-secret-key-for-secure-testing-do-not-use-in-production"
+export GOFR_PLOT_TOKEN_STORE="${GOFR_PLOT_TOKEN_STORE:-${GOFR_PLOT_LOGS}/gofr-plot_tokens_test.json}"
+export GOFR_PLOT_MCP_PORT="${GOFR_PLOT_MCP_PORT:-8010}"
+export GOFR_PLOT_WEB_PORT="${GOFR_PLOT_WEB_PORT:-8012}"
+export GOFR_PLOT_MCPO_PORT="${GOFR_PLOT_MCPO_PORT:-8011}"
 
-# Use centralized paths from gplot.env or fallback
-TEST_DATA_ROOT="${GPLOT_DATA:-test/data}"
-STORAGE_DIR="${GPLOT_STORAGE:-${TEST_DATA_ROOT}/storage}"
-AUTH_DIR="${GPLOT_AUTH:-${TEST_DATA_ROOT}/auth}"
-# Directories are auto-created by gplot.env, but ensure they exist
+# Use centralized paths from gofr-plot.env or fallback
+TEST_DATA_ROOT="${GOFR_PLOT_DATA:-test/data}"
+STORAGE_DIR="${GOFR_PLOT_STORAGE:-${TEST_DATA_ROOT}/storage}"
+AUTH_DIR="${GOFR_PLOT_AUTH:-${TEST_DATA_ROOT}/auth}"
+# Directories are auto-created by gofr-plot.env, but ensure they exist
 mkdir -p "${STORAGE_DIR}" "${AUTH_DIR}"
 
 print_header() {
-    echo -e "${GREEN}=== GPLOT Test Runner ===${NC}"
+    echo -e "${GREEN}=== GOFR_PLOT Test Runner ===${NC}"
     echo "Project root: ${PROJECT_ROOT}"
-    echo "Environment: ${GPLOT_ENV:-NONE}"
-    echo "JWT Secret: ${GPLOT_JWT_SECRET:0:20}..."
-    echo "Token store: ${GPLOT_TOKEN_STORE}"
-    echo "MCP Port: ${GPLOT_MCP_PORT}"
-    echo "Web Port: ${GPLOT_WEB_PORT}"
-    echo "MCPO Port: ${GPLOT_MCPO_PORT}"
+    echo "Environment: ${GOFR_PLOT_ENV:-NONE}"
+    echo "JWT Secret: ${GOFR_PLOT_JWT_SECRET:0:20}..."
+    echo "Token store: ${GOFR_PLOT_TOKEN_STORE}"
+    echo "MCP Port: ${GOFR_PLOT_MCP_PORT}"
+    echo "Web Port: ${GOFR_PLOT_WEB_PORT}"
+    echo "MCPO Port: ${GOFR_PLOT_MCPO_PORT}"
     echo "Storage Dir: ${STORAGE_DIR}"
     echo "Auth Dir: ${AUTH_DIR}"
     echo
@@ -115,30 +115,30 @@ cleanup_environment() {
     echo -e "${YELLOW}Purging token store and transient data...${NC}"
     
     # Empty token store (create empty JSON object)
-    echo "{}" > "${GPLOT_TOKEN_STORE}" 2>/dev/null || true
-    echo "Token store emptied: ${GPLOT_TOKEN_STORE}"
+    echo "{}" > "${GOFR_PLOT_TOKEN_STORE}" 2>/dev/null || true
+    echo "Token store emptied: ${GOFR_PLOT_TOKEN_STORE}"
     
     # Clean up other transient data
     rm -f data/sessions/*.json 2>/dev/null || true
-    python scripts/storage_manager.py purge --age-days=0 --yes 2>/dev/null || \
+    uv run python scripts/storage_manager.py purge --age-days=0 --yes 2>/dev/null || \
         echo "  (storage purge skipped - no existing data)"
     echo -e "${GREEN}Cleanup complete${NC}\n"
 }
 
 start_mcp_server() {
-    local log_file="${PROJECT_ROOT}/logs/gplot_mcp_test.log"
-    echo -e "${YELLOW}Starting MCP server on port ${GPLOT_MCP_PORT}...${NC}"
+    local log_file="${PROJECT_ROOT}/logs/gofr-plot_mcp_test.log"
+    echo -e "${YELLOW}Starting MCP server on port ${GOFR_PLOT_MCP_PORT}...${NC}"
     
-    free_port "${GPLOT_MCP_PORT}"
+    free_port "${GOFR_PLOT_MCP_PORT}"
     
     # Remove stale log file
     rm -f "${log_file}"
 
-    nohup python app/main_mcp.py \
-        --port "${GPLOT_MCP_PORT}" \
-        --jwt-secret "${GPLOT_JWT_SECRET}" \
-        --token-store "${GPLOT_TOKEN_STORE}" \
-        --web-url "http://localhost:${GPLOT_WEB_PORT}" \
+    nohup uv run python app/main_mcp.py \
+        --port "${GOFR_PLOT_MCP_PORT}" \
+        --jwt-secret "${GOFR_PLOT_JWT_SECRET}" \
+        --token-store "${GOFR_PLOT_TOKEN_STORE}" \
+        --web-url "http://localhost:${GOFR_PLOT_WEB_PORT}" \
         --proxy-url-mode url \
         > "${log_file}" 2>&1 &
     MCP_PID=$!
@@ -151,7 +151,7 @@ start_mcp_server() {
             tail -20 "${log_file}"
             return 1
         fi
-        if port_in_use "${GPLOT_MCP_PORT}"; then
+        if port_in_use "${GOFR_PLOT_MCP_PORT}"; then
             echo -e " ${GREEN}✓${NC}"
             return 0
         fi
@@ -164,18 +164,18 @@ start_mcp_server() {
 }
 
 start_web_server() {
-    local log_file="${PROJECT_ROOT}/logs/gplot_web_test.log"
-    echo -e "${YELLOW}Starting Web server on port ${GPLOT_WEB_PORT}...${NC}"
+    local log_file="${PROJECT_ROOT}/logs/gofr-plot_web_test.log"
+    echo -e "${YELLOW}Starting Web server on port ${GOFR_PLOT_WEB_PORT}...${NC}"
     
-    free_port "${GPLOT_WEB_PORT}"
+    free_port "${GOFR_PLOT_WEB_PORT}"
     
     # Remove stale log file
     rm -f "${log_file}"
 
-    nohup python app/main_web.py \
-        --port "${GPLOT_WEB_PORT}" \
-        --jwt-secret "${GPLOT_JWT_SECRET}" \
-        --token-store "${GPLOT_TOKEN_STORE}" \
+    nohup uv run python app/main_web.py \
+        --port "${GOFR_PLOT_WEB_PORT}" \
+        --jwt-secret "${GOFR_PLOT_JWT_SECRET}" \
+        --token-store "${GOFR_PLOT_TOKEN_STORE}" \
         > "${log_file}" 2>&1 &
     WEB_PID=$!
     echo "Web PID: ${WEB_PID}"
@@ -187,7 +187,7 @@ start_web_server() {
             tail -20 "${log_file}"
             return 1
         fi
-        if port_in_use "${GPLOT_WEB_PORT}"; then
+        if port_in_use "${GOFR_PLOT_WEB_PORT}"; then
             echo -e " ${GREEN}✓${NC}"
             return 0
         fi
@@ -200,10 +200,10 @@ start_web_server() {
 }
 
 start_mcpo_server() {
-    local log_file="${PROJECT_ROOT}/logs/gplot_mcpo_test.log"
-    echo -e "${YELLOW}Starting MCPO wrapper on port ${GPLOT_MCPO_PORT}...${NC}"
+    local log_file="${PROJECT_ROOT}/logs/gofr-plot_mcpo_test.log"
+    echo -e "${YELLOW}Starting MCPO wrapper on port ${GOFR_PLOT_MCPO_PORT}...${NC}"
     
-    free_port "${GPLOT_MCPO_PORT}"
+    free_port "${GOFR_PLOT_MCPO_PORT}"
     
     # Remove stale log file
     rm -f "${log_file}"
@@ -211,7 +211,7 @@ start_mcpo_server() {
     # Wait for MCP server to be available first
     echo -n "Checking MCP server availability"
     for i in {1..30}; do
-        HTTP_CODE=$(curl -s -o /dev/null -w "%{http_code}" "http://localhost:${GPLOT_MCP_PORT}/" 2>/dev/null || echo "000")
+        HTTP_CODE=$(curl -s -o /dev/null -w "%{http_code}" "http://localhost:${GOFR_PLOT_MCP_PORT}/" 2>/dev/null || echo "000")
         if [[ "${HTTP_CODE}" =~ ^(200|404|405)$ ]]; then
             echo -e " ${GREEN}✓${NC}"
             break
@@ -227,9 +227,9 @@ start_mcpo_server() {
 
     # Start MCPO wrapper (no API key for test mode - JWT passthrough)
     uv tool run mcpo \
-        --port "${GPLOT_MCPO_PORT}" \
+        --port "${GOFR_PLOT_MCPO_PORT}" \
         --server-type "streamable-http" \
-        -- "http://localhost:${GPLOT_MCP_PORT}/mcp" \
+        -- "http://localhost:${GOFR_PLOT_MCP_PORT}/mcp" \
         > "${log_file}" 2>&1 &
     MCPO_PID=$!
     echo "MCPO PID: ${MCPO_PID}"
@@ -241,9 +241,9 @@ start_mcpo_server() {
             tail -20 "${log_file}"
             return 1
         fi
-        if port_in_use "${GPLOT_MCPO_PORT}"; then
+        if port_in_use "${GOFR_PLOT_MCPO_PORT}"; then
             # Additional check: verify health endpoint responds
-            if curl -s "http://localhost:${GPLOT_MCPO_PORT}/health" >/dev/null 2>&1; then
+            if curl -s "http://localhost:${GOFR_PLOT_MCPO_PORT}/health" >/dev/null 2>&1; then
                 echo -e " ${GREEN}✓${NC}"
                 return 0
             fi
@@ -258,8 +258,8 @@ start_mcpo_server() {
 
 print_header
 
-START_SERVERS=false
-START_MCPO=false
+START_SERVERS=true
+START_MCPO=true
 STOP_ONLY=false
 CLEANUP_ONLY=false
 PYTEST_ARGS=()
@@ -310,19 +310,19 @@ fi
 cleanup_environment
 
 # Seed default admin token if requested tokens file missing
-if [ ! -f "${GPLOT_TOKEN_STORE}" ]; then
+if [ ! -f "${GOFR_PLOT_TOKEN_STORE}" ]; then
     echo -e "${BLUE}Seeding bootstrap token store...${NC}"
-    cat <<'JSON' > "${GPLOT_TOKEN_STORE}"
+    cat <<'JSON' > "${GOFR_PLOT_TOKEN_STORE}"
 {}
 JSON
 fi
 
 create_bootstrap_token() {
-    python - <<'PY'
+    uv run python - <<'PY'
 import os
 from app.auth import AuthService
-secret = os.environ["GPLOT_JWT_SECRET"]
-store = os.environ["GPLOT_TOKEN_STORE"]
+secret = os.environ["GOFR_PLOT_JWT_SECRET"]
+store = os.environ["GOFR_PLOT_TOKEN_STORE"]
 svc = AuthService(secret_key=secret, token_store_path=store)
 token = svc.create_token(group="secure", expires_in_seconds=3600)
 print(token)
@@ -343,9 +343,9 @@ fi
 echo -e "${GREEN}=== Running Tests ===${NC}"
 set +e
 if [ ${#PYTEST_ARGS[@]} -eq 0 ]; then
-    python -m pytest test/ -v
+    uv run python -m pytest test/ -v
 else
-    python -m pytest "${PYTEST_ARGS[@]}"
+    uv run python -m pytest "${PYTEST_ARGS[@]}"
 fi
 TEST_EXIT_CODE=$?
 set -e
@@ -366,7 +366,7 @@ fi
 
 # Clean up token store after tests
 echo -e "${YELLOW}Cleaning up token store...${NC}"
-echo "{}" > "${GPLOT_TOKEN_STORE}" 2>/dev/null || true
+echo "{}" > "${GOFR_PLOT_TOKEN_STORE}" 2>/dev/null || true
 echo "Token store emptied"
 
 echo
@@ -375,10 +375,10 @@ if [ $TEST_EXIT_CODE -eq 0 ]; then
 else
     echo -e "${RED}=== Tests Failed (exit code: ${TEST_EXIT_CODE}) ===${NC}"
     echo "Server logs:"
-    echo "  MCP: ${PROJECT_ROOT}/logs/gplot_mcp_test.log"
-    echo "  Web: ${PROJECT_ROOT}/logs/gplot_web_test.log"
+    echo "  MCP: ${PROJECT_ROOT}/logs/gofr-plot_mcp_test.log"
+    echo "  Web: ${PROJECT_ROOT}/logs/gofr-plot_web_test.log"
     if [ "$START_MCPO" = true ]; then
-        echo "  MCPO: ${PROJECT_ROOT}/logs/gplot_mcpo_test.log"
+        echo "  MCPO: ${PROJECT_ROOT}/logs/gofr-plot_mcpo_test.log"
     fi
 fi
 

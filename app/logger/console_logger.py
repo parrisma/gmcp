@@ -12,7 +12,7 @@ class ConsoleLogger(Logger):
 
     def __init__(
         self,
-        name: str = "gplot",
+        name: str = "gofr-plot",
         level: int = python_logging.INFO,
         format_string: str = "%(asctime)s [%(levelname)s] [session:%(session_id)s] %(message)s",
     ):

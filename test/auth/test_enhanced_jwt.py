@@ -34,7 +34,7 @@ def test_create_token_with_enhanced_claims(auth_service):
     assert "iat" in payload  # Issued at
     assert "exp" in payload  # Expires at
     assert "nbf" in payload  # Not before
-    assert payload["aud"] == "gplot-api"  # Audience
+    assert payload["aud"] == "gofr-plot-api"  # Audience
     assert payload["jti"] == "unique-token-id-456"  # JWT ID
     assert payload["fp"] == "test-fingerprint-123"  # Fingerprint
 
@@ -49,7 +49,7 @@ def test_create_token_without_optional_claims(auth_service):
     assert "iat" in payload
     assert "exp" in payload
     assert "nbf" in payload
-    assert payload["aud"] == "gplot-api"
+    assert payload["aud"] == "gofr-plot-api"
     assert "jti" not in payload  # Optional
     assert "fp" not in payload  # Optional
 
@@ -167,7 +167,7 @@ def test_verify_token_respects_not_before(auth_service):
         "iat": int(now.timestamp()),
         "nbf": int(future.timestamp()),  # Not valid until 1 hour from now
         "exp": int(way_future.timestamp()),
-        "aud": "gplot-api",
+        "aud": "gofr-plot-api",
     }
     future_token = jwt.encode(payload, auth_service.secret_key, algorithm="HS256")
 

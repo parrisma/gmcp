@@ -3,7 +3,7 @@
   "nodes": [
     {
       "parameters": {
-        "endpointUrl": "http://gplot_dev:8001/mcp/",
+        "endpointUrl": "http://gofr-plot_dev:8001/mcp/",
         "authentication": "bearerAuth",
         "options": {}
       },

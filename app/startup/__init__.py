@@ -1,4 +1,4 @@
-"""Startup utilities for gplot servers
+"""Startup utilities for gofr-plot servers
 
 Provides centralized configuration resolution and initialization logic.
 """

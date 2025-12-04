@@ -48,8 +48,8 @@ def test_token():
     from app.auth import AuthService
     import os
 
-    secret = os.environ.get("GPLOT_JWT_SECRET", "test-secret-key")
-    store = os.environ.get("GPLOT_TOKEN_STORE", "/tmp/gplot_test_tokens.json")
+    secret = os.environ.get("GOFR_PLOT_JWT_SECRET", "test-secret-key")
+    store = os.environ.get("GOFR_PLOT_TOKEN_STORE", "/tmp/gofr-plot_test_tokens.json")
 
     svc = AuthService(secret_key=secret, token_store_path=store)
     token = svc.create_token(group="test_group", expires_in_seconds=3600)
@@ -74,7 +74,7 @@ class TestMCPOAvailability:
 
         assert "openapi" in spec
         assert "info" in spec
-        assert spec["info"]["title"] == "gplot"
+        assert spec["info"]["title"] == "gofr-plot"
         assert "paths" in spec
         logger.info("OpenAPI spec valid")
 
@@ -105,7 +105,7 @@ class TestMCPOToolInvocation:
         # MCPO returns plain string
         data = response.json()
         assert isinstance(data, str)
-        assert "Server is running" in data or "gplot" in data.lower()
+        assert "Server is running" in data or "gofr-plot" in data.lower()
         logger.info("Ping successful")
 
     def test_list_themes_via_mcpo(self, logger):

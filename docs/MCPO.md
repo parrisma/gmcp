@@ -2,11 +2,11 @@
 
 ## Overview
 
-MCPO is a proxy layer that exposes the gplot MCP server as OpenAPI-compatible REST endpoints. This enables integration with OpenWebUI, LangChain, and other tools that consume OpenAPI specifications rather than native MCP.
+MCPO is a proxy layer that exposes the gofr-plot MCP server as OpenAPI-compatible REST endpoints. This enables integration with OpenWebUI, LangChain, and other tools that consume OpenAPI specifications rather than native MCP.
 
 **Architecture:**
 ```
-LLM Client (OpenWebUI, etc.) → MCPO (port 8002) → MCP Server (port 8001) → gplot rendering
+LLM Client (OpenWebUI, etc.) → MCPO (port 8002) → MCP Server (port 8001) → gofr-plot rendering
 ```
 
 ## Quick Start
@@ -17,7 +17,7 @@ LLM Client (OpenWebUI, etc.) → MCPO (port 8002) → MCP Server (port 8001) →
 ./scripts/run_mcp.sh
 
 # Or with authentication:
-export GPLOT_JWT_SECRET="your-secret-key"
+export GOFR_PLOT_JWT_SECRET="your-secret-key"
 ./scripts/run_mcp.sh
 ```
 
@@ -26,8 +26,8 @@ export GPLOT_JWT_SECRET="your-secret-key"
 #### Option A: Python Wrapper (Recommended)
 ```bash
 # Terminal 2: Start MCPO using Python wrapper
-export GPLOT_MCP_PORT=8001
-export GPLOT_MCPO_PORT=8002
+export GOFR_PLOT_MCP_PORT=8001
+export GOFR_PLOT_MCPO_PORT=8002
 python -m app.main_mcpo
 ```
 
@@ -64,11 +64,11 @@ curl http://localhost:8002/tools/list \
 
 | Variable | Default | Description |
 |----------|---------|-------------|
-| `GPLOT_MCP_PORT` | 8001 | Port where MCP server is running |
-| `GPLOT_MCPO_PORT` | 8002 | Port for MCPO proxy to listen on |
-| `GPLOT_MCPO_API_KEY` | None | Optional API key for MCPO authentication layer |
-| `GPLOT_JWT_TOKEN` | None | JWT token to pass through to MCP server (authenticated mode) |
-| `GPLOT_MCPO_MODE` | public | Mode: `auth` (pass JWT) or `public` (no JWT) |
+| `GOFR_PLOT_MCP_PORT` | 8001 | Port where MCP server is running |
+| `GOFR_PLOT_MCPO_PORT` | 8002 | Port for MCPO proxy to listen on |
+| `GOFR_PLOT_MCPO_API_KEY` | None | Optional API key for MCPO authentication layer |
+| `GOFR_PLOT_JWT_TOKEN` | None | JWT token to pass through to MCP server (authenticated mode) |
+| `GOFR_PLOT_MCPO_MODE` | public | Mode: `auth` (pass JWT) or `public` (no JWT) |
 
 ### Authentication Modes
 
@@ -83,7 +83,7 @@ python -m app.main_mcpo
 Protect MCPO endpoints with an API key (but no JWT to MCP):
 
 ```bash
-export GPLOT_MCPO_API_KEY="your-api-key-here"
+export GOFR_PLOT_MCPO_API_KEY="your-api-key-here"
 python -m app.main_mcpo
 
 # Use it:
@@ -97,8 +97,8 @@ curl -X POST http://localhost:8002/render_graph \
 Pass a JWT token through to MCP for all requests:
 
 ```bash
-export GPLOT_JWT_TOKEN="your-jwt-token"
-export GPLOT_MCPO_MODE="auth"
+export GOFR_PLOT_JWT_TOKEN="your-jwt-token"
+export GOFR_PLOT_MCPO_MODE="auth"
 python -m app.main_mcpo
 
 # MCP will receive the JWT automatically
@@ -155,7 +155,7 @@ Once MCPO is running, the following REST endpoints are available:
 ```bash
 POST /ping
 Body: {}
-Response: "Server is running\nTimestamp: ...\nService: gplot"
+Response: "Server is running\nTimestamp: ...\nService: gofr-plot"
 ```
 
 ### 2. Render Graph
@@ -206,7 +206,7 @@ Response: {
 
 ### 1. Configure OpenWebUI
 
-Add gplot as an OpenAPI function in OpenWebUI:
+Add gofr-plot as an OpenAPI function in OpenWebUI:
 
 1. Navigate to **Workspace → Functions**
 2. Click **+ New Function**
@@ -216,7 +216,7 @@ Add gplot as an OpenAPI function in OpenWebUI:
 
 ### 2. Use in Chat
 
-Once imported, OpenWebUI will automatically call gplot tools when needed:
+Once imported, OpenWebUI will automatically call gofr-plot tools when needed:
 
 ```
 User: "Create a line chart showing sales data: [100, 150, 200, 180, 220]"
@@ -226,7 +226,7 @@ AI: "Here's your sales chart: [displays image]"
 
 ### 3. Authentication
 
-If using JWT tokens with gplot:
+If using JWT tokens with gofr-plot:
 
 1. Generate a token:
    ```bash
@@ -243,8 +243,8 @@ If using JWT tokens with gplot:
 
 ```bash
 # Test MCPO integration manually
-export GPLOT_JWT_SECRET="test-secret"
-export GPLOT_TOKEN_STORE="/tmp/test_tokens.json"
+export GOFR_PLOT_JWT_SECRET="test-secret"
+export GOFR_PLOT_TOKEN_STORE="/tmp/test_tokens.json"
 
 # Start servers
 ./scripts/run_mcp.sh &
@@ -378,7 +378,7 @@ python -m app.main_mcpo
 3. Check logs:
    ```bash
    # If using test runner:
-   tail -f /tmp/gplot_mcpo_test.log
+   tail -f /tmp/gofr-plot_mcpo_test.log
    ```
 
 ### Authentication Errors
@@ -411,10 +411,10 @@ python -m app.main_mcpo
    curl http://localhost:8002/openapi.json | jq .
    ```
 
-2. Check MCPO is exposing gplot service:
+2. Check MCPO is exposing gofr-plot service:
    ```bash
    curl http://localhost:8002/openapi.json | jq '.info.title'
-   # Should return: "gplot-renderer"
+   # Should return: "gofr-plot-renderer"
    ```
 
 3. Test direct tool call:
@@ -481,13 +481,13 @@ uv tool install mcpo
 
 ## Summary
 
-MCPO enables seamless integration of gplot's MCP server with OpenAPI-compatible tools like OpenWebUI, providing:
+MCPO enables seamless integration of gofr-plot's MCP server with OpenAPI-compatible tools like OpenWebUI, providing:
 
-✅ RESTful endpoints for all gplot tools  
+✅ RESTful endpoints for all gofr-plot tools  
 ✅ Automatic OpenAPI 3.1 specification generation  
 ✅ Flexible authentication (public, API key, JWT passthrough)  
 ✅ Minimal performance overhead  
 ✅ Simple deployment (Python wrapper or shell script)  
 ✅ Full test coverage (17 automated tests)  
 
-The Python wrapper provides the most control and best integration with gplot's architecture, while the shell script offers quick standalone usage.
+The Python wrapper provides the most control and best integration with gofr-plot's architecture, while the shell script offers quick standalone usage.

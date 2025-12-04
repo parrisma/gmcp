@@ -2,8 +2,8 @@
 Tests for authentication configuration via CLI args and environment variables.
 
 Tests the precedence and validation of:
-- --jwt-secret / GPLOT_JWT_SECRET
-- --token-store / GPLOT_TOKEN_STORE
+- --jwt-secret / GOFR_PLOT_JWT_SECRET
+- --token-store / GOFR_PLOT_TOKEN_STORE
 - --no-auth flag
 """
 
@@ -16,8 +16,8 @@ class TestAuthConfigPrecedence:
     """Test CLI arg and environment variable precedence"""
 
     def test_cli_jwt_secret_overrides_env(self, monkeypatch):
-        """CLI --jwt-secret takes precedence over GPLOT_JWT_SECRET env var"""
-        monkeypatch.setenv("GPLOT_JWT_SECRET", "env-secret")
+        """CLI --jwt-secret takes precedence over GOFR_PLOT_JWT_SECRET env var"""
+        monkeypatch.setenv("GOFR_PLOT_JWT_SECRET", "env-secret")
 
         with patch.object(sys, "argv", ["main_web.py", "--jwt-secret", "cli-secret"]):
 
@@ -29,12 +29,12 @@ class TestAuthConfigPrecedence:
                 mock_parse.return_value = mock_args
 
                 # Simulate the logic from main_web
-                jwt_secret = mock_args.jwt_secret or os.environ.get("GPLOT_JWT_SECRET")
+                jwt_secret = mock_args.jwt_secret or os.environ.get("GOFR_PLOT_JWT_SECRET")
                 assert jwt_secret == "cli-secret", "CLI arg should override env var"
 
     def test_env_jwt_secret_used_when_no_cli_arg(self, monkeypatch):
-        """GPLOT_JWT_SECRET env var used when no --jwt-secret provided"""
-        monkeypatch.setenv("GPLOT_JWT_SECRET", "env-secret")
+        """GOFR_PLOT_JWT_SECRET env var used when no --jwt-secret provided"""
+        monkeypatch.setenv("GOFR_PLOT_JWT_SECRET", "env-secret")
 
         with patch.object(sys, "argv", ["main_web.py"]):
             mock_args = MagicMock()
@@ -42,12 +42,12 @@ class TestAuthConfigPrecedence:
             mock_args.no_auth = False
 
             # Simulate the logic from main_web
-            jwt_secret = mock_args.jwt_secret or os.environ.get("GPLOT_JWT_SECRET")
+            jwt_secret = mock_args.jwt_secret or os.environ.get("GOFR_PLOT_JWT_SECRET")
             assert jwt_secret == "env-secret", "Env var should be used when CLI arg not provided"
 
     def test_cli_token_store_overrides_env(self, monkeypatch):
-        """CLI --token-store takes precedence over GPLOT_TOKEN_STORE env var"""
-        monkeypatch.setenv("GPLOT_TOKEN_STORE", "/env/path/tokens.json")
+        """CLI --token-store takes precedence over GOFR_PLOT_TOKEN_STORE env var"""
+        monkeypatch.setenv("GOFR_PLOT_TOKEN_STORE", "/env/path/tokens.json")
 
         mock_args = MagicMock()
         mock_args.token_store = "/cli/path/tokens.json"
@@ -56,15 +56,15 @@ class TestAuthConfigPrecedence:
         assert mock_args.token_store == "/cli/path/tokens.json", "CLI arg should override env var"
 
     def test_env_token_store_used_when_no_cli_arg(self, monkeypatch):
-        """GPLOT_TOKEN_STORE env var used when no --token-store provided"""
-        monkeypatch.setenv("GPLOT_TOKEN_STORE", "/env/path/tokens.json")
+        """GOFR_PLOT_TOKEN_STORE env var used when no --token-store provided"""
+        monkeypatch.setenv("GOFR_PLOT_TOKEN_STORE", "/env/path/tokens.json")
 
         mock_args = MagicMock()
         mock_args.token_store = None
 
         # In actual code, token_store defaults to None and AuthService uses its own default
         # This test just verifies the env var is accessible
-        token_store = mock_args.token_store or os.environ.get("GPLOT_TOKEN_STORE")
+        token_store = mock_args.token_store or os.environ.get("GOFR_PLOT_TOKEN_STORE")
         assert token_store == "/env/path/tokens.json", "Env var should be accessible"
 
 
@@ -78,7 +78,7 @@ class TestAuthDisabled:
         mock_args.jwt_secret = None
 
         # Simulate validation logic from main_web
-        jwt_secret = mock_args.jwt_secret or os.environ.get("GPLOT_JWT_SECRET")
+        jwt_secret = mock_args.jwt_secret or os.environ.get("GOFR_PLOT_JWT_SECRET")
         should_exit = not mock_args.no_auth and not jwt_secret
 
         assert not should_exit, "--no-auth should bypass JWT secret requirement"
@@ -91,7 +91,7 @@ class TestAuthDisabled:
 
         # Clear env var
         with patch.dict(os.environ, {}, clear=True):
-            jwt_secret = mock_args.jwt_secret or os.environ.get("GPLOT_JWT_SECRET")
+            jwt_secret = mock_args.jwt_secret or os.environ.get("GOFR_PLOT_JWT_SECRET")
             should_exit = not mock_args.no_auth and not jwt_secret
 
             assert should_exit, "Should exit when auth enabled but no secret provided"
@@ -174,13 +174,13 @@ class TestErrorHandling:
     def test_missing_jwt_secret_with_auth_enabled(self, monkeypatch):
         """Missing JWT secret with auth enabled should cause error"""
         # Clear environment
-        monkeypatch.delenv("GPLOT_JWT_SECRET", raising=False)
+        monkeypatch.delenv("GOFR_PLOT_JWT_SECRET", raising=False)
 
         mock_args = MagicMock()
         mock_args.no_auth = False
         mock_args.jwt_secret = None
 
-        jwt_secret = mock_args.jwt_secret or os.environ.get("GPLOT_JWT_SECRET")
+        jwt_secret = mock_args.jwt_secret or os.environ.get("GOFR_PLOT_JWT_SECRET")
         should_error = not mock_args.no_auth and not jwt_secret
 
         assert should_error, "Should error when auth enabled but no JWT secret"

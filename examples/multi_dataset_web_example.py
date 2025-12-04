@@ -2,7 +2,7 @@
 """
 Multi-Dataset Graph Examples - Web API
 
-Demonstrates how to plot multiple datasets on a single graph using the gplot web API.
+Demonstrates how to plot multiple datasets on a single graph using the gofr-plot web API.
 """
 
 import requests
@@ -11,7 +11,7 @@ import os
 
 # Configuration
 API_URL = "http://localhost:8000/render"
-TOKEN = os.environ.get("GPLOT_JWT_TOKEN", "your-jwt-token-here")
+TOKEN = os.environ.get("GOFR_PLOT_JWT_TOKEN", "your-jwt-token-here")
 
 
 def save_image(base64_data: str, filename: str):
@@ -216,7 +216,7 @@ if __name__ == "__main__":
     print("=" * 70)
     print("\nMake sure:")
     print("1. Web server is running: python -m app.main_web")
-    print("2. GPLOT_JWT_TOKEN environment variable is set")
+    print("2. GOFR_PLOT_JWT_TOKEN environment variable is set")
     print("=" * 70)
 
     # Run all examples

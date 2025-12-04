@@ -1,5 +1,5 @@
 """
-Validation module for gplot
+Validation module for gofr-plot
 
 Provides comprehensive validation of graph data with helpful error messages
 and suggestions for fixing issues.

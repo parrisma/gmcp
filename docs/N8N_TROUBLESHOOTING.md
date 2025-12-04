@@ -4,7 +4,7 @@
 
 ### Root Cause
 
-The gplot MCP server requires specific HTTP headers that N8N's MCP Client may not be sending by default:
+The gofr-plot MCP server requires specific HTTP headers that N8N's MCP Client may not be sending by default:
 
 ```
 Accept: application/json, text/event-stream
@@ -205,10 +205,10 @@ curl -X POST http://localhost:8000/render \
    - Look in N8N's workflow execution logs
    - Check N8N's server logs (Docker logs if containerized)
 
-2. **Check gplot Logs**:
+2. **Check gofr-plot Logs**:
 ```bash
 # Check MCP server logs
-docker logs gplot_mcp_dev -f
+docker logs gofr-plot_mcp_dev -f
 
 # Or if running directly
 # Look at terminal output where server is running
@@ -217,19 +217,19 @@ docker logs gplot_mcp_dev -f
 3. **Verify Network**:
 ```bash
 # From N8N container
-ping gplot_dev
-curl http://gplot_dev:8001/mcp/
+ping gofr-plot_dev
+curl http://gofr-plot_dev:8001/mcp/
 ```
 
 4. **Check Token**:
 ```bash
 # List all tokens
 python scripts/token_manager.py --secret "test-secret-key-for-auth-testing" \
-  --token-store /tmp/gplot_test_tokens.json list
+  --token-store /tmp/gofr-plot_test_tokens.json list
 
 # Verify specific token
 python scripts/token_manager.py --secret "test-secret-key-for-auth-testing" \
-  --token-store /tmp/gplot_test_tokens.json verify \
+  --token-store /tmp/gofr-plot_test_tokens.json verify \
   --token "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
 ```
 

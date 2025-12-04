@@ -141,7 +141,7 @@ if docker ps -q -f name=openwebui | grep -q .; then
     echo ""
     echo "In Open WebUI Settings → Tools → Add OpenAPI Server:"
     echo "  From within Open WebUI container:"
-    echo "    URL:      http://gplot_dev:8000"
+    echo "    URL:      http://gofr-plot_dev:8000"
     echo "    API Key:  changeme"
     echo ""
     echo "  From host browser (if using localhost):"

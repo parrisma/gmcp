@@ -55,6 +55,6 @@ async def test_ping_returns_correct_response():
             response_text = text_content.text  # type: ignore
             assert "Server is running" in response_text, "Missing 'Server is running' message"
             assert "Timestamp:" in response_text, "Missing timestamp"
-            assert "Service: gplot" in response_text, "Missing service identifier"
+            assert "Service: gofr-plot" in response_text, "Missing service identifier"
 
             logger.info("Ping tool returned correct response")

@@ -1,7 +1,7 @@
-"""MCPO wrapper for gplot MCP server
+"""MCPO wrapper for gofr-plot MCP server
 
 This module provides MCPO (MCP-to-OpenAPI) proxy functionality
-to expose the gplot MCP server as OpenAPI-compatible endpoints.
+to expose the gofr-plot MCP server as OpenAPI-compatible endpoints.
 """
 
 from app.mcpo_server.wrapper import start_mcpo_wrapper

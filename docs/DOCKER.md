@@ -1,14 +1,14 @@
-# Docker Setup for gplot
+# Docker Setup for gofr-plot
 
-This directory contains Docker configurations for the gplot graph rendering service.
+This directory contains Docker configurations for the gofr-plot graph rendering service.
 
 ## Architecture
 
 The Docker setup uses a multi-stage approach with UV for Python package management:
 
-1. **Base Image** (`gplot_base`): Ubuntu 22.04 with Python 3.11, UV, and fonts for matplotlib
-2. **Development Image** (`gplot_dev`): Includes Git, GitHub CLI, SSH for VS Code remote development
-3. **Production Image** (`gplot_prod`): Minimal image with only runtime dependencies
+1. **Base Image** (`gofr-plot_base`): Ubuntu 22.04 with Python 3.11, UV, and fonts for matplotlib
+2. **Development Image** (`gofr-plot_dev`): Includes Git, GitHub CLI, SSH for VS Code remote development
+3. **Production Image** (`gofr-plot_prod`): Minimal image with only runtime dependencies
 
 ### Fonts in Base Image
 
@@ -34,7 +34,7 @@ cd /home/parris3142/devroot/gplot
 ./docker/build-base.sh
 ```
 
-This creates the `gplot_base:latest` image with Python 3.11 and UV.
+This creates the `gofr-plot_base:latest` image with Python 3.11 and UV.
 
 ### 2. Build Development Image
 
@@ -42,7 +42,7 @@ This creates the `gplot_base:latest` image with Python 3.11 and UV.
 ./docker/build-dev.sh
 ```
 
-This creates the `gplot_dev:latest` image configured for VS Code remote development. The build script automatically uses your current user's UID and GID to avoid permission issues.
+This creates the `gofr-plot_dev:latest` image configured for VS Code remote development. The build script automatically uses your current user's UID and GID to avoid permission issues.
 
 ### 3. Build Production Image
 
@@ -50,7 +50,7 @@ This creates the `gplot_dev:latest` image configured for VS Code remote developm
 ./docker/build-prod.sh
 ```
 
-This creates the `gplot_prod:latest` image with the application installed via UV and pyproject.toml.
+This creates the `gofr-plot_prod:latest` image with the application installed via UV and pyproject.toml.
 
 ## Running Containers
 
@@ -61,8 +61,8 @@ This creates the `gplot_prod:latest` image with the application installed via UV
 ```
 
 This will:
-- Stop and remove any existing `gplot_dev` container
-- Start a new container named `gplot_dev`
+- Stop and remove any existing `gofr-plot_dev` container
+- Start a new container named `gofr-plot_dev`
 - Mount your local `~/devroot/gplot` directory to `/home/gplot/devroot/gplot`
 - Mount your `~/.ssh` directory (read-only) for Git authentication
 - Expose port 8000 for the web server
@@ -71,14 +71,14 @@ This will:
 
 From terminal:
 ```bash
-docker exec -it gplot_dev /bin/bash
+docker exec -it gofr-plot_dev /bin/bash
 ```
 
 From VS Code:
 1. Install the "Dev Containers" extension
 2. Click the remote connection icon (bottom left)
 3. Select "Attach to Running Container"
-4. Choose `gplot_dev`
+4. Choose `gofr-plot_dev`
 
 ### Production Container
 
@@ -89,24 +89,24 @@ Use the provided script for production deployment (recommended):
 ```
 
 This script automatically:
-- Creates persistent data directory at `~/gplot_data`
+- Creates persistent data directory at `~/gofr-plot_data`
 - Mounts data directory for persistent storage
-- Creates gplot_net Docker network
+- Creates gofr-plot_net Docker network
 - Exposes configurable ports (default 8000, 8001)
 
 **Manual deployment:**
 ```bash
 # Create data directory for persistence
-mkdir -p ~/gplot_data/{auth,storage}
+mkdir -p ~/gofr-plot_data/{auth,storage}
 
 # Run with persistent data volume
 docker run -d \
-  --name gplot_prod \
-  --network gplot_net \
-  -v ~/gplot_data:/home/gplot/devroot/gplot/data \
+  --name gofr-plot_prod \
+  --network gofr-plot_net \
+  -v ~/gofr-plot_data:/home/gplot/devroot/gplot/data \
   -p 8000:8000 \
   -p 8001:8001 \
-  gplot_prod:latest
+  gofr-plot_prod:latest
 ```
 
 ## Using UV Inside Containers
@@ -173,11 +173,11 @@ Dependencies are pre-installed during the image build. The production image is r
 The development container mounts your entire project directory, so all data is automatically persisted on your host machine at `~/gplot/data/`.
 
 ### Production Container
-The production container uses a separate data directory (`~/gplot_data/`) mounted as a volume:
+The production container uses a separate data directory (`~/gofr-plot_data/`) mounted as a volume:
 
 **Structure:**
 ```
-~/gplot_data/
+~/gofr-plot_data/
 ├── auth/
 │   └── tokens.json      # JWT token-to-group mappings
 └── storage/
@@ -186,25 +186,25 @@ The production container uses a separate data directory (`~/gplot_data/`) mounte
 ```
 
 **Configuration:**
-You can override the data directory location using the `GPLOT_DATA_DIR` environment variable:
+You can override the data directory location using the `GOFR_PLOT_DATA_DIR` environment variable:
 
 ```bash
 docker run -d \
-  --name gplot_prod \
-  -e GPLOT_DATA_DIR=/data/gplot \
-  -v /host/path/to/data:/data/gplot \
+  --name gofr-plot_prod \
+  -e GOFR_PLOT_DATA_DIR=/data/gofr-plot \
+  -v /host/path/to/data:/data/gofr-plot \
   -p 8000:8000 \
   -p 8001:8001 \
-  gplot_prod:latest
+  gofr-plot_prod:latest
 ```
 
 **Backup:**
 ```bash
 # Backup data
-tar -czf gplot_data_backup_$(date +%Y%m%d).tar.gz ~/gplot_data/
+tar -czf gofr-plot_data_backup_$(date +%Y%m%d).tar.gz ~/gofr-plot_data/
 
 # Restore data
-tar -xzf gplot_data_backup_YYYYMMDD.tar.gz -C ~/
+tar -xzf gofr-plot_data_backup_YYYYMMDD.tar.gz -C ~/
 ```
 
 ## Environment Variables
@@ -213,7 +213,7 @@ The containers use these environment variables:
 
 - `VIRTUAL_ENV=/home/gplot/.venv`
 - `PATH=/home/gplot/.venv/bin:$PATH`
-- `GPLOT_DATA_DIR` (optional): Override default data directory location
+- `GOFR_PLOT_DATA_DIR` (optional): Override default data directory location
 
 This ensures all Python commands use the UV-managed virtual environment.
 
@@ -247,17 +247,17 @@ If you modify dependencies in `pyproject.toml`:
 
 ### Container Won't Start
 - Check if port 8000 is already in use: `lsof -i :8000`
-- View container logs: `docker logs gplot_dev`
+- View container logs: `docker logs gofr-plot_dev`
 
 ## Cleaning Up
 
-Remove all gplot containers and images:
+Remove all gofr-plot containers and images:
 
 ```bash
 # Stop and remove containers
-docker stop gplot_dev gplot_prod 2>/dev/null
-docker rm gplot_dev gplot_prod 2>/dev/null
+docker stop gofr-plot_dev gofr-plot_prod 2>/dev/null
+docker rm gofr-plot_dev gofr-plot_prod 2>/dev/null
 
 # Remove images
-docker rmi gplot_prod:latest gplot_dev:latest gplot_base:latest
+docker rmi gofr-plot_prod:latest gofr-plot_dev:latest gofr-plot_base:latest
 ```

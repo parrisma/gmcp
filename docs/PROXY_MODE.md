@@ -265,15 +265,15 @@ python -m app.main_mcp --web-url http://localhost:8000
 
 **Environment Variable:**
 ```bash
-export GPLOT_WEB_URL=http://localhost:8000
+export GOFR_PLOT_WEB_URL=http://localhost:8000
 python -m app.main_mcp
 ```
 
-**Priority:** CLI `--web-url` > env `GPLOT_WEB_URL` > default `http://localhost:8000`
+**Priority:** CLI `--web-url` > env `GOFR_PLOT_WEB_URL` > default `http://localhost:8000`
 
 ## Storage Location
 
-- **Default Path**: `/tmp/gplot_images/`
+- **Default Path**: `/tmp/gofr-plot_images/`
 - **Filename Format**: `{guid}.{format}`
 - **Example**: `a1b2c3d4-e5f6-7890-1234-567890abcdef.png`
 
@@ -282,7 +282,7 @@ python -m app.main_mcp
 Set environment variable before starting the server:
 
 ```bash
-export GPLOT_STORAGE_DIR=/path/to/custom/storage
+export GOFR_PLOT_STORAGE_DIR=/path/to/custom/storage
 python -m app.main_mcp
 ```
 
@@ -399,7 +399,7 @@ Images in `/tmp` may be automatically cleared on system reboot. For production:
 
 1. Use persistent directory:
    ```bash
-   export GPLOT_STORAGE_DIR=/var/lib/gplot/images
+   export GOFR_PLOT_STORAGE_DIR=/var/lib/gofr-plot/images
    ```
 
 2. Implement cleanup policy:
@@ -488,19 +488,19 @@ xdg-open http://localhost:8000/proxy/{guid}/html
 
 ### Image Not Found
 - Verify GUID is correct (UUID format)
-- Check if file exists: `ls /tmp/gplot_images/{guid}.*`
+- Check if file exists: `ls /tmp/gofr-plot_images/{guid}.*`
 - Ensure server has write permissions to storage directory
 
 ### Storage Full
 - Check disk space: `df -h /tmp`
-- Clean old images: `rm /tmp/gplot_images/*.png`
+- Clean old images: `rm /tmp/gofr-plot_images/*.png`
 - Move to larger volume
 
 ### Permission Denied
 ```bash
 # Fix permissions
-chmod 755 /tmp/gplot_images
-chmod 644 /tmp/gplot_images/*
+chmod 755 /tmp/gofr-plot_images
+chmod 644 /tmp/gofr-plot_images/*
 ```
 
 ## Security Considerations

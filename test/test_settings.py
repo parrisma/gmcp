@@ -27,9 +27,9 @@ def test_server_settings_defaults():
 
 def test_server_settings_from_env(monkeypatch):
     """Test ServerSettings loads from environment variables"""
-    monkeypatch.setenv("GPLOT_HOST", "127.0.0.1")
-    monkeypatch.setenv("GPLOT_MCP_PORT", "9001")
-    monkeypatch.setenv("GPLOT_WEB_PORT", "9000")
+    monkeypatch.setenv("GOFR_PLOT_HOST", "127.0.0.1")
+    monkeypatch.setenv("GOFR_PLOT_MCP_PORT", "9001")
+    monkeypatch.setenv("GOFR_PLOT_WEB_PORT", "9000")
 
     settings = ServerSettings.from_env()
     assert settings.host == "127.0.0.1"
@@ -61,7 +61,7 @@ def test_auth_settings_secret_fingerprint():
 def test_storage_settings_from_env(monkeypatch, tmp_path):
     """Test StorageSettings loads from environment"""
     test_data_dir = tmp_path / "test_data"
-    monkeypatch.setenv("GPLOT_DATA_DIR", str(test_data_dir))
+    monkeypatch.setenv("GOFR_PLOT_DATA_DIR", str(test_data_dir))
 
     settings = StorageSettings.from_env()
     assert settings.data_dir == test_data_dir
@@ -92,8 +92,8 @@ def test_storage_settings_ensure_directories(tmp_path):
 
 def test_settings_from_env_with_auth(monkeypatch):
     """Test Settings loads complete configuration"""
-    monkeypatch.setenv("GPLOT_JWT_SECRET", "test-secret-key")
-    monkeypatch.setenv("GPLOT_MCP_PORT", "9001")
+    monkeypatch.setenv("GOFR_PLOT_JWT_SECRET", "test-secret-key")
+    monkeypatch.setenv("GOFR_PLOT_MCP_PORT", "9001")
 
     settings = Settings.from_env(require_auth=True)
     assert settings.auth.jwt_secret == "test-secret-key"
@@ -103,7 +103,7 @@ def test_settings_from_env_with_auth(monkeypatch):
 def test_settings_from_env_without_auth(monkeypatch):
     """Test Settings works without JWT secret when auth disabled"""
     # No JWT secret set
-    monkeypatch.delenv("GPLOT_JWT_SECRET", raising=False)
+    monkeypatch.delenv("GOFR_PLOT_JWT_SECRET", raising=False)
 
     settings = Settings.from_env(require_auth=False)
     assert settings.auth.require_auth is False
@@ -111,10 +111,10 @@ def test_settings_from_env_without_auth(monkeypatch):
 
 def test_settings_resolve_defaults(tmp_path, monkeypatch):
     """Test Settings resolves missing defaults"""
-    monkeypatch.setenv("GPLOT_DATA_DIR", str(tmp_path))
-    monkeypatch.setenv("GPLOT_JWT_SECRET", "test-secret")
+    monkeypatch.setenv("GOFR_PLOT_DATA_DIR", str(tmp_path))
+    monkeypatch.setenv("GOFR_PLOT_JWT_SECRET", "test-secret")
     # Clear token store env var to test default resolution
-    monkeypatch.delenv("GPLOT_TOKEN_STORE", raising=False)
+    monkeypatch.delenv("GOFR_PLOT_TOKEN_STORE", raising=False)
 
     settings = Settings.from_env(require_auth=True)
     assert settings.auth.token_store_path is None  # Not set yet
@@ -128,7 +128,7 @@ def test_settings_resolve_defaults(tmp_path, monkeypatch):
 def test_get_settings_singleton(monkeypatch):
     """Test get_settings returns singleton instance"""
     reset_settings()
-    monkeypatch.setenv("GPLOT_JWT_SECRET", "test-secret")
+    monkeypatch.setenv("GOFR_PLOT_JWT_SECRET", "test-secret")
 
     settings1 = get_settings(require_auth=True)
     settings2 = get_settings(require_auth=True)
@@ -140,14 +140,14 @@ def test_get_settings_singleton(monkeypatch):
 def test_get_settings_reload(monkeypatch):
     """Test get_settings can reload configuration"""
     reset_settings()
-    monkeypatch.setenv("GPLOT_JWT_SECRET", "secret1")
-    monkeypatch.setenv("GPLOT_MCP_PORT", "9001")
+    monkeypatch.setenv("GOFR_PLOT_JWT_SECRET", "secret1")
+    monkeypatch.setenv("GOFR_PLOT_MCP_PORT", "9001")
 
     settings1 = get_settings(require_auth=True)
     assert settings1.server.mcp_port == 9001
 
     # Change environment
-    monkeypatch.setenv("GPLOT_MCP_PORT", "9002")
+    monkeypatch.setenv("GOFR_PLOT_MCP_PORT", "9002")
 
     # Reload
     settings2 = get_settings(reload=True, require_auth=True)
@@ -156,8 +156,8 @@ def test_get_settings_reload(monkeypatch):
 
 def test_log_settings_from_env(monkeypatch):
     """Test LogSettings loads from environment"""
-    monkeypatch.setenv("GPLOT_LOG_LEVEL", "DEBUG")
-    monkeypatch.setenv("GPLOT_LOG_FORMAT", "json")
+    monkeypatch.setenv("GOFR_PLOT_LOG_LEVEL", "DEBUG")
+    monkeypatch.setenv("GOFR_PLOT_LOG_FORMAT", "json")
 
     settings = LogSettings.from_env()
     assert settings.level == "DEBUG"

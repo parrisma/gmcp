@@ -1,6 +1,6 @@
-# gplot - Graph Rendering Service
+# gofr-plot - Graph Rendering Service
 
-A powerful graph rendering service with both REST API and Model Context Protocol (MCP) server support. Built with FastAPI and matplotlib, gplot provides flexible chart generation with theme support.
+A powerful graph rendering service with both REST API and Model Context Protocol (MCP) server support. Built with FastAPI and matplotlib, gofr-plot provides flexible chart generation with theme support.
 
 ## Features
 
@@ -24,7 +24,7 @@ A powerful graph rendering service with both REST API and Model Context Protocol
 ```bash
 # Clone the repository
 git clone <repository-url>
-cd gplot
+cd gofr-plot
 
 # Install dependencies
 uv sync
@@ -37,7 +37,7 @@ uv pip install matplotlib fastapi uvicorn httpx mcp pydantic
 
 ```bash
 # Set JWT secret (required for authentication)
-export GPLOT_JWT_SECRET="your-secure-secret-key"
+export GOFR_PLOT_JWT_SECRET="your-secure-secret-key"
 
 # Start the FastAPI server
 python app/main.py
@@ -132,7 +132,7 @@ The MCP server exposes the `render_graph` tool for use with AI assistants and ot
 ## Project Structure
 
 ```
-gplot/
+gofr-plot/
 ├── app/
 │   ├── main_web.py          # Web server entry point
 │   ├── main_mcp.py          # MCP server entry point
@@ -234,7 +234,7 @@ gplot/
 
 ## Themes
 
-gplot includes two built-in themes:
+gofr-plot includes two built-in themes:
 
 - **Light**: Clean, bright colors on white background (default)
 - **Dark**: Muted colors on dark background for reduced eye strain
@@ -335,7 +335,7 @@ Contributions are welcome! Please ensure:
 
 ## Architecture
 
-gplot uses a modular architecture:
+gofr-plot uses a modular architecture:
 
 - **Handlers**: Each chart type has its own handler class
 - **Themes**: Pluggable theme system for consistent styling

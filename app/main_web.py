@@ -12,7 +12,7 @@ logger = ConsoleLogger(name="main_web", level=logging.INFO)
 
 if __name__ == "__main__":
     # Parse command line arguments
-    parser = argparse.ArgumentParser(description="gplot Web Server - Graph rendering REST API")
+    parser = argparse.ArgumentParser(description="gofr-plot Web Server - Graph rendering REST API")
     parser.add_argument(
         "--host",
         type=str,
@@ -29,7 +29,7 @@ if __name__ == "__main__":
         "--jwt-secret",
         type=str,
         default=None,
-        help="JWT secret key (default: from GPLOT_JWT_SECRET env var)",
+        help="JWT secret key (default: from GOFR_PLOT_JWT_SECRET env var)",
     )
     parser.add_argument(
         "--token-store",
@@ -86,7 +86,7 @@ if __name__ == "__main__":
         logger.error(
             "FATAL: Configuration error",
             error=str(e),
-            help="Set GPLOT_JWT_SECRET environment variable or use --jwt-secret flag, or use --no-auth to disable authentication",
+            help="Set GOFR_PLOT_JWT_SECRET environment variable or use --jwt-secret flag, or use --no-auth to disable authentication",
         )
         sys.exit(1)
 
@@ -118,7 +118,7 @@ if __name__ == "__main__":
         # Print detailed startup banner
         banner = f"""
 {'='*80}
-  gplot Web Server - Starting
+  gofr-plot Web Server - Starting
 {'='*80}
   Version:          1.0.0
   Transport:        HTTP REST API
@@ -132,8 +132,8 @@ if __name__ == "__main__":
     - Proxy:         http://{settings.server.host}:{settings.server.web_port}/proxy/{{guid}}
   
   Container Network (from n8n/openwebui):
-    - gplot_dev:     http://gplot_dev:{settings.server.web_port}
-    - gplot_prod:    http://gplot_prod:{settings.server.web_port}
+    - gofr-plot_dev:     http://gofr-plot_dev:{settings.server.web_port}
+    - gofr-plot_prod:    http://gofr-plot_prod:{settings.server.web_port}
   
   Localhost Access:
     - API Docs:      http://localhost:{settings.server.web_port}/docs

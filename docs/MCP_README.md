@@ -327,10 +327,10 @@ Add the server configuration:
 ```json
 {
   "mcpServers": {
-    "gplot-renderer": {
+    "gofr-plot-renderer": {
       "command": "python",
       "args": ["-m", "app.main_mcp"],
-      "cwd": "/home/parris3142/devroot/gplot"
+      "cwd": "/home/parris3142/devroot/gofr-plot"
     }
   }
 }
@@ -340,14 +340,14 @@ Add the server configuration:
 
 When using proxy mode (`proxy=true`), images are stored on disk:
 
-- **Default Location**: `/tmp/gplot_images/`
+- **Default Location**: `/tmp/gofr-plot_images/`
 - **Filename Format**: `{guid}.{format}` (e.g., `a1b2c3d4-e5f6-7890-1234-567890abcdef.png`)
 - **Supported Formats**: png, bmp, jpg, svg, pdf
 - **Persistence**: Files persist until manually deleted (in `/tmp` they may be cleared on reboot)
 
 To configure a custom storage location, set the environment variable:
 ```bash
-export GPLOT_STORAGE_DIR=/path/to/storage
+export GOFR_PLOT_STORAGE_DIR=/path/to/storage
 python -m app.main_mcp
 ```
 
@@ -382,7 +382,7 @@ This Streamable HTTP transport is compatible with:
 
 To use this server with N8N:
 1. Add an "MCP Client Tool" node to your workflow
-2. Configure the endpoint: `http://gplot_dev:8001/mcp` (if running in Docker)
+2. Configure the endpoint: `http://gofr-plot_dev:8001/mcp` (if running in Docker)
 3. Call the `render_graph` or `ping` tools via MCP protocol
 
 See [N8N MCP Integration Guide](./README_N8N_MCP.md) for detailed N8N integration instructions.

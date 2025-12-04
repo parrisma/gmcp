@@ -1,5 +1,5 @@
 """
-Logger module for gplot
+Logger module for gofr-plot
 
 This module provides a flexible logging interface that allows users to
 drop in their own logger implementations.

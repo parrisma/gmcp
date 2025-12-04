@@ -86,7 +86,7 @@ export OPENROUTER_API_KEY="sk-or-v1-your-key-here"
 
 **Configuration**:
 - Network: `ai-net`
-- Volume: `gplot_volume`
+- Volume: `gofr-plot_volume`
 - Shared Directory: `~/n8n_share` → `/data/n8n_share`
 
 ---
@@ -96,7 +96,7 @@ export OPENROUTER_API_KEY="sk-or-v1-your-key-here"
 All containers use the **`ai-net`** network for inter-container communication.
 
 **Available Containers on ai-net**:
-- `cd1389d37be0` - Dev container (gplot_dev)
+- `cd1389d37be0` - Dev container (gofr-plot_dev)
 - `openwebui` - OpenWebUI
 - `n8n` - n8n automation
 

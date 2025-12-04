@@ -1,7 +1,7 @@
 # Ping Endpoint Documentation
 
 ## Overview
-The ping endpoint provides a simple health check to verify that the gplot server is running and responsive.
+The ping endpoint provides a simple health check to verify that the gofr-plot server is running and responsive.
 
 ## Web Server (REST API)
 
@@ -17,7 +17,7 @@ Returns a JSON object with server status and current timestamp:
 {
   "status": "ok",
   "timestamp": "2025-11-09T21:25:07.543000",
-  "service": "gplot"
+  "service": "gofr-plot"
 }
 ```
 
@@ -42,7 +42,7 @@ Returns a text message with server status and timestamp:
 ```
 Server is running
 Timestamp: 2025-11-09T21:25:14.073000
-Service: gplot
+Service: gofr-plot
 ```
 
 ### Example Usage

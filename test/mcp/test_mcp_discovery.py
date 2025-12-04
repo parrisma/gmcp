@@ -78,7 +78,7 @@ async def discover_mcp_server():
             print("ENDPOINT INFORMATION")
             print("=" * 60)
             print("Streamable HTTP Endpoint: http://localhost:8001/mcp/")
-            print("For N8N: http://gplot_dev:8001/mcp/ (on gplot_net)")
+            print("For N8N: http://gofr-plot_dev:8001/mcp/ (on gofr-plot_net)")
             print("For Host: http://localhost:8001/mcp/")
             print("Transport: Streamable HTTP (modern MCP standard)")
             print("=" * 60)

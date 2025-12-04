@@ -1,7 +1,6 @@
 """Tests for MCP server axis control parameters"""
 
 import pytest
-import os
 from mcp import ClientSession
 from mcp.client.streamable_http import streamablehttp_client
 from conftest import MCP_URL
@@ -12,7 +11,7 @@ from conftest import MCP_URL
 @pytest.mark.asyncio
 async def test_render_with_axis_limits(test_jwt_token, logger):
     """Test rendering with axis limits via MCP"""
-    http_url = f"http://localhost:{os.environ.get('GPLOT_MCP_PORT', '8001')}/mcp/"
+    http_url = MCP_URL
 
     async with streamablehttp_client(http_url) as (read, write, _):
         async with ClientSession(read, write) as session:

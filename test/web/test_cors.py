@@ -20,11 +20,11 @@ def auth_service():
 def server_with_default_cors(auth_service):
     """Server with default CORS configuration"""
     # Save original env
-    original_cors = os.environ.get("GPLOT_CORS_ORIGINS")
+    original_cors = os.environ.get("GOFR_PLOT_CORS_ORIGINS")
 
     # Use default CORS
-    if "GPLOT_CORS_ORIGINS" in os.environ:
-        del os.environ["GPLOT_CORS_ORIGINS"]
+    if "GOFR_PLOT_CORS_ORIGINS" in os.environ:
+        del os.environ["GOFR_PLOT_CORS_ORIGINS"]
 
     server = GraphWebServer(
         require_auth=False,
@@ -35,17 +35,17 @@ def server_with_default_cors(auth_service):
 
     # Restore original env
     if original_cors is not None:
-        os.environ["GPLOT_CORS_ORIGINS"] = original_cors
+        os.environ["GOFR_PLOT_CORS_ORIGINS"] = original_cors
 
 
 @pytest.fixture
 def server_with_custom_cors(auth_service):
     """Server with custom CORS configuration"""
     # Save original env
-    original_cors = os.environ.get("GPLOT_CORS_ORIGINS")
+    original_cors = os.environ.get("GOFR_PLOT_CORS_ORIGINS")
 
     # Set custom CORS origins
-    os.environ["GPLOT_CORS_ORIGINS"] = "https://example.com,https://app.example.com"
+    os.environ["GOFR_PLOT_CORS_ORIGINS"] = "https://example.com,https://app.example.com"
 
     server = GraphWebServer(
         require_auth=False,
@@ -56,19 +56,19 @@ def server_with_custom_cors(auth_service):
 
     # Restore original env
     if original_cors is not None:
-        os.environ["GPLOT_CORS_ORIGINS"] = original_cors
+        os.environ["GOFR_PLOT_CORS_ORIGINS"] = original_cors
     else:
-        del os.environ["GPLOT_CORS_ORIGINS"]
+        del os.environ["GOFR_PLOT_CORS_ORIGINS"]
 
 
 @pytest.fixture
 def server_with_wildcard_cors(auth_service):
     """Server with wildcard CORS configuration"""
     # Save original env
-    original_cors = os.environ.get("GPLOT_CORS_ORIGINS")
+    original_cors = os.environ.get("GOFR_PLOT_CORS_ORIGINS")
 
     # Set wildcard CORS
-    os.environ["GPLOT_CORS_ORIGINS"] = "*"
+    os.environ["GOFR_PLOT_CORS_ORIGINS"] = "*"
 
     server = GraphWebServer(
         require_auth=False,
@@ -79,9 +79,9 @@ def server_with_wildcard_cors(auth_service):
 
     # Restore original env
     if original_cors is not None:
-        os.environ["GPLOT_CORS_ORIGINS"] = original_cors
+        os.environ["GOFR_PLOT_CORS_ORIGINS"] = original_cors
     else:
-        del os.environ["GPLOT_CORS_ORIGINS"]
+        del os.environ["GOFR_PLOT_CORS_ORIGINS"]
 
 
 def test_cors_default_origins(server_with_default_cors):

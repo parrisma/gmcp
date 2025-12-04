@@ -1,5 +1,5 @@
 #!/bin/bash
-# gplot MCPO Wrapper Startup Script
+# gofr-plot MCPO Wrapper Startup Script
 # Starts MCPO (Model Context Protocol to OpenAPI) wrapper for the MCP server.
 # Exposes MCP tools as REST/OpenAPI endpoints for OpenWebUI and other LLM clients.
 
@@ -18,15 +18,15 @@ PROJECT_ROOT="$(cd "${SCRIPT_DIR}/.." && pwd)"
 cd "${PROJECT_ROOT}"
 
 # Source centralized environment configuration
-if [ -f "${PROJECT_ROOT}/gplot.env" ]; then
-    source "${PROJECT_ROOT}/gplot.env"
+if [ -f "${PROJECT_ROOT}/gofr-plot.env" ]; then
+    source "${PROJECT_ROOT}/gofr-plot.env"
 fi
 
 # Configuration with environment variable fallbacks
-MCPO_PORT="${GPLOT_MCPO_PORT:-8011}"
-MCP_PORT="${GPLOT_MCP_PORT:-8010}"
+MCPO_PORT="${GOFR_PLOT_MCPO_PORT:-8011}"
+MCP_PORT="${GOFR_PLOT_MCP_PORT:-8010}"
 MCP_URL="http://localhost:${MCP_PORT}/mcp"
-MCPO_API_KEY="${GPLOT_MCPO_API_KEY:-}"
+MCPO_API_KEY="${GOFR_PLOT_MCPO_API_KEY:-}"
 
 # Parse command-line arguments
 while [[ $# -gt 0 ]]; do
@@ -56,9 +56,9 @@ while [[ $# -gt 0 ]]; do
             echo "  -h, --help            Show this help message"
             echo ""
             echo "Environment Variables:"
-            echo "  GPLOT_MCPO_PORT       Default MCPO port (default: 8011)"
-            echo "  GPLOT_MCP_PORT        Default MCP port (default: 8010)"
-            echo "  GPLOT_MCPO_API_KEY    MCPO API key (optional)"
+            echo "  GOFR_PLOT_MCPO_PORT       Default MCPO port (default: 8011)"
+            echo "  GOFR_PLOT_MCP_PORT        Default MCP port (default: 8010)"
+            echo "  GOFR_PLOT_MCPO_API_KEY    MCPO API key (optional)"
             echo ""
             echo "Authentication:"
             echo "  - Without --api-key: JWT tokens pass through to MCP (group-based security)"
@@ -67,7 +67,7 @@ while [[ $# -gt 0 ]]; do
             echo "Connection URLs:"
             echo "  OpenAPI Spec: http://localhost:8011/openapi.json"
             echo "  Health Check: http://localhost:8011/health"
-            echo "  Service URL:  http://localhost:8011/gplot-renderer"
+            echo "  Service URL:  http://localhost:8011/gofr-plot-renderer"
             exit 0
             ;;
         *)
@@ -79,7 +79,7 @@ while [[ $# -gt 0 ]]; do
 done
 
 # Display startup information
-echo -e "${BLUE}=== Starting gplot MCPO Wrapper ===${NC}"
+echo -e "${BLUE}=== Starting gofr-plot MCPO Wrapper ===${NC}"
 echo "MCPO Port: ${MCPO_PORT}"
 echo "MCP Server: ${MCP_URL}"
 
@@ -143,7 +143,7 @@ echo ""
 echo -e "${GREEN}=== MCPO Ready ===${NC}"
 echo "OpenAPI Spec: http://localhost:${MCPO_PORT}/openapi.json"
 echo "Health Check: http://localhost:${MCPO_PORT}/health"
-echo "Service URL:  http://localhost:${MCPO_PORT}/gplot-renderer"
+echo "Service URL:  http://localhost:${MCPO_PORT}/gofr-plot-renderer"
 echo ""
 echo "Example usage:"
 echo "  curl http://localhost:${MCPO_PORT}/health"

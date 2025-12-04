@@ -1,27 +1,27 @@
 #!/usr/bin/env python3
 """Main entry point for MCPO wrapper
 
-Starts MCPO proxy to expose gplot MCP server as OpenAPI endpoints.
+Starts MCPO proxy to expose gofr-plot MCP server as OpenAPI endpoints.
 
 Usage:
     # Start with no authentication on MCPO layer (MCP handles JWT auth):
     python -m app.main_mcpo
 
     # Start with MCPO API key authentication:
-    export GPLOT_MCPO_API_KEY="your-api-key"
+    export GOFR_PLOT_MCPO_API_KEY="your-api-key"
     python -m app.main_mcpo
 
     # Start with authenticated mode (pass JWT token through to MCP):
-    export GPLOT_JWT_TOKEN="your-jwt-token"
-    export GPLOT_MCPO_MODE="auth"
+    export GOFR_PLOT_JWT_TOKEN="your-jwt-token"
+    export GOFR_PLOT_MCPO_MODE="auth"
     python -m app.main_mcpo
 
 Environment Variables:
-    GPLOT_MCP_PORT: Port for MCP server (default: 8001)
-    GPLOT_MCPO_PORT: Port for MCPO proxy (default: 8002)
-    GPLOT_MCPO_API_KEY: Optional API key for MCPO authentication
-    GPLOT_JWT_TOKEN: Optional JWT token for MCP server authentication
-    GPLOT_MCPO_MODE: 'auth' or 'public' (default: public)
+    GOFR_PLOT_MCP_PORT: Port for MCP server (default: 8001)
+    GOFR_PLOT_MCPO_PORT: Port for MCPO proxy (default: 8002)
+    GOFR_PLOT_MCPO_API_KEY: Optional API key for MCPO authentication
+    GOFR_PLOT_JWT_TOKEN: Optional JWT token for MCP server authentication
+    GOFR_PLOT_MCPO_MODE: 'auth' or 'public' (default: public)
 """
 
 import asyncio
@@ -36,28 +36,28 @@ def main():
     """Main function to start MCPO wrapper"""
 
     # Get configuration from environment
-    mcp_port = int(os.environ.get("GPLOT_MCP_PORT", "8001"))
-    mcpo_port = int(os.environ.get("GPLOT_MCPO_PORT", "8002"))
+    mcp_port = int(os.environ.get("GOFR_PLOT_MCP_PORT", "8001"))
+    mcpo_port = int(os.environ.get("GOFR_PLOT_MCPO_PORT", "8002"))
 
-    print("Starting MCPO wrapper for gplot MCP server...")
+    print("Starting MCPO wrapper for gofr-plot MCP server...")
     print(f"  MCP server: http://localhost:{mcp_port}/mcp")
     print(f"  MCPO proxy: http://localhost:{mcpo_port}")
 
     # Check for API key
-    mcpo_api_key = os.environ.get("GPLOT_MCPO_API_KEY")
+    mcpo_api_key = os.environ.get("GOFR_PLOT_MCPO_API_KEY")
     if mcpo_api_key:
-        print(f"  MCPO API Key: {'*' * 8} (from GPLOT_MCPO_API_KEY)")
+        print(f"  MCPO API Key: {'*' * 8} (from GOFR_PLOT_MCPO_API_KEY)")
     else:
         print("  MCPO API Key: None (no authentication required)")
 
     # Check for auth mode
-    mode = os.environ.get("GPLOT_MCPO_MODE", "public").lower()
+    mode = os.environ.get("GOFR_PLOT_MCPO_MODE", "public").lower()
     if mode == "auth":
-        jwt_token = os.environ.get("GPLOT_JWT_TOKEN")
+        jwt_token = os.environ.get("GOFR_PLOT_JWT_TOKEN")
         if jwt_token:
             print("  Mode: Authenticated (JWT token will be passed to MCP)")
         else:
-            print("  Mode: Authenticated (but GPLOT_JWT_TOKEN not set - will fail)")
+            print("  Mode: Authenticated (but GOFR_PLOT_JWT_TOKEN not set - will fail)")
     else:
         print("  Mode: Public (no JWT token passed to MCP)")
 

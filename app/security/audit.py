@@ -52,7 +52,7 @@ class SecurityAuditor:
     Logs security events to file and/or console with structured format.
 
     Example:
-        auditor = SecurityAuditor("/var/log/gplot/security.log")
+        auditor = SecurityAuditor("/var/log/gofr-plot/security.log")
 
         # Log authentication failure
         auditor.log_auth_failure(

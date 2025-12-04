@@ -4,24 +4,24 @@ Cross-Origin Resource Sharing (CORS) is configured for both MCP and Web servers 
 
 ## Configuration
 
-CORS is controlled via the `GPLOT_CORS_ORIGINS` environment variable.
+CORS is controlled via the `GOFR_PLOT_CORS_ORIGINS` environment variable.
 
 ### Environment Variable
 
 ```bash
 # Allow specific origins (recommended for production)
-export GPLOT_CORS_ORIGINS="https://example.com,https://app.example.com"
+export GOFR_PLOT_CORS_ORIGINS="https://example.com,https://app.example.com"
 
 # Allow common development origins (default if not set)
-export GPLOT_CORS_ORIGINS="http://localhost:3000,http://localhost:8000"
+export GOFR_PLOT_CORS_ORIGINS="http://localhost:3000,http://localhost:8000"
 
 # Allow all origins (not recommended for production)
-export GPLOT_CORS_ORIGINS="*"
+export GOFR_PLOT_CORS_ORIGINS="*"
 ```
 
 ### Default Behavior
 
-If `GPLOT_CORS_ORIGINS` is not set, the servers default to:
+If `GOFR_PLOT_CORS_ORIGINS` is not set, the servers default to:
 ```
 http://localhost:3000,http://localhost:8000
 ```
@@ -32,7 +32,7 @@ This allows development from common frontend dev ports (React, Next.js, etc.).
 
 Both servers are configured with:
 
-- **Allow Origins**: Configurable via `GPLOT_CORS_ORIGINS`
+- **Allow Origins**: Configurable via `GOFR_PLOT_CORS_ORIGINS`
 - **Allow Credentials**: `true` (allows cookies and Authorization headers)
 - **Allow Methods**: 
   - Web server: `*` (all methods)
@@ -49,10 +49,10 @@ Both servers are configured with:
 
 ```bash
 # Good - specific origins
-export GPLOT_CORS_ORIGINS="https://myapp.com,https://www.myapp.com"
+export GOFR_PLOT_CORS_ORIGINS="https://myapp.com,https://www.myapp.com"
 
 # Bad - allows any origin
-export GPLOT_CORS_ORIGINS="*"
+export GOFR_PLOT_CORS_ORIGINS="*"
 ```
 
 ### Allow Credentials
@@ -121,26 +121,26 @@ starlette_app = CORSMiddleware(
 ### Multiple Origins
 
 ```bash
-export GPLOT_CORS_ORIGINS="https://app1.com,https://app2.com,https://admin.app1.com"
+export GOFR_PLOT_CORS_ORIGINS="https://app1.com,https://app2.com,https://admin.app1.com"
 ```
 
 ### Development vs Production
 
 ```bash
 # Development
-export GPLOT_CORS_ORIGINS="http://localhost:3000,http://localhost:8000,http://127.0.0.1:3000"
+export GOFR_PLOT_CORS_ORIGINS="http://localhost:3000,http://localhost:8000,http://127.0.0.1:3000"
 
 # Production
-export GPLOT_CORS_ORIGINS="https://myapp.com,https://www.myapp.com"
+export GOFR_PLOT_CORS_ORIGINS="https://myapp.com,https://www.myapp.com"
 ```
 
 ### Docker Compose
 
 ```yaml
 services:
-  gplot:
+  gofr-plot:
     environment:
-      - GPLOT_CORS_ORIGINS=https://myapp.com,https://www.myapp.com
+      - GOFR_PLOT_CORS_ORIGINS=https://myapp.com,https://www.myapp.com
 ```
 
 ## Troubleshooting
@@ -149,7 +149,7 @@ services:
 
 If you see CORS errors in the browser console:
 
-1. Check the origin is in `GPLOT_CORS_ORIGINS`
+1. Check the origin is in `GOFR_PLOT_CORS_ORIGINS`
 2. Ensure exact match (including protocol: `https://` vs `http://`)
 3. Verify port number matches (`:3000` vs `:8000`)
 4. Check browser DevTools Network tab for preflight requests
@@ -159,12 +159,12 @@ If you see CORS errors in the browser console:
 If preflight requests return 400:
 
 1. The origin is not in the allowed list
-2. Check `GPLOT_CORS_ORIGINS` contains the exact origin
+2. Check `GOFR_PLOT_CORS_ORIGINS` contains the exact origin
 3. Restart the server after changing environment variables
 
 ### Wildcard Not Working
 
-If `GPLOT_CORS_ORIGINS="*"` doesn't work:
+If `GOFR_PLOT_CORS_ORIGINS="*"` doesn't work:
 
 - This is expected with `allow_credentials=true`
 - Browsers reject wildcard origins with credentials

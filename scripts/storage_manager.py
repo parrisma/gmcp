@@ -131,7 +131,7 @@ def stats(args):
 
 def main():
     parser = argparse.ArgumentParser(
-        description="gplot Storage Manager - Manage stored images and data",
+        description="gofr-plot Storage Manager - Manage stored images and data",
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog="""
 Examples:

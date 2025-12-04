@@ -23,7 +23,7 @@ async def example_axis_limits():
     # Create authentication token
     auth_service = AuthService(
         secret_key="test-secret-key-for-auth-testing",
-        token_store_path="/tmp/gplot_test_tokens.json",
+        token_store_path="/tmp/gofr-plot_test_tokens.json",
     )
     token = auth_service.create_token(group="demo")
 
@@ -68,7 +68,7 @@ async def example_major_ticks():
 
     auth_service = AuthService(
         secret_key="test-secret-key-for-auth-testing",
-        token_store_path="/tmp/gplot_test_tokens.json",
+        token_store_path="/tmp/gofr-plot_test_tokens.json",
     )
     token = auth_service.create_token(group="demo")
 
@@ -107,7 +107,7 @@ async def example_minor_ticks():
 
     auth_service = AuthService(
         secret_key="test-secret-key-for-auth-testing",
-        token_store_path="/tmp/gplot_test_tokens.json",
+        token_store_path="/tmp/gofr-plot_test_tokens.json",
     )
     token = auth_service.create_token(group="demo")
 
@@ -153,7 +153,7 @@ async def example_all_combined():
 
     auth_service = AuthService(
         secret_key="test-secret-key-for-auth-testing",
-        token_store_path="/tmp/gplot_test_tokens.json",
+        token_store_path="/tmp/gofr-plot_test_tokens.json",
     )
     token = auth_service.create_token(group="demo")
 

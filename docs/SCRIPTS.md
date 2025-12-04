@@ -1,6 +1,6 @@
 # Scripts
 
-This directory contains utility scripts for managing the gplot application.
+This directory contains utility scripts for managing the gofr-plot application.
 
 ## Available Scripts
 
@@ -28,8 +28,8 @@ python3 scripts/token_manager.py revoke --token YOUR_TOKEN
 See [Authentication Guide](./AUTHENTICATION.md) for complete token management documentation.
 
 **Environment Variables:**
-- `GPLOT_JWT_SECRET`: JWT secret key (can also use `--secret` option)
+- `GOFR_PLOT_JWT_SECRET`: JWT secret key (can also use `--secret` option)
 
 **Options:**
 - `--secret SECRET`: Override JWT secret key
-- `--token-store PATH`: Custom token store location (default: `/tmp/gplot_tokens.json`)
+- `--token-store PATH`: Custom token store location (default: `/tmp/gofr-plot_tokens.json`)

@@ -20,12 +20,12 @@ from conftest import MCP_URL, WEB_URL
 TEST_GROUP = "secure"
 TEST_EXPIRY_SECONDS = 90
 TEST_JWT_SECRET = os.environ.get(
-    "GPLOT_JWT_SECRET", "test-secret-key-for-secure-testing-do-not-use-in-production"
+    "GOFR_PLOT_JWT_SECRET", "test-secret-key-for-secure-testing-do-not-use-in-production"
 )
 # Shared token store (env override falls back to /tmp)
 SHARED_TOKEN_STORE = os.environ.get(
-    "GPLOT_TOKEN_STORE",
-    "/tmp/gplot_test_tokens.json",
+    "GOFR_PLOT_TOKEN_STORE",
+    "/tmp/gofr-plot_test_tokens.json",
 )
 
 # Note: test_token and invalid_token fixtures are now defined in conftest.py

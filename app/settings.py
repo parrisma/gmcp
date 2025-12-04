@@ -1,6 +1,6 @@
 """Unified Application Settings
 
-Centralized, typed configuration for all gplot components (MCP, Web, scripts).
+Centralized, typed configuration for all gofr-plot components (MCP, Web, scripts).
 Consolidates server configuration, authentication, storage, and logging settings.
 
 Design principles:
@@ -27,7 +27,7 @@ class ServerSettings:
     mcpo_port: int = 8002
 
     @classmethod
-    def from_env(cls, prefix: str = "GPLOT") -> "ServerSettings":
+    def from_env(cls, prefix: str = "GOFR_PLOT") -> "ServerSettings":
         """Load server settings from environment variables"""
         return cls(
             host=os.environ.get(f"{prefix}_HOST", "0.0.0.0"),
@@ -50,7 +50,7 @@ class AuthSettings:
         if self.require_auth and not self.jwt_secret:
             raise ValueError(
                 "JWT secret is required when authentication is enabled. "
-                "Set GPLOT_JWT_SECRET environment variable or provide via --jwt-secret"
+                "Set GOFR_PLOT_JWT_SECRET environment variable or provide via --jwt-secret"
             )
 
         # Convert string path to Path object
@@ -58,7 +58,7 @@ class AuthSettings:
             self.token_store_path = Path(self.token_store_path)
 
     @classmethod
-    def from_env(cls, prefix: str = "GPLOT", require_auth: bool = True) -> "AuthSettings":
+    def from_env(cls, prefix: str = "GOFR_PLOT", require_auth: bool = True) -> "AuthSettings":
         """Load auth settings from environment variables"""
         jwt_secret = os.environ.get(f"{prefix}_JWT_SECRET")
         token_store = os.environ.get(f"{prefix}_TOKEN_STORE")
@@ -87,7 +87,7 @@ class StorageSettings:
     auth_dir: Path
 
     @classmethod
-    def from_env(cls, prefix: str = "GPLOT", test_mode: bool = False) -> "StorageSettings":
+    def from_env(cls, prefix: str = "GOFR_PLOT", test_mode: bool = False) -> "StorageSettings":
         """Load storage settings from environment variables"""
         # Check environment variable first
         env_data_dir = os.environ.get(f"{prefix}_DATA_DIR")
@@ -123,7 +123,7 @@ class LogSettings:
     format: str = "console"  # console, json, or structured
 
     @classmethod
-    def from_env(cls, prefix: str = "GPLOT") -> "LogSettings":
+    def from_env(cls, prefix: str = "GOFR_PLOT") -> "LogSettings":
         """Load logging settings from environment variables"""
         return cls(
             level=os.environ.get(f"{prefix}_LOG_LEVEL", "INFO").upper(),
@@ -147,27 +147,27 @@ class Settings:
     log: LogSettings = field(default_factory=LogSettings)
 
     @classmethod
-    def from_env(cls, prefix: str = "GPLOT", require_auth: bool = True) -> "Settings":
+    def from_env(cls, prefix: str = "GOFR_PLOT", require_auth: bool = True) -> "Settings":
         """
         Load complete settings from environment variables
 
         Args:
-            prefix: Environment variable prefix (default: GPLOT)
+            prefix: Environment variable prefix (default: GOFR_PLOT)
             require_auth: Whether authentication is required (default: True)
 
         Returns:
             Settings object populated from environment
 
         Environment variables:
-            GPLOT_HOST: Server host (default: 0.0.0.0)
-            GPLOT_MCP_PORT: MCP server port (default: 8001)
-            GPLOT_WEB_PORT: Web server port (default: 8000)
-            GPLOT_MCPO_PORT: MCPO proxy port (default: 8002)
-            GPLOT_JWT_SECRET: JWT secret key (required if auth enabled)
-            GPLOT_TOKEN_STORE: Token store path (default: {data_dir}/auth/tokens.json)
-            GPLOT_DATA_DIR: Data directory (default: {project_root}/data)
-            GPLOT_LOG_LEVEL: Logging level (default: INFO)
-            GPLOT_LOG_FORMAT: Log format (default: console)
+            GOFR_PLOT_HOST: Server host (default: 0.0.0.0)
+            GOFR_PLOT_MCP_PORT: MCP server port (default: 8001)
+            GOFR_PLOT_WEB_PORT: Web server port (default: 8000)
+            GOFR_PLOT_MCPO_PORT: MCPO proxy port (default: 8002)
+            GOFR_PLOT_JWT_SECRET: JWT secret key (required if auth enabled)
+            GOFR_PLOT_TOKEN_STORE: Token store path (default: {data_dir}/auth/tokens.json)
+            GOFR_PLOT_DATA_DIR: Data directory (default: {project_root}/data)
+            GOFR_PLOT_LOG_LEVEL: Logging level (default: INFO)
+            GOFR_PLOT_LOG_FORMAT: Log format (default: console)
         """
         return cls(
             server=ServerSettings.from_env(prefix),

@@ -49,11 +49,12 @@ Stores images as files in a configurable directory using GUID-based filenames.
 ```python
 from app.storage import FileStorage
 
-# Default: /tmp/gplot_images
+# Default: /tmp/gofr-plot_images
 storage = FileStorage()
 
 # Custom directory
-storage = FileStorage(storage_dir="/var/lib/gplot/images")
+storage = FileStorage(storage_dir="/var/lib/gofr-plot/images")
+```
 ```
 
 ## Usage

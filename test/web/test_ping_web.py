@@ -53,4 +53,4 @@ def test_ping_endpoint_returns_service_name(client):
     data = response.json()
 
     assert "service" in data
-    assert data["service"] == "gplot"
+    assert data["service"] == "gofr-plot"

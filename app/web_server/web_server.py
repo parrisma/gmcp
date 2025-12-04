@@ -43,7 +43,7 @@ class GraphWebServer:
             auth_service: AuthService instance (preferred - enables dependency injection)
             log_level: Logging level (logging.DEBUG, logging.INFO, etc.)
         """
-        self.app = FastAPI(title="gplot", description="Graph rendering service")
+        self.app = FastAPI(title="gofr-plot", description="Graph rendering service")
 
         self.renderer = GraphRenderer()
         self.validator = GraphDataValidator()
@@ -53,10 +53,10 @@ class GraphWebServer:
         # Initialize rate limiter with endpoint-specific limits
         # Use higher limits in test environment to avoid test failures
         # Configure CORS middleware
-        # GPLOT_CORS_ORIGINS: Comma-separated list of allowed origins, or "*" for all
+        # GOFR_PLOT_CORS_ORIGINS: Comma-separated list of allowed origins, or "*" for all
         # Default: http://localhost:3000,http://localhost:8000 (common dev ports)
         cors_origins_str = os.getenv(
-            "GPLOT_CORS_ORIGINS", "http://localhost:3000,http://localhost:8000"
+            "GOFR_PLOT_CORS_ORIGINS", "http://localhost:3000,http://localhost:8000"
         )
         if cors_origins_str == "*":
             cors_origins = ["*"]
@@ -104,10 +104,10 @@ class GraphWebServer:
                     is_test_env = auth_svc.secret_key.startswith("test-secret")
             except RuntimeError:
                 # Auth service not initialized yet, check environment variable
-                is_test_env = os.getenv("GPLOT_JWT_SECRET", "").startswith("test-secret")
+                is_test_env = os.getenv("GOFR_PLOT_JWT_SECRET", "").startswith("test-secret")
         else:
             # No auth means we check environment variable directly
-            is_test_env = os.getenv("GPLOT_JWT_SECRET", "").startswith("test-secret")
+            is_test_env = os.getenv("GOFR_PLOT_JWT_SECRET", "").startswith("test-secret")
 
         if is_test_env:
             self.render_limit = 10000
@@ -166,7 +166,7 @@ class GraphWebServer:
             current_time = datetime.now().isoformat()
             self.logger.debug("Ping request received", timestamp=current_time)
             return JSONResponse(
-                content={"status": "ok", "timestamp": current_time, "service": "gplot"}
+                content={"status": "ok", "timestamp": current_time, "service": "gofr-plot"}
             )
 
         auth_dep = self._get_auth_dependency()
@@ -676,7 +676,7 @@ class GraphWebServer:
                 <!DOCTYPE html>
                 <html>
                 <head>
-                    <title>gplot - Image {guid}</title>
+                    <title>gofr-plot - Image {guid}</title>
                     <style>
                         body {{
                             margin: 0;
@@ -735,7 +735,7 @@ class GraphWebServer:
                 </head>
                 <body>
                     <div class="container">
-                        <h1>gplot Rendered Image</h1>
+                        <h1>gofr-plot Rendered Image</h1>
                         <div class="info">
                             <strong>GUID:</strong> <code>{guid}</code><br>
                             {f'<strong>Alias:</strong> <code>{alias}</code><br>' if alias else ''}

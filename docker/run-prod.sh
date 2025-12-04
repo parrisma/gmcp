@@ -18,55 +18,55 @@ else
 fi
 
 # Create docker volume for persistent data if it doesn't exist
-echo "Checking for gplot_data volume..."
-if ! docker volume inspect gplot_data >/dev/null 2>&1; then
-    echo "Creating gplot_data volume..."
-    docker volume create gplot_data
+echo "Checking for gofr-plot_data volume..."
+if ! docker volume inspect gofr-plot_data >/dev/null 2>&1; then
+    echo "Creating gofr-plot_data volume..."
+    docker volume create gofr-plot_data
     VOLUME_CREATED=true
 else
-    echo "Volume gplot_data already exists"
+    echo "Volume gofr-plot_data already exists"
     VOLUME_CREATED=false
 fi
 
 # Stop and remove existing container if it exists
-echo "Stopping existing gplot_prod container..."
-docker stop gplot_prod 2>/dev/null || true
+echo "Stopping existing gofr-plot_prod container..."
+docker stop gofr-plot_prod 2>/dev/null || true
 
-echo "Removing existing gplot_prod container..."
-docker rm gplot_prod 2>/dev/null || true
+echo "Removing existing gofr-plot_prod container..."
+docker rm gofr-plot_prod 2>/dev/null || true
 
-echo "Starting new gplot_prod container..."
-echo "Mounting gplot_data volume to /home/gplot/data in container"
+echo "Starting new gofr-plot_prod container..."
+echo "Mounting gofr-plot_data volume to /home/gofr-plot/data in container"
 echo "Web port: $WEB_PORT, MCP port: $MCP_PORT"
 
 docker run -d \
---name gplot_prod \
+--name gofr-plot_prod \
 --network ai-net \
--v gplot_data:/home/gplot/data \
+-v gofr-plot_data:/home/gofr-plot/data \
 -p $WEB_PORT:8000 \
 -p $MCP_PORT:8001 \
-gplot_prod:latest
+gofr-plot_prod:latest
 
-if docker ps -q -f name=gplot_prod | grep -q .; then
-    echo "Container gplot_prod is now running"
+if docker ps -q -f name=gofr-plot_prod | grep -q .; then
+    echo "Container gofr-plot_prod is now running"
     
     # Fix volume permissions if it was just created
     if [ "$VOLUME_CREATED" = true ]; then
         echo "Fixing permissions on newly created volume..."
-        docker exec -u root gplot_prod chown -R gplot:gplot /home/gplot/data
+        docker exec -u root gofr-plot_prod chown -R gofr-plot:gofr-plot /home/gofr-plot/data
         echo "Volume permissions fixed"
     fi
     
     echo ""
     echo "HTTP REST API available at http://localhost:$WEB_PORT"
     echo "MCP Streamable HTTP Server available at http://localhost:$MCP_PORT/mcp/"
-    echo "Persistent data stored in Docker volume: gplot_data"
+    echo "Persistent data stored in Docker volume: gofr-plot_data"
     echo ""
-    echo "To run web server: docker exec -it gplot_prod python -m app.main_web"
-    echo "To view logs: docker logs -f gplot_prod"
-    echo "To stop: docker stop gplot_prod"
+    echo "To run web server: docker exec -it gofr-plot_prod python -m app.main_web"
+    echo "To view logs: docker logs -f gofr-plot_prod"
+    echo "To stop: docker stop gofr-plot_prod"
 else
-    echo "ERROR: Container gplot_prod failed to start"
-    docker logs gplot_prod
+    echo "ERROR: Container gofr-plot_prod failed to start"
+    docker logs gofr-plot_prod
     exit 1
 fi

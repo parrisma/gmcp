@@ -1,5 +1,5 @@
 #!/bin/bash
-# gplot MCP Server Startup Script (Authentication Mode)
+# gofr-plot MCP Server Startup Script (Authentication Mode)
 # Starts the MCP server with JWT authentication enabled for testing.
 # Uses the same JWT secret as conftest.py for test compatibility.
 
@@ -17,13 +17,13 @@ PROJECT_ROOT="$(cd "${SCRIPT_DIR}/.." && pwd)"
 cd "${PROJECT_ROOT}"
 
 # Test configuration (matches conftest.py)
-PORT="${GPLOT_MCP_PORT:-8001}"
+PORT="${GOFR_PLOT_MCP_PORT:-8001}"
 JWT_SECRET="test-secret-key-for-secure-testing-do-not-use-in-production"
-TOKEN_STORE="/tmp/gplot_test_tokens.json"
+TOKEN_STORE="/tmp/gofr-plot_test_tokens.json"
 LOG_FILE="mcp_test_server.log"
 
 # Display startup information
-echo -e "${GREEN}=== Starting gplot MCP Server (Test Auth Mode) ===${NC}"
+echo -e "${GREEN}=== Starting gofr-plot MCP Server (Test Auth Mode) ===${NC}"
 echo "Port:         ${PORT}"
 echo "JWT Secret:   ${JWT_SECRET:0:20}..."
 echo "Token Store:  ${TOKEN_STORE}"

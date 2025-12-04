@@ -2,7 +2,7 @@
 
 ## Overview
 
-As of Phase 2, the gplot authentication system supports **dependency injection** for `AuthService` instances, enabling cleaner testing, better modularity, and explicit control over service initialization.
+As of Phase 2, the gofr-plot authentication system supports **dependency injection** for `AuthService` instances, enabling cleaner testing, better modularity, and explicit control over service initialization.
 
 ## Architecture
 

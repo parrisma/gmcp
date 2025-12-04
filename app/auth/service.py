@@ -42,7 +42,7 @@ class AuthService:
         self.logger = ConsoleLogger(name="auth", level=logging.INFO)
 
         # Get or create secret key
-        secret = secret_key or os.environ.get("GPLOT_JWT_SECRET")
+        secret = secret_key or os.environ.get("GOFR_PLOT_JWT_SECRET")
         if not secret:
             self.logger.warning(
                 "No JWT secret provided, generating random secret (not suitable for production)"
@@ -170,7 +170,7 @@ class AuthService:
             "iat": int(now.timestamp()),
             "exp": int(expires_at.timestamp()),
             "nbf": int(not_before.timestamp()),  # Not before timestamp
-            "aud": "gplot-api",  # Audience claim
+            "aud": "gofr-plot-api",  # Audience claim
         }
 
         # Add optional claims for enhanced security
@@ -250,7 +250,7 @@ class AuthService:
                 raise ValueError("Token missing group claim")
 
             # Validate audience if present (optional for backward compatibility)
-            if "aud" in payload and payload["aud"] != "gplot-api":
+            if "aud" in payload and payload["aud"] != "gofr-plot-api":
                 self.logger.error("Token audience mismatch", aud=payload["aud"])
                 raise ValueError("Token audience mismatch")
 

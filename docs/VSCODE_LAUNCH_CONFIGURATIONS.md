@@ -106,8 +106,8 @@ Additional environment variables can be added to any configuration:
 ```json
 "env": {
     "PYTHONPATH": "${workspaceFolder}",
-    "GPLOT_DATA_DIR": "/custom/path",
-    "GPLOT_JWT_SECRET": "your-secret"
+    "GOFR_PLOT_DATA_DIR": "/custom/path",
+    "GOFR_PLOT_JWT_SECRET": "your-secret"
 }
 ```
 

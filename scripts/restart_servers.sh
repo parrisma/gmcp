@@ -1,5 +1,5 @@
 #!/bin/bash
-# Restart all gplot servers in correct order: MCP → MCPO → Web
+# Restart all gofr-plot servers in correct order: MCP → MCPO → Web
 # Verifies each server is operational before continuing
 # Usage: ./restart_servers.sh [--kill-all]
 
@@ -9,14 +9,14 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PROJECT_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
 
 # Source centralized environment configuration
-if [ -f "${PROJECT_ROOT}/gplot.env" ]; then
-    source "${PROJECT_ROOT}/gplot.env"
+if [ -f "${PROJECT_ROOT}/gofr-plot.env" ]; then
+    source "${PROJECT_ROOT}/gofr-plot.env"
 fi
 
-# Default ports (from gplot.env or fallback)
-MCP_PORT=${GPLOT_MCP_PORT:-8010}
-MCPO_PORT=${GPLOT_MCPO_PORT:-8011}
-WEB_PORT=${GPLOT_WEB_PORT:-8012}
+# Default ports (from gofr-plot.env or fallback)
+MCP_PORT=${GOFR_PLOT_MCP_PORT:-8010}
+MCPO_PORT=${GOFR_PLOT_MCPO_PORT:-8011}
+WEB_PORT=${GOFR_PLOT_WEB_PORT:-8012}
 
 # Colors
 RED='\033[0;31m'
@@ -25,7 +25,7 @@ YELLOW='\033[1;33m'
 NC='\033[0m'
 
 echo "======================================================================="
-echo "gplot Server Restart Script"
+echo "gofr-plot Server Restart Script"
 echo "======================================================================="
 
 # Kill existing processes
@@ -109,15 +109,15 @@ cd "$PROJECT_ROOT"
 # Create logs directory if it doesn't exist
 mkdir -p "$PROJECT_ROOT/logs"
 
-nohup bash "$SCRIPT_DIR/run_mcp.sh" --port $MCP_PORT > "$PROJECT_ROOT/logs/gplot_mcp.log" 2>&1 &
+nohup bash "$SCRIPT_DIR/run_mcp.sh" --port $MCP_PORT > "$PROJECT_ROOT/logs/gofr-plot_mcp.log" 2>&1 &
 MCP_PID=$!
 echo "  MCP server starting (PID: $MCP_PID)"
-echo "  Log: $PROJECT_ROOT/logs/gplot_mcp.log"
+echo "  Log: $PROJECT_ROOT/logs/gofr-plot_mcp.log"
 
 # Verify MCP is operational
 if ! verify_server $MCP_PORT "MCP Server" "/mcp/"; then
     echo -e "${RED}ERROR: MCP server failed to start${NC}"
-    tail -20 "$PROJECT_ROOT/logs/gplot_mcp.log"
+    tail -20 "$PROJECT_ROOT/logs/gofr-plot_mcp.log"
     exit 1
 fi
 
@@ -126,15 +126,15 @@ echo ""
 echo "Step 3: Starting MCPO wrapper (port $MCPO_PORT)..."
 echo "-----------------------------------------------------------------------"
 
-nohup bash "$SCRIPT_DIR/run_mcpo.sh" --mcp-port $MCP_PORT --port $MCPO_PORT > "$PROJECT_ROOT/logs/gplot_mcpo.log" 2>&1 &
+nohup bash "$SCRIPT_DIR/run_mcpo.sh" --mcp-port $MCP_PORT --port $MCPO_PORT > "$PROJECT_ROOT/logs/gofr-plot_mcpo.log" 2>&1 &
 MCPO_PID=$!
 echo "  MCPO wrapper starting (PID: $MCPO_PID)"
-echo "  Log: $PROJECT_ROOT/logs/gplot_mcpo.log"
+echo "  Log: $PROJECT_ROOT/logs/gofr-plot_mcpo.log"
 
 # Verify MCPO is operational
 if ! verify_server $MCPO_PORT "MCPO Wrapper" "/openapi.json"; then
     echo -e "${RED}ERROR: MCPO wrapper failed to start${NC}"
-    tail -20 "$PROJECT_ROOT/logs/gplot_mcpo.log"
+    tail -20 "$PROJECT_ROOT/logs/gofr-plot_mcpo.log"
     exit 1
 fi
 
@@ -143,15 +143,15 @@ echo ""
 echo "Step 4: Starting Web server (port $WEB_PORT)..."
 echo "-----------------------------------------------------------------------"
 
-nohup bash "$SCRIPT_DIR/run_web.sh" --port $WEB_PORT > "$PROJECT_ROOT/logs/gplot_web.log" 2>&1 &
+nohup bash "$SCRIPT_DIR/run_web.sh" --port $WEB_PORT > "$PROJECT_ROOT/logs/gofr-plot_web.log" 2>&1 &
 WEB_PID=$!
 echo "  Web server starting (PID: $WEB_PID)"
-echo "  Log: $PROJECT_ROOT/logs/gplot_web.log"
+echo "  Log: $PROJECT_ROOT/logs/gofr-plot_web.log"
 
 # Verify Web server is operational
 if ! verify_server $WEB_PORT "Web Server" "/ping"; then
     echo -e "${RED}ERROR: Web server failed to start${NC}"
-    tail -20 "$PROJECT_ROOT/logs/gplot_web.log"
+    tail -20 "$PROJECT_ROOT/logs/gofr-plot_web.log"
     exit 1
 fi
 
@@ -172,10 +172,10 @@ echo "  MCPO:  $MCPO_PID"
 echo "  Web:   $WEB_PID"
 echo ""
 echo "Logs:"
-echo "  MCP:   $PROJECT_ROOT/logs/gplot_mcp.log"
-echo "  MCPO:  $PROJECT_ROOT/logs/gplot_mcpo.log"
-echo "  Web:   $PROJECT_ROOT/logs/gplot_web.log"
+echo "  MCP:   $PROJECT_ROOT/logs/gofr-plot_mcp.log"
+echo "  MCPO:  $PROJECT_ROOT/logs/gofr-plot_mcpo.log"
+echo "  Web:   $PROJECT_ROOT/logs/gofr-plot_web.log"
 echo ""
 echo "To stop all servers: $0 --kill-all"
-echo "To view logs: tail -f $PROJECT_ROOT/logs/gplot_*.log"
+echo "To view logs: tail -f $PROJECT_ROOT/logs/gofr-plot_*.log"
 echo "======================================================================="

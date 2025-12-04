@@ -1,5 +1,5 @@
 #!/bin/bash
-# gplot Web Server Startup Script (Authentication Mode)
+# gofr-plot Web Server Startup Script (Authentication Mode)
 # Starts the Web server with JWT authentication enabled for testing.
 # Uses the same JWT secret as conftest.py for test compatibility.
 
@@ -17,13 +17,13 @@ PROJECT_ROOT="$(cd "${SCRIPT_DIR}/.." && pwd)"
 cd "${PROJECT_ROOT}"
 
 # Test configuration (matches conftest.py)
-PORT="${GPLOT_WEB_PORT:-8000}"
+PORT="${GOFR_PLOT_WEB_PORT:-8000}"
 JWT_SECRET="test-secret-key-for-secure-testing-do-not-use-in-production"
-TOKEN_STORE="/tmp/gplot_test_tokens.json"
+TOKEN_STORE="/tmp/gofr-plot_test_tokens.json"
 LOG_FILE="web_test_server.log"
 
 # Display startup information
-echo -e "${GREEN}=== Starting gplot Web Server (Test Auth Mode) ===${NC}"
+echo -e "${GREEN}=== Starting gofr-plot Web Server (Test Auth Mode) ===${NC}"
 echo "Port:         ${PORT}"
 echo "JWT Secret:   ${JWT_SECRET:0:20}..."
 echo "Token Store:  ${TOKEN_STORE}"

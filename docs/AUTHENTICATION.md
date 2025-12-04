@@ -2,7 +2,7 @@
 
 ## Overview
 
-gplot uses JWT (JSON Web Tokens) for authentication and group-based access control. Each JWT token is associated with a specific group, and rendered images are segregated by group to ensure secure isolation.
+gofr-plot uses JWT (JSON Web Tokens) for authentication and group-based access control. Each JWT token is associated with a specific group, and rendered images are segregated by group to ensure secure isolation.
 
 ## Key Concepts
 
@@ -18,7 +18,7 @@ gplot uses JWT (JSON Web Tokens) for authentication and group-based access contr
 For production use, set a secure JWT secret key:
 
 ```bash
-export GPLOT_JWT_SECRET="your-secure-secret-key-here"
+export GOFR_PLOT_JWT_SECRET="your-secure-secret-key-here"
 ```
 
 **Important**: Use a strong, random secret in production. You can generate one with:
@@ -133,7 +133,7 @@ python3 scripts/token_manager.py revoke --token YOUR_TOKEN_HERE
 python3 app/main.py --jwt-secret "your-secret" --token-store /path/to/tokens.json
 
 # Start with env var (recommended)
-export GPLOT_JWT_SECRET="your-secret"
+export GOFR_PLOT_JWT_SECRET="your-secret"
 python3 app/main.py
 
 # Custom token store location
@@ -147,7 +147,7 @@ python3 app/main.py --token-store /secure/path/tokens.json
 python3 -m app.main_mcp --jwt-secret "your-secret" --token-store /path/to/tokens.json
 
 # Start with env var (recommended)
-export GPLOT_JWT_SECRET="your-secret"
+export GOFR_PLOT_JWT_SECRET="your-secret"
 python3 -m app.main_mcp
 ```
 
@@ -194,25 +194,25 @@ curl http://localhost:8000/render/abc-123-def \
 python3 -c "import os; print(os.urandom(32).hex())"
 
 # Store in environment variable (don't commit to git)
-export GPLOT_JWT_SECRET="generated-secret-here"
+export GOFR_PLOT_JWT_SECRET="generated-secret-here"
 
 # Or use a secrets management system (recommended for production)
-export GPLOT_JWT_SECRET=$(aws secretsmanager get-secret-value --secret-id gplot-jwt --query SecretString --output text)
+export GOFR_PLOT_JWT_SECRET=$(aws secretsmanager get-secret-value --secret-id gofr-plot-jwt --query SecretString --output text)
 ```
 
 ### 2. Token Storage Security
 
 ```bash
 # Use a secure location with restricted permissions
-mkdir -p /secure/gplot
-chmod 700 /secure/gplot
+mkdir -p /secure/gofr-plot
+chmod 700 /secure/gofr-plot
 
 # Start servers with secure token store
-python3 -m app.main_web --token-store /secure/gplot/tokens.json
-python3 -m app.main_mcp --token-store /secure/gplot/tokens.json
+python3 -m app.main_web --token-store /secure/gofr-plot/tokens.json
+python3 -m app.main_mcp --token-store /secure/gofr-plot/tokens.json
 
 # Set restrictive permissions
-chmod 600 /secure/gplot/tokens.json
+chmod 600 /secure/gofr-plot/tokens.json
 ```
 
 ### 3. Token Rotation
@@ -345,7 +345,7 @@ All tools require a `token` parameter.
 
 | Variable | Description | Default |
 |----------|-------------|---------|
-| `GPLOT_JWT_SECRET` | JWT signing secret key | Auto-generated (development only) |
+| `GOFR_PLOT_JWT_SECRET` | JWT signing secret key | Auto-generated (development only) |
 
 **Warning**: Auto-generated secrets are not suitable for production and will change on server restart.
 
@@ -363,11 +363,11 @@ Tokens are stored in JSON format:
 }
 ```
 
-**Location**: Default is `/tmp/gplot_tokens.json`. Configure with `--token-store` option.
+**Location**: Default is `/tmp/gofr-plot_tokens.json`. Configure with `--token-store` option.
 
 ## Production Deployment Checklist
 
-- [ ] Set strong `GPLOT_JWT_SECRET` environment variable
+- [ ] Set strong `GOFR_PLOT_JWT_SECRET` environment variable
 - [ ] Use secure token store location with restrictive permissions (600)
 - [ ] Configure both web and MCP servers with same secret and token store
 - [ ] Set up token rotation policy (30-90 days)
@@ -437,7 +437,7 @@ Enhanced tokens include security-focused JWT standard claims:
 | `iat` | Issued At - timestamp when token created | Yes | Yes |
 | `exp` | Expires - timestamp when token expires | Yes | Yes |
 | `nbf` | Not Before - token not valid until this time | Yes | Yes |
-| `aud` | Audience - intended recipient (`gplot-api`) | Yes | Yes (if present) |
+| `aud` | Audience - intended recipient (`gofr-plot-api`) | Yes | Yes (if present) |
 | `jti` | JWT ID - unique token identifier | Optional | No |
 | `fp` | Fingerprint - device binding hash | Optional | Yes (if present) |
 | `group` | Group - user's group for access control | Yes | Yes |
@@ -450,7 +450,7 @@ Enhanced tokens include security-focused JWT standard claims:
   "iat": 1700000000,
   "exp": 1700003600,
   "nbf": 1700000000,
-  "aud": "gplot-api",
+  "aud": "gofr-plot-api",
   "jti": "unique-token-id-123",
   "fp": "a7f3d8e9c2b1..."
 }

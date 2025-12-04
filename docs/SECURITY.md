@@ -1,10 +1,10 @@
 # Security Guide
 
-This document describes the security architecture, authentication mechanisms, and best practices for the gplot project.
+This document describes the security architecture, authentication mechanisms, and best practices for the gofr-plot project.
 
 ## Overview
 
-gplot implements JWT-based authentication with group-level access control for multi-tenant graph rendering and storage. The security model ensures:
+gofr-plot implements JWT-based authentication with group-level access control for multi-tenant graph rendering and storage. The security model ensures:
 
 - **Authentication**: Valid JWT tokens required for all protected endpoints
 - **Authorization**: Group-based isolation prevents cross-tenant data access
@@ -55,9 +55,9 @@ gplot implements JWT-based authentication with group-level access control for mu
 
 | Variable | Required | Default | Description |
 |----------|----------|---------|-------------|
-| `GPLOT_JWT_SECRET` | Yes* | None | Secret key for JWT signing/verification |
-| `GPLOT_TOKEN_STORE` | No | `data/auth/tokens.json` | Path to token store file |
-| `GPLOT_NO_AUTH` | No | `false` | Set to `true` to disable authentication |
+| `GOFR_PLOT_JWT_SECRET` | Yes* | None | Secret key for JWT signing/verification |
+| `GOFR_PLOT_TOKEN_STORE` | No | `data/auth/tokens.json` | Path to token store file |
+| `GOFR_PLOT_NO_AUTH` | No | `false` | Set to `true` to disable authentication |
 
 \* Required when authentication is enabled
 
@@ -88,7 +88,7 @@ gplot implements JWT-based authentication with group-level access control for mu
 
 Configuration precedence (highest to lowest):
 1. Command-line arguments (`--jwt-secret`, `--token-store`, `--no-auth`)
-2. Environment variables (`GPLOT_JWT_SECRET`, `GPLOT_TOKEN_STORE`, `GPLOT_NO_AUTH`)
+2. Environment variables (`GOFR_PLOT_JWT_SECRET`, `GOFR_PLOT_TOKEN_STORE`, `GOFR_PLOT_NO_AUTH`)
 3. Defaults (auth enabled, default token store path)
 
 ## Token Management
@@ -100,7 +100,7 @@ The token store is a JSON file tracking:
 - Token metadata (group, expiration, creation time)
 - Revoked tokens (for immediate invalidation)
 
-**Location:** Default is `data/auth/tokens.json`, configurable via `GPLOT_TOKEN_STORE`
+**Location:** Default is `data/auth/tokens.json`, configurable via `GOFR_PLOT_TOKEN_STORE`
 
 **Format:**
 ```json
@@ -290,7 +290,7 @@ Group mismatch returns:
    openssl rand -base64 32
    
    # Set environment variable
-   export GPLOT_JWT_SECRET="<generated-secret>"
+   export GOFR_PLOT_JWT_SECRET="<generated-secret>"
    ```
 
 2. **Token Expiration**
@@ -318,7 +318,7 @@ Group mismatch returns:
 1. **Test Mode**
    ```bash
    # Use consistent secret for testing
-   export GPLOT_JWT_SECRET="test-secret-key-for-secure-testing-do-not-use-in-production"
+   export GOFR_PLOT_JWT_SECRET="test-secret-key-for-secure-testing-do-not-use-in-production"
    ```
 
 2. **Disable Auth (Local Only)**
@@ -329,7 +329,7 @@ Group mismatch returns:
    ```
 
 3. **Token Sharing**
-   - Use shared token store in tests (`/tmp/gplot_test_tokens.json`)
+   - Use shared token store in tests (`/tmp/gofr-plot_test_tokens.json`)
    - Cleanup between test runs via `run_tests.sh`
 
 ### Code Integration
@@ -340,8 +340,8 @@ from app.auth import AuthService
 
 # Initialize once
 auth_service = AuthService(
-    secret_key=os.environ["GPLOT_JWT_SECRET"],
-    token_store_path=os.environ.get("GPLOT_TOKEN_STORE", "data/auth/tokens.json")
+    secret_key=os.environ["GOFR_PLOT_JWT_SECRET"],
+    token_store_path=os.environ.get("GOFR_PLOT_TOKEN_STORE", "data/auth/tokens.json")
 )
 
 # Inject into servers

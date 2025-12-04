@@ -2,7 +2,7 @@
 
 ## Overview
 
-The gplot rendering service now supports plotting up to 5 datasets on a single graph. This allows you to create comparative visualizations with multiple data series, each with its own styling and legend labels.
+The gofr-plot rendering service now supports plotting up to 5 datasets on a single graph. This allows you to create comparative visualizations with multiple data series, each with its own styling and legend labels.
 
 ## Key Features
 

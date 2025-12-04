@@ -1,6 +1,6 @@
 # Authentication Tests
 
-Comprehensive test suite for JWT authentication in gplot.
+Comprehensive test suite for JWT authentication in gofr-plot.
 
 ## Test Coverage
 
@@ -45,7 +45,7 @@ uv pip install pytest pytest-asyncio httpx
 Both servers must use the same JWT secret for the tests to work:
 
 ```bash
-export GPLOT_JWT_SECRET="test-secret-key-for-auth-testing"
+export GOFR_PLOT_JWT_SECRET="test-secret-key-for-auth-testing"
 ```
 
 ### 3. Start Both Servers
@@ -146,7 +146,7 @@ curl http://localhost:8001/mcp/
 Ensure both servers are using the same JWT secret:
 ```bash
 # Both should use the same secret
-export GPLOT_JWT_SECRET="test-secret-key-for-auth-testing"
+export GOFR_PLOT_JWT_SECRET="test-secret-key-for-auth-testing"
 python -m app.main_web --jwt-secret "test-secret-key-for-auth-testing"
 python -m app.main_mcp --jwt-secret "test-secret-key-for-auth-testing"
 ```
@@ -171,10 +171,10 @@ To run these tests in CI/CD pipelines:
 ```bash
 #!/bin/bash
 # Start servers in background
-export GPLOT_JWT_SECRET="ci-test-secret"
-python app/main.py --jwt-secret "$GPLOT_JWT_SECRET" &
+export GOFR_PLOT_JWT_SECRET="ci-test-secret"
+python app/main.py --jwt-secret "$GOFR_PLOT_JWT_SECRET" &
 WEB_PID=$!
-python app/mcp_server.py --jwt-secret "$GPLOT_JWT_SECRET" &
+python app/mcp_server.py --jwt-secret "$GOFR_PLOT_JWT_SECRET" &
 MCP_PID=$!
 
 # Wait for servers to start

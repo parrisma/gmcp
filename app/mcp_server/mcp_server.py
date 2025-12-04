@@ -54,7 +54,7 @@ import os
 
 
 # Initialize the MCP server
-app = Server("gplot")
+app = Server("gofr-plot")
 renderer = GraphRenderer()
 validator = GraphDataValidator()
 storage = get_storage()
@@ -107,7 +107,7 @@ def set_auth_service(service: AuthService | None) -> None:
         is_test_env = service.secret_key.startswith("test-secret")
     elif not service:
         # No auth means we check environment variable
-        is_test_env = os.getenv("GPLOT_JWT_SECRET", "").startswith("test-secret")
+        is_test_env = os.getenv("GOFR_PLOT_JWT_SECRET", "").startswith("test-secret")
 
     if is_test_env:
         logger.info(
@@ -478,7 +478,7 @@ def _handle_ping(client_id: str) -> list[TextContent | ImageContent | EmbeddedRe
     logger.debug("Ping response", timestamp=current_time)
     return [
         TextContent(
-            type="text", text=f"Server is running\nTimestamp: {current_time}\nService: gplot"
+            type="text", text=f"Server is running\nTimestamp: {current_time}\nService: gofr-plot"
         )
     ]
 
@@ -1163,7 +1163,9 @@ async def handle_call_tool(
                 import socket
 
                 hostname = socket.gethostname()
-                web_base = web_url_override or os.getenv("GPLOT_WEB_URL", f"http://{hostname}:8000")
+                web_base = web_url_override or os.getenv(
+                    "GOFR_PLOT_WEB_URL", f"http://{hostname}:8000"
+                )
                 download_url = f"{web_base}/proxy/{guid}"
                 response_text += f"Download URL: {download_url}\n"
                 if alias and storage.get_alias(guid) == alias:
@@ -1284,9 +1286,11 @@ starlette_app = Starlette(
 )
 
 # Add CORS middleware to expose Mcp-Session-Id header
-# GPLOT_CORS_ORIGINS: Comma-separated list of allowed origins, or "*" for all
+# GOFR_PLOT_CORS_ORIGINS: Comma-separated list of allowed origins, or "*" for all
 # Default: http://localhost:3000,http://localhost:8000 (common dev ports)
-cors_origins_str = os.getenv("GPLOT_CORS_ORIGINS", "http://localhost:3000,http://localhost:8000")
+cors_origins_str = os.getenv(
+    "GOFR_PLOT_CORS_ORIGINS", "http://localhost:3000,http://localhost:8000"
+)
 if cors_origins_str == "*":
     cors_origins = ["*"]
 else:
@@ -1317,7 +1321,7 @@ async def main(host: str = "0.0.0.0", port: int = 8001):
     # Print detailed startup banner
     banner = f"""
 {'='*80}
-  gplot MCP Server - Starting
+  gofr-plot MCP Server - Starting
 {'='*80}
   Version:          1.0.0
   Transport:        Streamable HTTP (MCP Protocol)
@@ -1329,8 +1333,8 @@ async def main(host: str = "0.0.0.0", port: int = 8001):
     - Health Check:  http://{host}:{port}/health
   
   Container Network (from n8n/openwebui):
-    - gplot_dev:     http://gplot_dev:{port}/mcp/
-    - gplot_prod:    http://gplot_prod:{port}/mcp/
+    - gofr-plot_dev:     http://gofr-plot_dev:{port}/mcp/
+    - gofr-plot_prod:    http://gofr-plot_prod:{port}/mcp/
   
   Localhost Access:
     - Local:         http://localhost:{port}/mcp/

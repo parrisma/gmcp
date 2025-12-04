@@ -1,6 +1,6 @@
 # Data Directory
 
-This directory contains persistent data for the gplot application.
+This directory contains persistent data for the gofr-plot application.
 
 ## Structure
 
@@ -16,9 +16,9 @@ data/
 
 The data directory location can be configured via:
 
-1. **Environment Variable**: `GPLOT_DATA_DIR`
+1. **Environment Variable**: `GOFR_PLOT_DATA_DIR`
    ```bash
-   export GPLOT_DATA_DIR=/path/to/custom/data
+   export GOFR_PLOT_DATA_DIR=/path/to/custom/data
    ```
 
 2. **Default Location**: `{project_root}/data`
@@ -30,7 +30,7 @@ The data directory location can be configured via:
 For persistent data in Docker deployments, mount the data directory:
 
 ```bash
-docker run -v /host/path/to/data:/home/gplot/devroot/gplot/data gplot_prod
+docker run -v /host/path/to/data:/home/gplot/devroot/gplot/data gofr-plot_prod
 ```
 
 ## Testing
@@ -48,11 +48,11 @@ Tests automatically use temporary directories that are cleaned up after each tes
 To backup all persistent data:
 
 ```bash
-tar -czf gplot_data_backup_$(date +%Y%m%d).tar.gz data/
+tar -czf gofr-plot_data_backup_$(date +%Y%m%d).tar.gz data/
 ```
 
 To restore:
 
 ```bash
-tar -xzf gplot_data_backup_YYYYMMDD.tar.gz
+tar -xzf gofr-plot_data_backup_YYYYMMDD.tar.gz
 ```

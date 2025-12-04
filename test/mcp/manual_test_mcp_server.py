@@ -27,15 +27,15 @@ async def test_mcp_server():
 
     # Create auth service and token for testing
     secret = os.environ.get(
-        "GPLOT_JWT_SECRET", "test-secret-key-for-secure-testing-do-not-use-in-production"
+        "GOFR_PLOT_JWT_SECRET", "test-secret-key-for-secure-testing-do-not-use-in-production"
     )
-    token_store = os.environ.get("GPLOT_TOKEN_STORE", "/tmp/gplot_test_tokens.json")
+    token_store = os.environ.get("GOFR_PLOT_TOKEN_STORE", "/tmp/gofr-plot_test_tokens.json")
     auth_service = AuthService(secret_key=secret, token_store_path=token_store)
     token = auth_service.create_token(group="test_group")
     logger.info("Created test token", token=token[:20] + "...")
 
     # Streamable HTTP server endpoint
-    http_url = f"http://localhost:{os.environ.get('GPLOT_MCP_PORT', '8001')}/mcp/"
+    http_url = f"http://localhost:{os.environ.get('GOFR_PLOT_MCP_PORT', '8001')}/mcp/"
 
     logger.info("Starting MCP server test with Streamable HTTP transport", url=http_url)
     print("-" * 50)

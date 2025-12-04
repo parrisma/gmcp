@@ -16,9 +16,9 @@ from app.storage import reset_storage, get_storage
 from app.auth import AuthService
 
 # Test server configuration - reads from environment (set by run_tests.sh)
-MCP_PORT = int(os.environ.get("GPLOT_MCP_PORT", "8010"))
-WEB_PORT = int(os.environ.get("GPLOT_WEB_PORT", "8012"))
-MCPO_PORT = int(os.environ.get("GPLOT_MCPO_PORT", "8011"))
+MCP_PORT = int(os.environ.get("GOFR_PLOT_MCP_PORT", "8010"))
+WEB_PORT = int(os.environ.get("GOFR_PLOT_WEB_PORT", "8012"))
+MCPO_PORT = int(os.environ.get("GOFR_PLOT_MCPO_PORT", "8011"))
 
 # Test URL constants
 MCP_URL = f"http://localhost:{MCP_PORT}/mcp/"
@@ -39,7 +39,7 @@ def test_data_dir(tmp_path):
     - Purges all images from storage after test
     """
     # Set up test mode with temporary directory
-    test_dir = tmp_path / "gplot_test_data"
+    test_dir = tmp_path / "gofr-plot_test_data"
     test_dir.mkdir(parents=True, exist_ok=True)
 
     # Create subdirectories
@@ -99,17 +99,17 @@ def test_auth_service():
 
         Uses the same secret and token store as run_tests.sh and launch.json.
         The servers must be started with:
-            GPLOT_JWT_SECRET="test-secret-key-for-secure-testing-do-not-use-in-production" (override via env)
-            GPLOT_DATA_DIR="<workspace>/test/data"
+            GOFR_PLOT_JWT_SECRET="test-secret-key-for-secure-testing-do-not-use-in-production" (override via env)
+            GOFR_PLOT_DATA="<workspace>/test/data"
 
     Returns:
         AuthService: Configured auth service for testing
     """
 
     test_secret = os.environ.get(
-        "GPLOT_JWT_SECRET", "test-secret-key-for-secure-testing-do-not-use-in-production"
+        "GOFR_PLOT_JWT_SECRET", "test-secret-key-for-secure-testing-do-not-use-in-production"
     )
-    token_store_path = os.environ.get("GPLOT_TOKEN_STORE", "/tmp/gplot_test_tokens.json")
+    token_store_path = os.environ.get("GOFR_PLOT_TOKEN_STORE", "/tmp/gofr-plot_test_tokens.json")
 
     auth_service = AuthService(secret_key=test_secret, token_store_path=str(token_store_path))
     return auth_service

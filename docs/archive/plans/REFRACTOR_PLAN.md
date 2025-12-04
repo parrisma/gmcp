@@ -1,8 +1,8 @@
-# gplot Server Hardening & Test Infrastructure Plan
+# gofr-plot Server Hardening & Test Infrastructure Plan
 
 ## Phase 0 – Baseline & Test Harness
 - Add `scripts/run_tests.sh` (mirrors doco pattern) that:
-  - Exports `GPLOT_JWT_SECRET` and shared token-store path.
+  - Exports `GOFR_PLOT_JWT_SECRET` and shared token-store path.
   - Supports `--with-servers`, `--no-servers`, `--cleanup-only`.
   - Kills lingering processes on ports 8000/8001 prior to launch.
   - Starts/stops MCP & web servers when requested, waits for readiness, propagates exit codes.
@@ -13,7 +13,7 @@
 ## Phase 1 – Centralized Auth Configuration
 - Create `app/startup/auth_config.py` with `resolve_auth_config()` implementing priority chain:
   1. CLI args (`--jwt-secret`, `--token-store`).
-  2. Env vars (`GPLOT_JWT_SECRET`, `GPLOT_TOKEN_STORE`).
+  2. Env vars (`GOFR_PLOT_JWT_SECRET`, `GOFR_PLOT_TOKEN_STORE`).
   3. Auto-generated dev secret/token store (only when auth required and not in production).
   4. Defaults via `Config.get_token_store_path()`.
 - Return tuple `(jwt_secret, token_store_path, require_auth)` and structured log metadata.
@@ -42,7 +42,7 @@
 
 ## Phase 4 – Fixture & Token Store Consolidation
 - Move all duplicated auth utilities into `test/conftest.py`:
-  - Session-scoped `auth_service` using `/tmp/gplot_test_tokens.json`.
+  - Session-scoped `auth_service` using `/tmp/gofr-plot_test_tokens.json`.
   - Fixture for generating/revoking temporary tokens per test.
   - Function-scoped overrides for unit tests needing isolation (e.g., temporary token store via `NamedTemporaryFile`).
 - Ensure integration tests share the session-scoped token store, while unit tests explicitly opt into isolated fixture override.

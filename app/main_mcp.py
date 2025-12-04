@@ -12,7 +12,7 @@ logger = ConsoleLogger(name="main_mcp", level=logging.INFO)
 if __name__ == "__main__":
     # Parse command line arguments
     parser = argparse.ArgumentParser(
-        description="gplot MCP Server - Graph rendering via Model Context Protocol"
+        description="gofr-plot MCP Server - Graph rendering via Model Context Protocol"
     )
     parser.add_argument(
         "--host",
@@ -30,7 +30,7 @@ if __name__ == "__main__":
         "--jwt-secret",
         type=str,
         default=None,
-        help="JWT secret key (default: from GPLOT_JWT_SECRET env var)",
+        help="JWT secret key (default: from GOFR_PLOT_JWT_SECRET env var)",
     )
     parser.add_argument(
         "--token-store",
@@ -47,7 +47,7 @@ if __name__ == "__main__":
         "--web-url",
         type=str,
         default=None,
-        help="Web server base URL for proxy mode downloads (default: from GPLOT_WEB_URL env or http://localhost:8000)",
+        help="Web server base URL for proxy mode downloads (default: from GOFR_PLOT_WEB_URL env or http://localhost:8000)",
     )
     parser.add_argument(
         "--proxy-url-mode",
@@ -103,7 +103,7 @@ if __name__ == "__main__":
         startup_logger.error(
             "FATAL: Configuration error",
             error=str(e),
-            help="Set GPLOT_JWT_SECRET environment variable or use --jwt-secret flag, or use --no-auth to disable authentication",
+            help="Set GOFR_PLOT_JWT_SECRET environment variable or use --jwt-secret flag, or use --no-auth to disable authentication",
         )
         sys.exit(1)
 

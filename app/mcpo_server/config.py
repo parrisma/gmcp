@@ -73,7 +73,7 @@ def create_default_config(
     mcp_auth_port: int = 8001,
 ) -> MCPOConfig:
     """
-    Create default MCPO configuration for gplot MCP server
+    Create default MCPO configuration for gofr-plot MCP server
 
     Args:
         auth_token: JWT token for authenticated server
@@ -84,9 +84,9 @@ def create_default_config(
     """
     config = MCPOConfig()
 
-    # Add gplot MCP server
+    # Add gofr-plot MCP server
     config.add_server(
-        name="gplot",
+        name="gofr-plot",
         url=f"http://localhost:{mcp_auth_port}/mcp",
         auth_token=auth_token,
     )
@@ -106,7 +106,7 @@ def create_public_only_config(mcp_port: int = 8001) -> MCPOConfig:
     """
     config = MCPOConfig()
     config.add_server(
-        name="gplot",
+        name="gofr-plot",
         url=f"http://localhost:{mcp_port}/mcp",
     )
     return config

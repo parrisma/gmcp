@@ -1,6 +1,6 @@
 # N8N Integration Guide
 
-Complete guide for integrating gplot graph rendering with N8N workflow automation.
+Complete guide for integrating gofr-plot graph rendering with N8N workflow automation.
 
 ## Table of Contents
 
@@ -18,7 +18,7 @@ Complete guide for integrating gplot graph rendering with N8N workflow automatio
 ## Quick Start
 
 **Prerequisites:**
-- gplot server running (MCP on port 8001, Web on port 8000)
+- gofr-plot server running (MCP on port 8001, Web on port 8000)
 - N8N instance running
 - Valid JWT bearer token
 
@@ -37,18 +37,18 @@ eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJncm91cCI6Im44biIsImlhdCI6MTc2Mjg4MTI1MSw
 
 ```
 ┌─────────────┐  MCP Streamable HTTP (8001)  ┌────────────┐
-│   N8N       │ ────────────────────────►    │   gplot    │
+│   N8N       │ ────────────────────────►    │ gofr-plot  │
 │ Workflows   │     HTTP REST (Port 8000)    │  Service   │
 │             │ ────────────────────────►    │            │
 └─────────────┘                              └────────────┘
      │                                            │
      │                                            │
-     └────────── gplot_net Network ────────────────┘
+     └────────── gofr-plot_net Network ───────────┘
 ```
 
-### gplot MCP Capabilities
+### gofr-plot MCP Capabilities
 
-gplot uses **Streamable HTTP transport** (modern MCP standard) on port 8001, making it fully compatible with N8N's MCP Client Tool.
+gofr-plot uses **Streamable HTTP transport** (modern MCP standard) on port 8001, making it fully compatible with N8N's MCP Client Tool.
 
 **Available MCP Tools:**
 - ✅ `ping` - Health check endpoint
@@ -59,18 +59,18 @@ gplot uses **Streamable HTTP transport** (modern MCP standard) on port 8001, mak
 
 ### Docker Network
 
-Both gplot and n8n containers run on the same Docker network (`gplot_net`):
-- **gplot_dev REST API:** `http://gplot_dev:8000`
-- **gplot_dev MCP Server:** `http://gplot_dev:8001/mcp`
-- **gplot_prod REST API:** `http://gplot_prod:8000`
-- **gplot_prod MCP Server:** `http://gplot_prod:8001/mcp`
+Both gofr-plot and n8n containers run on the same Docker network (`gofr-plot_net`):
+- **gofr-plot_dev REST API:** `http://gofr-plot_dev:8000`
+- **gofr-plot_dev MCP Server:** `http://gofr-plot_dev:8001/mcp`
+- **gofr-plot_prod REST API:** `http://gofr-plot_prod:8000`
+- **gofr-plot_prod MCP Server:** `http://gofr-plot_prod:8001/mcp`
 - **n8n:** `http://n8n:5678`
 
 ---
 
 ## Method 1: MCP Protocol (Recommended)
 
-N8N's MCP Client Tool can connect directly to gplot's Streamable HTTP MCP endpoint.
+N8N's MCP Client Tool can connect directly to gofr-plot's Streamable HTTP MCP endpoint.
 
 ### Setup Steps
 
@@ -79,7 +79,7 @@ N8N's MCP Client Tool can connect directly to gplot's Streamable HTTP MCP endpoi
    - Add node to workflow
 
 2. **Configure MCP Server Connection**
-   - **URL**: `http://localhost:8001/mcp/` (or `http://gplot_dev:8001/mcp/` in Docker)
+   - **URL**: `http://localhost:8001/mcp/` (or `http://gofr-plot_dev:8001/mcp/` in Docker)
    - **Transport**: Streamable HTTP (automatic)
    - **Authentication**: Custom Headers (if supported) or pass token in arguments
 
@@ -135,14 +135,14 @@ N8N's MCP Client Tool can connect directly to gplot's Streamable HTTP MCP endpoi
 ```
 Server is running
 Timestamp: 2025-11-26T14:30:00.123456
-Service: gplot
+Service: gofr-plot
 ```
 
 ---
 
 ## Method 2: HTTP REST API
 
-Alternative approach using N8N's HTTP Request node to call gplot's REST API directly.
+Alternative approach using N8N's HTTP Request node to call gofr-plot's REST API directly.
 
 ### Setup Steps
 
@@ -150,7 +150,7 @@ Alternative approach using N8N's HTTP Request node to call gplot's REST API dire
 
 2. **Configure the node:**
    - **Method**: POST
-   - **URL**: `http://localhost:8000/render` (or `http://gplot_dev:8000/render`)
+   - **URL**: `http://localhost:8000/render` (or `http://gofr-plot_dev:8000/render`)
    - **Authentication**: Generic Credential Type
    - **Header Auth**:
      - Name: `Authorization`
@@ -279,7 +279,7 @@ GET http://localhost:8000/proxy/{guid}/html
 ### Workflow 1: Simple Bar Chart
 
 ```
-[Trigger] → [Set Data] → [HTTP Request (gplot)] → [Save to Storage]
+[Trigger] → [Set Data] → [HTTP Request (gofr-plot)] → [Save to Storage]
 ```
 
 ### Workflow 2: Database → Chart → Email
@@ -408,7 +408,7 @@ Use SVG format for charts that need to scale without quality loss:
 **Problem**: Cannot connect to MCP server
 
 **Solutions**:
-- ✅ Verify gplot MCP server is running: `curl http://localhost:8001/mcp/ping`
+- ✅ Verify gofr-plot MCP server is running: `curl http://localhost:8001/mcp/ping`
 - ✅ Check N8N can reach the server (same network if using Docker)
 - ✅ Use correct URL with trailing slash: `http://localhost:8001/mcp/`
 
@@ -435,7 +435,7 @@ Use SVG format for charts that need to scale without quality loss:
 
 ### Tool Discovery Issues
 
-**Problem**: MCP Client doesn't show gplot tools
+**Problem**: MCP Client doesn't show gofr-plot tools
 
 **Solutions**:
 - ✅ Test connection with ping first

@@ -1,10 +1,10 @@
 # Testing Guide
 
-This document describes the testing infrastructure, workflow, and conventions for the gplot project.
+This document describes the testing infrastructure, workflow, and conventions for the gofr-plot project.
 
 ## Overview
 
-gplot maintains a comprehensive test suite covering:
+gofr-plot maintains a comprehensive test suite covering:
 - Authentication and authorization
 - MCP server functionality
 - Web API endpoints
@@ -43,11 +43,11 @@ The `run_tests.sh` script:
 The test runner automatically configures:
 
 | Variable | Default | Purpose |
-|----------|---------|---------|
-| `GPLOT_JWT_SECRET` | `test-secret-key-for...` | JWT token signing secret |
-| `GPLOT_TOKEN_STORE` | `/tmp/gplot_test_tokens.json` | Shared token store path |
-| `GPLOT_MCP_PORT` | `8001` | MCP server port |
-| `GPLOT_WEB_PORT` | `8000` | Web server port |
+|----------|---------|--------|
+| `GOFR_PLOT_JWT_SECRET` | `test-secret-key-for...` | JWT token signing secret |
+| `GOFR_PLOT_TOKEN_STORE` | `/tmp/gofr-plot_test_tokens.json` | Shared token store path |
+| `GOFR_PLOT_MCP_PORT` | `8001` | MCP server port |
+| `GOFR_PLOT_WEB_PORT` | `8000` | Web server port |
 
 ## Test Organization
 
@@ -368,8 +368,8 @@ Or use VS Code's debugging:
 ### Check Server Logs
 
 When using `--with-servers`, logs are saved to:
-- `/tmp/gplot_mcp_test.log`
-- `/tmp/gplot_web_test.log`
+- `/tmp/gofr-plot_mcp_test.log`
+- `/tmp/gofr-plot_web_test.log`
 
 ## CI/CD Integration
 
@@ -384,7 +384,7 @@ When using `--with-servers`, logs are saved to:
 ### Docker
 
 ```bash
-docker run gplot ./scripts/run_tests.sh --with-servers
+docker run gofr-plot ./scripts/run_tests.sh --with-servers
 ```
 
 ## Test Metrics
@@ -420,7 +420,7 @@ pkill -9 -f "python.*main_web.py"
 The test runner automatically cleans the token store. If you see auth failures:
 
 ```bash
-rm /tmp/gplot_test_tokens.json
+rm /tmp/gofr-plot_test_tokens.json
 ```
 
 ### Stale Server Processes

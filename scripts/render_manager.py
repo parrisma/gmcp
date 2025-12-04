@@ -2,7 +2,7 @@
 """Render Manager CLI
 
 Command-line utility to manage graph rendering including handler and theme discovery,
-parameter inspection, and validation capabilities for the gplot service.
+parameter inspection, and validation capabilities for the gofr-plot service.
 """
 
 import argparse
@@ -272,7 +272,7 @@ def validate_graph_params(args):
 
 def main():
     parser = argparse.ArgumentParser(
-        description="gplot Render Manager - Manage graph handlers and themes",
+        description="gofr-plot Render Manager - Manage graph handlers and themes",
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog="""
 Examples:
@@ -297,7 +297,7 @@ Examples:
   python render_manager.py validate title="Test" y1="[1,2,3]" theme=dark format=svg
 
 Environment Variables:
-    GPLOT_DATA_DIR      Override project data directory
+    GOFR_PLOT_DATA_DIR      Override project data directory
         """,
     )
 
